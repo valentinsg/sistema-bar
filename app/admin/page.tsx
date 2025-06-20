@@ -1,21 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import ReservationCalendar from "@/components/reservation-calendar"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Download, Plus, Minus, Users, Calendar, Clock, Phone, User, LogOut, Trash2, ExternalLink, TableIcon, BarChart3, Loader2, RotateCcw, Edit } from "lucide-react"
-import { supabase } from "@/lib/supabase"
-import { deleteReserva, getMesasEstadisticas, getContador } from "@/lib/storage"
-import ReservationCalendar from "@/components/reservation-calendar"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { deleteReserva, getContador, getMesasEstadisticas } from "@/lib/storage"
+import { supabase } from "@/lib/supabase"
+import { BarChart3, Calendar, Clock, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Minus, Phone, Plus, RotateCcw, TableIcon, Trash2, User, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface AdminData {
   id: string
@@ -168,20 +169,20 @@ export default function AdminPage() {
 
   const handleUpdateContador = async (increment: boolean) => {
     if (!adminData?.local_id) return
-    
+
     const nuevoValor = Math.max(0, personasActuales + (increment ? 1 : -1))
-    
+
     // Actualizar optimísticamente la UI
     setPersonasActuales(nuevoValor)
-    
+
     try {
       const today = new Date().toISOString().split("T")[0]
       const { error } = await supabase
         .from("contador_personas")
-        .upsert({ 
-          local_id: adminData.local_id, 
-          fecha: today, 
-          cantidad: nuevoValor 
+        .upsert({
+          local_id: adminData.local_id,
+          fecha: today,
+          cantidad: nuevoValor
         }, {
           onConflict: 'local_id,fecha'
         })
@@ -196,7 +197,7 @@ export default function AdminPage() {
 
       // Disparar evento para actualizar el contador en vivo
       window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: nuevoValor } }))
-      
+
     } catch (error) {
       console.error("Error al actualizar contador:", error)
       // Revertir el cambio optimista si hay error
@@ -207,18 +208,18 @@ export default function AdminPage() {
 
   const handleResetContador = async () => {
     if (!adminData?.local_id) return
-    
+
     // Actualizar optimísticamente la UI
     setPersonasActuales(0)
-    
+
     try {
       const today = new Date().toISOString().split("T")[0]
       const { error } = await supabase
         .from("contador_personas")
-        .upsert({ 
-          local_id: adminData.local_id, 
-          fecha: today, 
-          cantidad: 0 
+        .upsert({
+          local_id: adminData.local_id,
+          fecha: today,
+          cantidad: 0
         }, {
           onConflict: 'local_id,fecha'
         })
@@ -231,7 +232,7 @@ export default function AdminPage() {
 
       // Disparar evento para actualizar el contador en vivo
       window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: 0 } }))
-      
+
     } catch (error) {
       console.error("Error al resetear contador:", error)
       alert("Error al resetear el contador")
@@ -265,7 +266,7 @@ export default function AdminPage() {
         .update({ token_acceso: null })
         .eq("id", adminData.id)
     }
-    
+
     // Limpiar localStorage
     localStorage.removeItem("admin_session")
     router.push("/admin/login")
@@ -328,7 +329,8 @@ export default function AdminPage() {
           contacto: reservaData.contacto,
           fecha: reservaData.fecha,
           horario: reservaData.horario,
-          cantidad_personas: reservaData.cantidad_personas
+          cantidad_personas: reservaData.cantidad_personas,
+          notas: reservaData.notas
         })
         .eq("id", editingReserva.id)
         .eq("local_id", adminData.local_id)
@@ -348,7 +350,7 @@ export default function AdminPage() {
       setReservas(reservasData || [])
       setIsEditDialogOpen(false)
       setEditingReserva(null)
-      
+
       alert("Reserva actualizada correctamente")
     } catch (error) {
       console.error("Error al actualizar reserva:", error)
@@ -375,26 +377,26 @@ export default function AdminPage() {
               <p className="text-gray-400 text-sm">Gestión del boliche</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
-            
+
             <Button onClick={downloadCSV} variant="outline" size="sm" disabled={reservas.length === 0}>
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
-            
+
             <Button onClick={handleVerSitio} variant="outline" size="sm">
               <ExternalLink className="w-4 h-4 mr-2" />
               Ver Sitio
             </Button>
-            
+
             <Button onClick={handleLogout} variant="outline" size="sm" className="border-red-600 text-red-400 hover:bg-red-900/20">
               <LogOut className="w-4 h-4 mr-2" />
               Salir
             </Button>
           </div>
         </div>
-        
+
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -421,16 +423,16 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Button 
-                    onClick={() => handleUpdateContador(true)} 
-                    size="sm" 
+                  <Button
+                    onClick={() => handleUpdateContador(true)}
+                    size="sm"
                     className="bg-green-600 hover:bg-green-700 px-3 py-1.5 transition-all duration-200 shadow-lg hover:shadow-green-500/25"
                   >
                     <Plus className="w-3 h-3" />
                   </Button>
-                  <Button 
-                    onClick={() => handleUpdateContador(false)} 
-                    size="sm" 
+                  <Button
+                    onClick={() => handleUpdateContador(false)}
+                    size="sm"
                     variant="outline"
                     className="border-red-600 text-red-400 hover:bg-red-900/20 px-3 py-1.5 transition-all duration-200"
                     disabled={personasActuales <= 0}
@@ -439,8 +441,8 @@ export default function AdminPage() {
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         className="border-yellow-600 text-yellow-400 hover:bg-yellow-900/20 px-3 py-1.5 transition-all duration-200"
                       >
@@ -451,7 +453,7 @@ export default function AdminPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle className="text-white">¿Resetear contador?</AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-300">
-                          ¿Estás seguro de que quieres resetear el contador a 0? 
+                          ¿Estás seguro de que quieres resetear el contador a 0?
                           Esta acción no se puede deshacer.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
@@ -459,7 +461,7 @@ export default function AdminPage() {
                         <AlertDialogCancel className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
                           Cancelar
                         </AlertDialogCancel>
-                        <AlertDialogAction 
+                        <AlertDialogAction
                           onClick={handleResetContador}
                           className="bg-yellow-600 hover:bg-yellow-700"
                         >
@@ -564,6 +566,7 @@ export default function AdminPage() {
                           <TableHead className="text-gray-300">Horario</TableHead>
                           <TableHead className="text-gray-300">Personas</TableHead>
                           <TableHead className="text-gray-300">Mesas</TableHead>
+                          <TableHead className="text-gray-300">Notas</TableHead>
                           <TableHead className="text-gray-300">Registrado</TableHead>
                           <TableHead className="text-gray-300 text-center">Acciones</TableHead>
                         </TableRow>
@@ -574,20 +577,20 @@ export default function AdminPage() {
                             <TableCell>{getStatusBadge(r.fecha, r.horario)}</TableCell>
                             <TableCell className="text-white font-medium">
                               <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-gray-400" /> 
+                                <User className="w-4 h-4 text-gray-400" />
                                 {r.nombre}
                               </div>
                             </TableCell>
                             <TableCell className="text-gray-300">
                               <div className="flex items-center gap-2">
-                                <Phone className="w-4 h-4 text-gray-400" /> 
+                                <Phone className="w-4 h-4 text-gray-400" />
                                 {r.contacto}
                               </div>
                             </TableCell>
                             <TableCell className="text-gray-300">{formatDate(r.fecha)}</TableCell>
                             <TableCell className="text-gray-300">
                               <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-gray-400" /> 
+                                <Clock className="w-4 h-4 text-gray-400" />
                                 {r.horario}
                               </div>
                             </TableCell>
@@ -601,6 +604,28 @@ export default function AdminPage() {
                                 {Math.ceil(r.cantidad_personas / 4)}
                               </Badge>
                             </TableCell>
+                            <TableCell className="text-gray-300 max-w-48">
+                              {r.notas ? (
+                                <div className="flex items-start gap-2">
+                                  <MessageSquare className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                                  <div className="text-sm">
+                                    <p className="text-gray-300 line-clamp-2 break-words">
+                                      {r.notas}
+                                    </p>
+                                    {r.notas.length > 60 && (
+                                      <button
+                                        className="text-yellow-400 hover:text-yellow-300 text-xs mt-1"
+                                        onClick={() => alert(r.notas)}
+                                      >
+                                        Ver completo
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-500 text-sm italic">Sin notas</span>
+                              )}
+                            </TableCell>
                             <TableCell className="text-gray-400 text-sm">
                               {new Date(r.created_at).toLocaleDateString("es-AR")}
                             </TableCell>
@@ -611,16 +636,16 @@ export default function AdminPage() {
                                   if (!open) setEditingReserva(null)
                                 }}>
                                   <DialogTrigger asChild>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       className="border-blue-600 text-blue-400 hover:bg-blue-900/20"
                                       onClick={() => setEditingReserva(r)}
                                     >
                                       <Edit className="w-4 h-4" />
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent className="bg-gray-800 border-gray-700 text-white">
+                                  <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl">
                                     <DialogHeader>
                                       <DialogTitle>Editar Reserva</DialogTitle>
                                       <DialogDescription className="text-gray-400">
@@ -696,19 +721,33 @@ export default function AdminPage() {
                                           className="col-span-3 bg-gray-700 border-gray-600 text-white"
                                         />
                                       </div>
+                                      <div className="grid grid-cols-4 items-start gap-4">
+                                        <Label htmlFor="notas" className="text-right pt-2">
+                                          Notas
+                                        </Label>
+                                        <Textarea
+                                          id="notas"
+                                          value={editingReserva?.notas || ""}
+                                          onChange={(e) => setEditingReserva(prev => ({ ...prev, notas: e.target.value }))}
+                                          className="col-span-3 bg-gray-700 border-gray-600 text-white resize-none"
+                                          placeholder="Solicitudes especiales, alergias, celebraciones, etc."
+                                          rows={3}
+                                          maxLength={500}
+                                        />
+                                      </div>
                                     </div>
                                     <DialogFooter>
-                                      <Button 
+                                      <Button
                                         onClick={() => {
                                           setIsEditDialogOpen(false)
                                           setEditingReserva(null)
                                         }}
-                                        variant="outline" 
+                                        variant="outline"
                                         className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600"
                                       >
                                         Cancelar
                                       </Button>
-                                      <Button 
+                                      <Button
                                         onClick={() => handleEditReserva(editingReserva)}
                                         className="bg-blue-600 hover:bg-blue-700"
                                       >
@@ -717,12 +756,12 @@ export default function AdminPage() {
                                     </DialogFooter>
                                   </DialogContent>
                                 </Dialog>
-                                
+
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       className="border-red-600 text-red-400 hover:bg-red-900/20"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -732,7 +771,7 @@ export default function AdminPage() {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle className="text-white">¿Eliminar reserva?</AlertDialogTitle>
                                       <AlertDialogDescription className="text-gray-300">
-                                        ¿Estás seguro de que quieres eliminar la reserva de <strong>{r.nombre}</strong>? 
+                                        ¿Estás seguro de que quieres eliminar la reserva de <strong>{r.nombre}</strong>?
                                         Esta acción no se puede deshacer.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
@@ -740,7 +779,7 @@ export default function AdminPage() {
                                       <AlertDialogCancel className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
                                         Cancelar
                                       </AlertDialogCancel>
-                                      <AlertDialogAction 
+                                      <AlertDialogAction
                                         onClick={() => handleDeleteReserva(r.id, r.nombre)}
                                         className="bg-red-600 hover:bg-red-700"
                                       >

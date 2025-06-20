@@ -10,6 +10,7 @@ export interface Reserva {
   fecha: string
   horario: string
   cantidad_personas: number
+  notas?: string | null
   created_at: string
 }
 
@@ -60,9 +61,9 @@ export const deleteReserva = async (id: string): Promise<boolean> => {
 
 export const getContador = async (local_id: string): Promise<number> => {
   const fechaHoy = new Date().toISOString().split("T")[0]
-  
+
   console.log("📊 getContador - Parámetros:", { local_id, fecha: fechaHoy })
-  
+
   const { data, error } = await supabase
     .from("contador_personas")
     .select("cantidad")
@@ -86,10 +87,10 @@ export const getContador = async (local_id: string): Promise<number> => {
 
 export const updateContador = async (local_id: string, cantidad: number): Promise<boolean> => {
   const fechaHoy = new Date().toISOString().split("T")[0]
-  
+
   try {
     console.log("🔄 Actualizando contador en BD:", { local_id, fecha: fechaHoy, cantidad })
-    
+
     const { error } = await supabase
       .from("contador_personas")
       .upsert({
@@ -146,7 +147,7 @@ export const getDisponibilidad = async (local_id: string, fecha: string, horario
     }, 0)
 
     const mesasDisponibles = Math.max(0, MESAS_TOTALES - mesasOcupadasDelDia)
-    
+
     return mesasDisponibles
 
   } catch (error) {

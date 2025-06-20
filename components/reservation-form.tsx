@@ -1,14 +1,15 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, Clock, Users, Phone, User, Loader2 } from "lucide-react"
-import { saveReserva, getDisponibilidad } from "@/lib/storage"
+import { Textarea } from "@/components/ui/textarea"
+import { getDisponibilidad, saveReserva } from "@/lib/storage"
+import { Calendar, Clock, Loader2, MessageSquare, Phone, User, Users } from "lucide-react"
+import type React from "react"
+import { useEffect, useState } from "react"
 
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 
@@ -19,6 +20,7 @@ export default function ReservationForm() {
     fecha: new Date().toISOString().split("T")[0], // Auto-completar con fecha de hoy
     horario: "",
     cantidad_personas: "",
+    notas: "", // Nuevo campo para notas
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -41,7 +43,7 @@ export default function ReservationForm() {
 
       setLoadingDisponibilidad(true)
       const nuevaDisponibilidad: Record<string, number> = {}
-      
+
       try {
         for (const horario of horarios) {
           const disponibles = await getDisponibilidad(LOCAL_ID, formData.fecha, horario)
@@ -77,17 +79,17 @@ export default function ReservationForm() {
     // Validar fecha de manera más robusta
     if (formData.fecha) {
       const today = new Date()
-      const todayStr = today.getFullYear() + '-' + 
-                      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+      const todayStr = today.getFullYear() + '-' +
+                      String(today.getMonth() + 1).padStart(2, '0') + '-' +
                       String(today.getDate()).padStart(2, '0')
-      
+
       // Debug temporal
       console.log(`📅 Debug validación fecha:`, {
         fechaSeleccionada: formData.fecha,
         fechaHoy: todayStr,
         esPasado: formData.fecha < todayStr
       })
-      
+
       if (formData.fecha < todayStr) {
         newErrors.fecha = "La fecha no puede ser en el pasado"
       }
@@ -102,6 +104,11 @@ export default function ReservationForm() {
       if (mesasNecesarias > disponibles) {
         newErrors.horario = `Solo quedan ${disponibles} mesas disponibles en este horario`
       }
+    }
+
+    // Validar longitud de notas (opcional)
+    if (formData.notas && formData.notas.length > 500) {
+      newErrors.notas = "Las notas no pueden exceder los 500 caracteres"
     }
 
     setErrors(newErrors)
@@ -123,15 +130,17 @@ export default function ReservationForm() {
         fecha: formData.fecha,
         horario: formData.horario,
         cantidad_personas: Number.parseInt(formData.cantidad_personas),
+        notas: formData.notas.trim() || null, // Agregar notas al guardado
       })
 
       setShowSuccess(true)
-      setFormData({ 
-        nombre: "", 
-        contacto: "", 
+      setFormData({
+        nombre: "",
+        contacto: "",
         fecha: new Date().toISOString().split("T")[0], // Resetear a fecha de hoy
-        horario: "", 
-        cantidad_personas: "" 
+        horario: "",
+        cantidad_personas: "",
+        notas: "" // Resetear notas
       })
       setTimeout(() => setShowSuccess(false), 5000)
     } catch (error) {
@@ -283,11 +292,33 @@ export default function ReservationForm() {
             />
             {formData.cantidad_personas && Number.parseInt(formData.cantidad_personas) > 0 && (
               <p className="text-xs text-purple-300">
-                Esta reserva ocupará {Math.ceil(Number.parseInt(formData.cantidad_personas) / 4)} mesa{Math.ceil(Number.parseInt(formData.cantidad_personas) / 4) !== 1 ? 's' : ''} 
+                Esta reserva ocupará {Math.ceil(Number.parseInt(formData.cantidad_personas) / 4)} mesa{Math.ceil(Number.parseInt(formData.cantidad_personas) / 4) !== 1 ? 's' : ''}
                 (máximo 4 personas por mesa)
               </p>
             )}
             {errors.cantidad_personas && <p className="text-red-400 text-sm">{errors.cantidad_personas}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notas" className="text-white flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Notas adicionales <span className="text-gray-400 text-sm">(opcional)</span>
+            </Label>
+            <Textarea
+              id="notas"
+              value={formData.notas}
+              onChange={(e) => handleInputChange("notas", e.target.value)}
+              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 resize-none"
+              placeholder="Solicitudes especiales, alergias, celebraciones, etc."
+              rows={3}
+              maxLength={500}
+            />
+            <div className="flex justify-between items-center">
+              {errors.notas && <p className="text-red-400 text-sm">{errors.notas}</p>}
+              <p className="text-xs text-gray-400 ml-auto">
+                {formData.notas.length}/500 caracteres
+              </p>
+            </div>
           </div>
 
           <Button
