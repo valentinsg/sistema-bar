@@ -68,39 +68,55 @@ export default function ReservationForm() {
   const validateForm = async () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.nombre.trim()) newErrors.nombre = "El nombre es requerido"
-    if (!formData.contacto.trim()) newErrors.contacto = "El contacto es requerido"
-    if (!formData.fecha) newErrors.fecha = "La fecha es requerida"
-    if (!formData.horario) newErrors.horario = "El horario es requerido"
-    if (!formData.cantidad_personas || Number.parseInt(formData.cantidad_personas) < 1) {
-      newErrors.cantidad_personas = "Debe ser al menos 1 persona"
+    // Validar nombre (más estricto)
+    if (!formData.nombre.trim()) {
+      newErrors.nombre = "El nombre es requerido"
+    } else if (formData.nombre.trim().length < 2) {
+      newErrors.nombre = "El nombre debe tener al menos 2 caracteres"
     }
 
-    // Validar fecha de manera más robusta
-    if (formData.fecha) {
+    // Validar contacto (más estricto)
+    if (!formData.contacto.trim()) {
+      newErrors.contacto = "El contacto es requerido"
+    } else if (formData.contacto.trim().length < 8) {
+      newErrors.contacto = "Ingresa un contacto válido (teléfono o email)"
+    }
+
+    // Validar fecha
+    if (!formData.fecha) {
+      newErrors.fecha = "La fecha es requerida"
+    } else {
       const today = new Date()
       const todayStr = today.getFullYear() + '-' +
                       String(today.getMonth() + 1).padStart(2, '0') + '-' +
                       String(today.getDate()).padStart(2, '0')
-
-      // Debug temporal
-      console.log(`📅 Debug validación fecha:`, {
-        fechaSeleccionada: formData.fecha,
-        fechaHoy: todayStr,
-        esPasado: formData.fecha < todayStr
-      })
 
       if (formData.fecha < todayStr) {
         newErrors.fecha = "La fecha no puede ser en el pasado"
       }
     }
 
-    // Removemos la restricción de horario - ahora siempre se puede reservar para hoy
-    // Solo mantenemos la validación de fechas pasadas
+    // Validar horario
+    if (!formData.horario) {
+      newErrors.horario = "El horario es requerido"
+    }
 
-    if (formData.fecha && formData.horario) {
+    // Validar cantidad de personas
+    if (!formData.cantidad_personas) {
+      newErrors.cantidad_personas = "La cantidad de personas es requerida"
+    } else {
+      const cantidad = Number.parseInt(formData.cantidad_personas)
+      if (isNaN(cantidad) || cantidad < 1) {
+        newErrors.cantidad_personas = "Debe ser al menos 1 persona"
+      } else if (cantidad > 20) {
+        newErrors.cantidad_personas = "Máximo 20 personas por reserva"
+      }
+    }
+
+    // Validar disponibilidad si todos los campos están completos
+    if (formData.fecha && formData.horario && formData.cantidad_personas && !newErrors.horario && !newErrors.cantidad_personas) {
       const disponibles = disponibilidad[formData.horario] || 0
-      const mesasNecesarias = Math.ceil(Number.parseInt(formData.cantidad_personas || "0") / 4)
+      const mesasNecesarias = Math.ceil(Number.parseInt(formData.cantidad_personas) / 4)
       if (mesasNecesarias > disponibles) {
         newErrors.horario = `Solo quedan ${disponibles} mesas disponibles en este horario`
       }
@@ -118,30 +134,42 @@ export default function ReservationForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!(await validateForm())) return
+    // Validar antes de proceder
+    const isValid = await validateForm()
+    if (!isValid) {
+      // Hacer scroll al primer error
+      const firstErrorField = Object.keys(errors)[0]
+      if (firstErrorField) {
+        const element = document.getElementById(firstErrorField)
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        element?.focus()
+      }
+      return
+    }
 
     setIsSubmitting(true)
 
     try {
       await saveReserva({
         local_id: LOCAL_ID,
-        nombre: formData.nombre,
-        contacto: formData.contacto,
+        nombre: formData.nombre.trim(),
+        contacto: formData.contacto.trim(),
         fecha: formData.fecha,
         horario: formData.horario,
         cantidad_personas: Number.parseInt(formData.cantidad_personas),
-        notas: formData.notas.trim() || null, // Agregar notas al guardado
+        notas: formData.notas.trim() || null,
       })
 
       setShowSuccess(true)
       setFormData({
         nombre: "",
         contacto: "",
-        fecha: new Date().toISOString().split("T")[0], // Resetear a fecha de hoy
+        fecha: new Date().toISOString().split("T")[0],
         horario: "",
         cantidad_personas: "",
-        notas: "" // Resetear notas
+        notas: ""
       })
+      setErrors({}) // Limpiar errores
       setTimeout(() => setShowSuccess(false), 5000)
     } catch (error) {
       console.error("Error al guardar reserva:", error)
@@ -152,11 +180,86 @@ export default function ReservationForm() {
   }
 
   const handleInputChange = (field: string, value: string) => {
+    // Limitar cantidad de personas a máximo 20
+    if (field === "cantidad_personas" && value !== "") {
+      const numValue = Number.parseInt(value)
+      if (numValue > 20) {
+        value = "20"
+      } else if (numValue < 0) {
+        value = "1"
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [field]: value }))
+
+    // Limpiar error del campo cuando el usuario empiece a escribir
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
     }
   }
+
+  // Función para manejar Enter en campos individuales
+  const handleKeyDown = async (e: React.KeyboardEvent, field: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      // Validar el campo actual primero
+      const fieldErrors: Record<string, string> = {}
+
+      switch (field) {
+        case 'nombre':
+          if (!formData.nombre.trim()) {
+            fieldErrors.nombre = "El nombre es requerido"
+          } else if (formData.nombre.trim().length < 2) {
+            fieldErrors.nombre = "El nombre debe tener al menos 2 caracteres"
+          }
+          break
+        case 'contacto':
+          if (!formData.contacto.trim()) {
+            fieldErrors.contacto = "El contacto es requerido"
+          } else if (formData.contacto.trim().length < 8) {
+            fieldErrors.contacto = "Ingresa un contacto válido (teléfono o email)"
+          }
+          break
+        case 'fecha':
+          if (!formData.fecha) {
+            fieldErrors.fecha = "La fecha es requerida"
+          }
+          break
+        case 'cantidad_personas':
+          if (!formData.cantidad_personas) {
+            fieldErrors.cantidad_personas = "La cantidad de personas es requerida"
+          }
+          break
+      }
+
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(prev => ({ ...prev, ...fieldErrors }))
+        return
+      }
+
+      // Si el campo actual está bien, intentar enviar el formulario completo
+      const isFormValid = await validateForm()
+      if (isFormValid) {
+        handleSubmit(e as any)
+      } else {
+        // Enfocar el siguiente campo con error
+        const errorFields = Object.keys(errors)
+        if (errorFields.length > 0) {
+          const nextErrorField = errorFields[0]
+          const element = document.getElementById(nextErrorField)
+          element?.focus()
+        }
+      }
+    }
+  }
+
+  // Verificar si el formulario está completo (excepto notas)
+  const isFormComplete = formData.nombre.trim() &&
+                        formData.contacto.trim() &&
+                        formData.fecha &&
+                        formData.horario &&
+                        formData.cantidad_personas
 
   if (showSuccess) {
     return (
@@ -201,10 +304,13 @@ export default function ReservationForm() {
               type="text"
               value={formData.nombre}
               onChange={(e) => handleInputChange("nombre", e.target.value)}
-              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
+              className={`bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 ${
+                errors.nombre ? 'border-red-500 focus:border-red-500' : ''
+              }`}
               placeholder="Tu nombre completo"
+              onKeyDown={(e) => handleKeyDown(e, "nombre")}
             />
-            {errors.nombre && <p className="text-red-400 text-sm">{errors.nombre}</p>}
+            {errors.nombre && <p className="text-red-400 text-sm font-medium">{errors.nombre}</p>}
           </div>
 
           <div className="space-y-2">
@@ -217,10 +323,13 @@ export default function ReservationForm() {
               type="text"
               value={formData.contacto}
               onChange={(e) => handleInputChange("contacto", e.target.value)}
-              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
+              className={`bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 ${
+                errors.contacto ? 'border-red-500 focus:border-red-500' : ''
+              }`}
               placeholder="Teléfono o email"
+              onKeyDown={(e) => handleKeyDown(e, "contacto")}
             />
-            {errors.contacto && <p className="text-red-400 text-sm">{errors.contacto}</p>}
+            {errors.contacto && <p className="text-red-400 text-sm font-medium">{errors.contacto}</p>}
           </div>
 
           <div className="space-y-2">
@@ -233,11 +342,13 @@ export default function ReservationForm() {
               type="date"
               value={formData.fecha}
               onChange={(e) => handleInputChange("fecha", e.target.value)}
-              className="bg-gray-800 border-gray-600 text-white"
+              className={`bg-gray-800 border-gray-600 text-white ${
+                errors.fecha ? 'border-red-500 focus:border-red-500' : ''
+              }`}
               min={new Date().toISOString().split("T")[0]}
+              onKeyDown={(e) => handleKeyDown(e, "fecha")}
             />
-            {errors.fecha && <p className="text-red-400 text-sm">{errors.fecha}</p>}
-
+            {errors.fecha && <p className="text-red-400 text-sm font-medium">{errors.fecha}</p>}
           </div>
 
           <div className="space-y-2">
@@ -246,7 +357,9 @@ export default function ReservationForm() {
               Horario
             </Label>
             <Select value={formData.horario} onValueChange={(value) => handleInputChange("horario", value)}>
-              <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+              <SelectTrigger className={`bg-gray-800 border-gray-600 text-white ${
+                errors.horario ? 'border-red-500 focus:border-red-500' : ''
+              }`}>
                 <SelectValue placeholder="Selecciona un horario" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-600">
@@ -272,13 +385,13 @@ export default function ReservationForm() {
                 })}
               </SelectContent>
             </Select>
-            {errors.horario && <p className="text-red-400 text-sm">{errors.horario}</p>}
+            {errors.horario && <p className="text-red-400 text-sm font-medium">{errors.horario}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="cantidad" className="text-white flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Cantidad de personas
+              Cantidad de personas <span className="text-gray-400 text-sm">(máximo 20)</span>
             </Label>
             <Input
               id="cantidad"
@@ -287,16 +400,19 @@ export default function ReservationForm() {
               max="20"
               value={formData.cantidad_personas}
               onChange={(e) => handleInputChange("cantidad_personas", e.target.value)}
-              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
+              className={`bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 ${
+                errors.cantidad_personas ? 'border-red-500 focus:border-red-500' : ''
+              }`}
               placeholder="¿Cuántas personas?"
+              onKeyDown={(e) => handleKeyDown(e, "cantidad_personas")}
             />
-            {formData.cantidad_personas && Number.parseInt(formData.cantidad_personas) > 0 && (
+            {formData.cantidad_personas && Number.parseInt(formData.cantidad_personas) > 0 && !errors.cantidad_personas && (
               <p className="text-xs text-purple-300">
                 Esta reserva ocupará {Math.ceil(Number.parseInt(formData.cantidad_personas) / 4)} mesa{Math.ceil(Number.parseInt(formData.cantidad_personas) / 4) !== 1 ? 's' : ''}
                 (máximo 4 personas por mesa)
               </p>
             )}
-            {errors.cantidad_personas && <p className="text-red-400 text-sm">{errors.cantidad_personas}</p>}
+            {errors.cantidad_personas && <p className="text-red-400 text-sm font-medium">{errors.cantidad_personas}</p>}
           </div>
 
           <div className="space-y-2">
@@ -308,13 +424,16 @@ export default function ReservationForm() {
               id="notas"
               value={formData.notas}
               onChange={(e) => handleInputChange("notas", e.target.value)}
-              className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 resize-none"
+              className={`bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 resize-none ${
+                errors.notas ? 'border-red-500 focus:border-red-500' : ''
+              }`}
               placeholder="Solicitudes especiales, alergias, celebraciones, etc."
               rows={3}
               maxLength={500}
+              onKeyDown={(e) => handleKeyDown(e, "notas")}
             />
             <div className="flex justify-between items-center">
-              {errors.notas && <p className="text-red-400 text-sm">{errors.notas}</p>}
+              {errors.notas && <p className="text-red-400 text-sm font-medium">{errors.notas}</p>}
               <p className="text-xs text-gray-400 ml-auto">
                 {formData.notas.length}/500 caracteres
               </p>
@@ -323,14 +442,20 @@ export default function ReservationForm() {
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3"
-            disabled={isSubmitting || loadingDisponibilidad}
+            className={`w-full font-semibold py-3 transition-all duration-200 ${
+              isFormComplete
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300 cursor-not-allowed'
+            }`}
+            disabled={isSubmitting || loadingDisponibilidad || !isFormComplete}
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Procesando...
               </div>
+            ) : !isFormComplete ? (
+              "Completa todos los campos obligatorios"
             ) : (
               "Confirmar Reserva"
             )}

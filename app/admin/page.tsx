@@ -46,6 +46,8 @@ export default function AdminPage() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [editingReserva, setEditingReserva] = useState<any>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [sortConfig, setSortConfig] = useState({ key: "fecha", direction: "ascending" })
+  const [sortedReservas, setSortedReservas] = useState<any[]>([])
 
   const router = useRouter()
 
@@ -166,6 +168,31 @@ export default function AdminPage() {
       contadorSubscription.unsubscribe()
     }
   }, [adminData])
+
+  useEffect(() => {
+    let sorted = [...reservas]
+
+    sorted.sort((a, b) => {
+      const aStatus = getStatus(a.fecha, a.horario)
+      const bStatus = getStatus(b.fecha, b.horario)
+      const aDate = new Date(`${a.fecha}T${a.horario}`).getTime()
+      const bDate = new Date(`${b.fecha}T${b.horario}`).getTime()
+
+      // Prioridad de estado
+      const statusPriority = { "Hoy": 0, "Próxima": 1, "Pasada": 2 }
+
+      if (statusPriority[aStatus] < statusPriority[bStatus]) return -1
+      if (statusPriority[aStatus] > statusPriority[bStatus]) return 1
+
+      // Ordenar por fecha y hora
+      if (aStatus === "Pasada") {
+        return bDate - aDate // Descendente para pasadas
+      }
+      return aDate - bDate // Ascendente para hoy y próximas
+    })
+
+    setSortedReservas(sorted)
+  }, [reservas, sortConfig])
 
   const handleUpdateContador = async (increment: boolean) => {
     if (!adminData?.local_id) return
@@ -309,17 +336,51 @@ export default function AdminPage() {
     })
   }
 
-  const getStatusBadge = (fecha: string, horario: string) => {
+  const getStatus = (fecha: string, horario: string) => {
     const reservaDateTime = new Date(`${fecha}T${horario}`)
     const now = new Date()
 
-    if (reservaDateTime < now) return <Badge variant="secondary">Pasada</Badge>
-    if (reservaDateTime.toDateString() === now.toDateString()) return <Badge className="bg-green-600 hover:bg-green-700">Hoy</Badge>
-    return <Badge variant="outline">Próxima</Badge>
+    // Reset time part for date-only comparison
+    const reservaDate = new Date(reservaDateTime)
+    reservaDate.setHours(0, 0, 0, 0)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (reservaDate < today) {
+      return "Pasada"
+    }
+    if (reservaDate > today) {
+      return "Próxima"
+    }
+    // It's today, now check time
+    if (reservaDateTime < now) {
+      return "Pasada"
+    }
+    return "Hoy"
+  }
+
+  const getStatusBadge = (fecha: string, horario: string) => {
+    const status = getStatus(fecha, horario)
+    switch (status) {
+      case "Pasada":
+        return <Badge variant="secondary">Pasada</Badge>
+      case "Hoy":
+        return <Badge className="bg-green-600 hover:bg-green-700">Hoy</Badge>
+      case "Próxima":
+        return <Badge variant="outline">Próxima</Badge>
+      default:
+        return <Badge variant="secondary">Pasada</Badge>
+    }
   }
 
   const handleEditReserva = async (reservaData: any) => {
     if (!adminData?.local_id) return
+
+    // Validar que no exceda 20 personas
+    if (reservaData.cantidad_personas > 20) {
+      alert("El máximo de personas por reserva es 20")
+      return
+    }
 
     try {
       const { error } = await supabase
@@ -555,15 +616,15 @@ export default function AdminPage() {
                     <p className="text-sm">Las nuevas reservas aparecerán aquí</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto max-h-[600px]">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-gray-700">
                           <TableHead className="text-gray-300">Estado</TableHead>
-                          <TableHead className="text-gray-300">Cliente</TableHead>
-                          <TableHead className="text-gray-300">Contacto</TableHead>
                           <TableHead className="text-gray-300">Fecha</TableHead>
                           <TableHead className="text-gray-300">Horario</TableHead>
+                          <TableHead className="text-gray-300">Cliente</TableHead>
+                          <TableHead className="text-gray-300">Contacto</TableHead>
                           <TableHead className="text-gray-300">Personas</TableHead>
                           <TableHead className="text-gray-300">Mesas</TableHead>
                           <TableHead className="text-gray-300">Notas</TableHead>
@@ -572,9 +633,16 @@ export default function AdminPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {reservas.sort((a, b) => new Date(`${a.fecha}T${a.horario}`).getTime() - new Date(`${b.fecha}T${b.horario}`).getTime()).map((r) => (
+                        {sortedReservas.map((r) => (
                           <TableRow key={r.id} className="border-gray-700 hover:bg-gray-700/50">
                             <TableCell>{getStatusBadge(r.fecha, r.horario)}</TableCell>
+                            <TableCell className="text-gray-300">{formatDate(r.fecha)}</TableCell>
+                            <TableCell className="text-gray-300">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-gray-400" />
+                                {r.horario}
+                              </div>
+                            </TableCell>
                             <TableCell className="text-white font-medium">
                               <div className="flex items-center gap-2">
                                 <User className="w-4 h-4 text-gray-400" />
@@ -585,13 +653,6 @@ export default function AdminPage() {
                               <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-gray-400" />
                                 {r.contacto}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-gray-300">{formatDate(r.fecha)}</TableCell>
-                            <TableCell className="text-gray-300">
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-gray-400" />
-                                {r.horario}
                               </div>
                             </TableCell>
                             <TableCell className="text-gray-300">
@@ -717,7 +778,12 @@ export default function AdminPage() {
                                           min="1"
                                           max="20"
                                           value={editingReserva?.cantidad_personas || ""}
-                                          onChange={(e) => setEditingReserva(prev => ({ ...prev, cantidad_personas: parseInt(e.target.value) }))}
+                                          onChange={(e) => {
+                                            let value = parseInt(e.target.value)
+                                            if (value > 20) value = 20
+                                            if (value < 1) value = 1
+                                            setEditingReserva(prev => ({ ...prev, cantidad_personas: value }))
+                                          }}
                                           className="col-span-3 bg-gray-700 border-gray-600 text-white"
                                         />
                                       </div>

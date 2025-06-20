@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Calendar, ChevronLeft, ChevronRight, Users, Clock, Trash2, Phone, User, Loader2 } from "lucide-react"
-import { getReservas, getDisponibilidad, deleteReserva, type Reserva } from "@/lib/storage"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { deleteReserva, getDisponibilidad, getReservas, type Reserva } from "@/lib/storage"
+import { Calendar, ChevronLeft, ChevronRight, Clock, Loader2, Phone, Trash2, User, Users } from "lucide-react"
+import { useEffect, useState } from "react"
 
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 
@@ -34,7 +34,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
 
   const handleDeleteReserva = async (id: string, nombre: string) => {
     if (!isAdmin) return
-    
+
     const success = await deleteReserva(id)
     if (success) {
       // Recargar los datos después de eliminar
@@ -65,7 +65,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
 
   const loadSelectedDateData = async () => {
     if (!selectedDate) return
-    
+
     setLoadingDay(true)
     try {
       const allReservas = await getReservas(LOCAL_ID)
@@ -125,11 +125,11 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
   const isPastDate = (day: number) => {
     const today = new Date()
     const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-    
+
     // Normalizar fechas a solo el día (sin hora) para comparación correcta
     const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate())
     const dayNormalized = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate())
-    
+
     return dayNormalized < todayNormalized
   }
 
@@ -157,10 +157,10 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))} 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
               className="bg-gray-700/80 border-purple-500/50 text-purple-200 hover:bg-purple-600/20 hover:border-purple-400 hover:text-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
               disabled={loading}
             >
@@ -169,10 +169,10 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
             <h3 className="text-xl font-semibold text-white">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h3>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))} 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
               className="bg-gray-700/80 border-purple-500/50 text-purple-200 hover:bg-purple-600/20 hover:border-purple-400 hover:text-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
               disabled={loading}
             >
@@ -195,7 +195,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
               const todayClass = isToday(day)
               const pastDate = isPastDate(day)
               const todayAfter18 = isTodayAfter18(day)
-              
+
               // Debug temporal para verificar fechas
               if (todayClass) {
                 console.log(`📅 Debug fecha HOY (${day}):`, {
@@ -218,7 +218,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                         todayClass ? "bg-blue-600/20 text-blue-400 border border-blue-500/30" :
                           "text-white hover:bg-gray-700"}`}>
                   {day}
-                  {reservasCount > 0 && (
+                  {reservasCount > 0 && !pastDate && (
                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-pink-500 rounded-full text-xs flex items-center justify-center text-white">
                       {reservasCount}
                     </div>
@@ -259,12 +259,12 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                   <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 mb-4">
                     <div className="text-blue-300 text-sm flex items-center gap-2">
                       <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <span><strong>Info:</strong> El local tiene 50 mesas totales para todo el día. 
+                      <span><strong>Info:</strong> El local tiene 50 mesas totales para todo el día.
                       Cada 4 personas ocupan 1 mesa.</span>
                     </div>
                   </div>
                 )}
-                
+
                 <div>
                   <h4 className="text-white font-semibold mb-3">Disponibilidad por horario:</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -338,9 +338,9 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                             <div className="ml-4">
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="border-red-600 text-red-400 hover:bg-red-900/20"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -350,7 +350,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                                   <AlertDialogHeader>
                                     <AlertDialogTitle className="text-white">¿Eliminar reserva?</AlertDialogTitle>
                                     <AlertDialogDescription className="text-gray-300">
-                                      ¿Estás seguro de que quieres eliminar la reserva de <strong>{reserva.nombre}</strong>? 
+                                      ¿Estás seguro de que quieres eliminar la reserva de <strong>{reserva.nombre}</strong>?
                                       Esta acción no se puede deshacer.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
@@ -358,7 +358,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                                     <AlertDialogCancel className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
                                       Cancelar
                                     </AlertDialogCancel>
-                                    <AlertDialogAction 
+                                    <AlertDialogAction
                                       onClick={() => handleDeleteReserva(reserva.id, reserva.nombre)}
                                       className="bg-red-600 hover:bg-red-700"
                                     >
