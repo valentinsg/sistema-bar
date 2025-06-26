@@ -1,14 +1,190 @@
+@font-face {
+  font-family: 'Legquinne';
+  src: url('/Legquinne-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  /* Mejorar renderizado de fuentes */
+  font-feature-settings: "liga", "kern";
+  font-variant-ligatures: common-ligatures;
+  font-smooth: always;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Configuración global para mejor calidad de renderizado */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* Mejorar calidad de renderizado */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Suavizar bordes */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+html {
+  /* Habilitar scroll suave */
+  scroll-behavior: smooth;
+  /* Mejorar renderizado de texto */
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
+  /* Mejorar calidad de renderizado */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Evitar parpadeo en transiciones */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Mejoras para imágenes */
+img {
+  /* Mejor interpolación de imágenes */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  /* Fallback para navegadores que no soportan crisp-edges */
+  image-rendering: pixelated;
+  /* Para imágenes que no son pixeladas, usar smooth */
+  image-rendering: smooth;
+  /* Configuración por defecto más moderna */
+  image-rendering: high-quality;
+  /* Evitar distorsión en redimensionado */
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Clases específicas para diferentes tipos de imágenes */
+.image-crisp {
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+.image-smooth {
+  image-rendering: auto;
+  image-rendering: smooth;
+  image-rendering: high-quality;
+}
+
+/* Mejorar calidad de logos y elementos decorativos */
+.logo-quality {
+  image-rendering: auto;
+  image-rendering: smooth;
+  image-rendering: high-quality;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .font-legquinne {
+    font-family: 'Legquinne', serif;
+    /* Aplicar mejor renderizado a la fuente custom */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "liga", "kern";
+    font-variant-ligatures: common-ligatures;
+  }
+
+  /* Utilidades para mejor calidad visual */
+  .crisp-edges {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+  }
+
+  .smooth-rendering {
+    image-rendering: auto;
+    image-rendering: smooth;
+    image-rendering: high-quality;
+  }
+
+  .text-crisp {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  .gpu-accelerated {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Mejores gradientes y efectos */
+  .gradient-quality {
+    background-attachment: fixed;
+    background-size: 200% 200%;
+  }
+
+  /* Sombras de alta calidad */
+  .shadow-premium {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.12),
+      0 1px 2px rgba(0, 0, 0, 0.24),
+      0 4px 8px rgba(0, 0, 0, 0.16),
+      0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .shadow-glow {
+    box-shadow:
+      0 0 20px rgba(249, 115, 22, 0.3),
+      0 0 40px rgba(249, 115, 22, 0.2),
+      0 0 80px rgba(249, 115, 22, 0.1);
+  }
+
+  .shadow-glow-red {
+    box-shadow:
+      0 0 20px rgba(239, 68, 68, 0.3),
+      0 0 40px rgba(239, 68, 68, 0.2),
+      0 0 80px rgba(239, 68, 68, 0.1);
+  }
+
+  /* Bordes premium */
+  .border-glow {
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 10px rgba(249, 115, 22, 0.2);
+  }
+
+  .border-glow-red {
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 10px rgba(239, 68, 68, 0.2);
+  }
+
+  /* Efectos de vidrio mejorados */
+  .glass-effect {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-effect-dark {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -91,4 +267,621 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Animación elíptica mejorada para la estrella - Móvil */
+@keyframes elliptical-orbit {
+  0% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-12px) rotate(0deg);
+  }
+  6.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(16px) translateY(-10px) rotate(22.5deg);
+  }
+  12.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(28px) translateY(-6px) rotate(45deg);
+  }
+  18.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(32px) translateY(-2px) rotate(67.5deg);
+  }
+  25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(32px) translateY(2px) rotate(90deg);
+  }
+  31.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(28px) translateY(6px) rotate(112.5deg);
+  }
+  37.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(16px) translateY(10px) rotate(135deg);
+  }
+  43.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(12px) rotate(157.5deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-16px) translateY(10px) rotate(180deg);
+  }
+  56.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-28px) translateY(6px) rotate(202.5deg);
+  }
+  62.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-32px) translateY(2px) rotate(225deg);
+  }
+  68.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-32px) translateY(-2px) rotate(247.5deg);
+  }
+  75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-28px) translateY(-6px) rotate(270deg);
+  }
+  81.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-16px) translateY(-10px) rotate(292.5deg);
+  }
+  87.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-12px) rotate(315deg);
+  }
+  93.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(16px) translateY(-10px) rotate(337.5deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-12px) rotate(360deg);
+  }
+}
+
+/* Animación elíptica mejorada para la estrella - Tablet */
+@keyframes elliptical-orbit-md {
+  0% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-24px) rotate(0deg);
+  }
+  6.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(32px) translateY(-20px) rotate(22.5deg);
+  }
+  12.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(52px) translateY(-12px) rotate(45deg);
+  }
+  18.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(60px) translateY(-4px) rotate(67.5deg);
+  }
+  25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(60px) translateY(4px) rotate(90deg);
+  }
+  31.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(52px) translateY(12px) rotate(112.5deg);
+  }
+  37.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(32px) translateY(20px) rotate(135deg);
+  }
+  43.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(24px) rotate(157.5deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-32px) translateY(20px) rotate(180deg);
+  }
+  56.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-52px) translateY(12px) rotate(202.5deg);
+  }
+  62.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-60px) translateY(4px) rotate(225deg);
+  }
+  68.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-60px) translateY(-4px) rotate(247.5deg);
+  }
+  75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-52px) translateY(-12px) rotate(270deg);
+  }
+  81.25% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(-32px) translateY(-20px) rotate(292.5deg);
+  }
+  87.5% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-24px) rotate(315deg);
+  }
+  93.75% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(32px) translateY(-20px) rotate(337.5deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-24px) rotate(360deg);
+  }
+}
+
+  /* Animación elíptica mejorada para la estrella - Desktop */
+  @keyframes elliptical-orbit-lg {
+    0% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-32px) rotate(0deg);
+    }
+    6.25% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(48px) translateY(-26px) rotate(22.5deg);
+    }
+    12.5% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(78px) translateY(-16px) rotate(45deg);
+    }
+    18.75% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(96px) translateY(-6px) rotate(67.5deg);
+    }
+    25% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(96px) translateY(6px) rotate(90deg);
+    }
+    31.25% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(78px) translateY(16px) rotate(112.5deg);
+    }
+    37.5% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(48px) translateY(26px) rotate(135deg);
+    }
+    43.75% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(32px) rotate(157.5deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(-48px) translateY(26px) rotate(180deg);
+    }
+    56.25% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(-78px) translateY(16px) rotate(202.5deg);
+    }
+    62.5% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(-96px) translateY(6px) rotate(225deg);
+    }
+    68.75% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(-96px) translateY(-6px) rotate(247.5deg);
+    }
+    75% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(-78px) translateY(-16px) rotate(270deg);
+    }
+    81.25% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(-48px) translateY(-26px) rotate(292.5deg);
+    }
+    87.5% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-32px) rotate(315deg);
+    }
+    93.75% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(48px) translateY(-26px) rotate(337.5deg);
+    }
+    100% {
+      transform: translate(-50%, -50%) rotate(12deg) translateX(0px) translateY(-32px) rotate(360deg);
+    }
+  }
+
+.elliptical-star {
+  animation: elliptical-orbit 8s linear infinite;
+}
+
+.elliptical-star-md {
+  animation: elliptical-orbit-md 8s linear infinite;
+}
+
+.elliptical-star-lg {
+  animation: elliptical-orbit-lg 8s linear infinite;
+}
+
+/* Animación elíptica mejorada para la segunda estrella - Móvil (dirección opuesta) */
+@keyframes elliptical-orbit-reverse {
+  0% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(12px) rotate(0deg);
+  }
+  6.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-16px) translateY(10px) rotate(-22.5deg);
+  }
+  12.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-28px) translateY(6px) rotate(-45deg);
+  }
+  18.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-32px) translateY(2px) rotate(-67.5deg);
+  }
+  25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-32px) translateY(-2px) rotate(-90deg);
+  }
+  31.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-28px) translateY(-6px) rotate(-112.5deg);
+  }
+  37.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-16px) translateY(-10px) rotate(-135deg);
+  }
+  43.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(-12px) rotate(-157.5deg);
+  }
+  50% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(16px) translateY(-10px) rotate(-180deg);
+  }
+  56.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(28px) translateY(-6px) rotate(-202.5deg);
+  }
+  62.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(32px) translateY(-2px) rotate(-225deg);
+  }
+  68.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(32px) translateY(2px) rotate(-247.5deg);
+  }
+  75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(28px) translateY(6px) rotate(-270deg);
+  }
+  81.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(16px) translateY(10px) rotate(-292.5deg);
+  }
+  87.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(12px) rotate(-315deg);
+  }
+  93.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-16px) translateY(10px) rotate(-337.5deg);
+  }
+  100% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(12px) rotate(-360deg);
+  }
+}
+
+/* Animación elíptica mejorada para la segunda estrella - Tablet (dirección opuesta) */
+@keyframes elliptical-orbit-reverse-md {
+  0% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(24px) rotate(0deg);
+  }
+  6.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-32px) translateY(20px) rotate(-22.5deg);
+  }
+  12.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-52px) translateY(12px) rotate(-45deg);
+  }
+  18.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-60px) translateY(4px) rotate(-67.5deg);
+  }
+  25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-60px) translateY(-4px) rotate(-90deg);
+  }
+  31.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-52px) translateY(-12px) rotate(-112.5deg);
+  }
+  37.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-32px) translateY(-20px) rotate(-135deg);
+  }
+  43.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(-24px) rotate(-157.5deg);
+  }
+  50% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(32px) translateY(-20px) rotate(-180deg);
+  }
+  56.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(52px) translateY(-12px) rotate(-202.5deg);
+  }
+  62.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(60px) translateY(-4px) rotate(-225deg);
+  }
+  68.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(60px) translateY(4px) rotate(-247.5deg);
+  }
+  75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(52px) translateY(12px) rotate(-270deg);
+  }
+  81.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(32px) translateY(20px) rotate(-292.5deg);
+  }
+  87.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(24px) rotate(-315deg);
+  }
+  93.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-32px) translateY(20px) rotate(-337.5deg);
+  }
+  100% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(24px) rotate(-360deg);
+  }
+}
+
+/* Animación elíptica mejorada para la segunda estrella - Desktop (dirección opuesta) */
+@keyframes elliptical-orbit-reverse-lg {
+  0% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(32px) rotate(0deg);
+  }
+  6.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-48px) translateY(26px) rotate(-22.5deg);
+  }
+  12.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-78px) translateY(16px) rotate(-45deg);
+  }
+  18.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-96px) translateY(6px) rotate(-67.5deg);
+  }
+  25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-96px) translateY(-6px) rotate(-90deg);
+  }
+  31.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-78px) translateY(-16px) rotate(-112.5deg);
+  }
+  37.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-48px) translateY(-26px) rotate(-135deg);
+  }
+  43.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(-32px) rotate(-157.5deg);
+  }
+  50% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(48px) translateY(-26px) rotate(-180deg);
+  }
+  56.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(78px) translateY(-16px) rotate(-202.5deg);
+  }
+  62.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(96px) translateY(-6px) rotate(-225deg);
+  }
+  68.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(96px) translateY(6px) rotate(-247.5deg);
+  }
+  75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(78px) translateY(16px) rotate(-270deg);
+  }
+  81.25% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(48px) translateY(26px) rotate(-292.5deg);
+  }
+  87.5% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(32px) rotate(-315deg);
+  }
+  93.75% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(-48px) translateY(26px) rotate(-337.5deg);
+  }
+  100% {
+    transform: translate(-50%, 50%) rotate(12deg) translateX(0px) translateY(32px) rotate(-360deg);
+  }
+}
+
+.elliptical-star-reverse {
+  animation: elliptical-orbit-reverse 12s linear infinite;
+}
+
+.elliptical-star-reverse-md {
+  animation: elliptical-orbit-reverse-md 12s linear infinite;
+}
+
+.elliptical-star-reverse-lg {
+  animation: elliptical-orbit-reverse-lg 12s linear infinite;
+}
+
+/* Animación perfectamente fluida para móvil - sin retrocesos */
+@keyframes elliptical-orbit-smooth-v2 {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(-8px) rotate(0deg); }
+  3.125% { transform: translate(-50%, -50%) translateX(8.5px) translateY(-7.8px) rotate(11.25deg); }
+  6.25% { transform: translate(-50%, -50%) translateX(16.5px) translateY(-7.2px) rotate(22.5deg); }
+  9.375% { transform: translate(-50%, -50%) translateX(23.8px) translateY(-6.2px) rotate(33.75deg); }
+  12.5% { transform: translate(-50%, -50%) translateX(30px) translateY(-4.8px) rotate(45deg); }
+  15.625% { transform: translate(-50%, -50%) translateX(34.8px) translateY(-3px) rotate(56.25deg); }
+  18.75% { transform: translate(-50%, -50%) translateX(38px) translateY(-1px) rotate(67.5deg); }
+  21.875% { transform: translate(-50%, -50%) translateX(39.5px) translateY(1.2px) rotate(78.75deg); }
+  25% { transform: translate(-50%, -50%) translateX(39px) translateY(3.5px) rotate(90deg); }
+  28.125% { transform: translate(-50%, -50%) translateX(36.8px) translateY(5.8px) rotate(101.25deg); }
+  31.25% { transform: translate(-50%, -50%) translateX(33px) translateY(7.9px) rotate(112.5deg); }
+  34.375% { transform: translate(-50%, -50%) translateX(27.5px) translateY(9.8px) rotate(123.75deg); }
+  37.5% { transform: translate(-50%, -50%) translateX(20.5px) translateY(11.4px) rotate(135deg); }
+  40.625% { transform: translate(-50%, -50%) translateX(12px) translateY(12.6px) rotate(146.25deg); }
+  43.75% { transform: translate(-50%, -50%) translateX(2.5px) translateY(13.4px) rotate(157.5deg); }
+  46.875% { transform: translate(-50%, -50%) translateX(-7.5px) translateY(13.8px) rotate(168.75deg); }
+  50% { transform: translate(-50%, -50%) translateX(-17.5px) translateY(13.8px) rotate(180deg); }
+  53.125% { transform: translate(-50%, -50%) translateX(-27px) translateY(13.4px) rotate(191.25deg); }
+  56.25% { transform: translate(-50%, -50%) translateX(-35.5px) translateY(12.6px) rotate(202.5deg); }
+  59.375% { transform: translate(-50%, -50%) translateX(-42.8px) translateY(11.4px) rotate(213.75deg); }
+  62.5% { transform: translate(-50%, -50%) translateX(-48.5px) translateY(9.8px) rotate(225deg); }
+  65.625% { transform: translate(-50%, -50%) translateX(-52.5px) translateY(7.9px) rotate(236.25deg); }
+  68.75% { transform: translate(-50%, -50%) translateX(-54.8px) translateY(5.8px) rotate(247.5deg); }
+  71.875% { transform: translate(-50%, -50%) translateX(-55px) translateY(3.5px) rotate(258.75deg); }
+  75% { transform: translate(-50%, -50%) translateX(-53.2px) translateY(1.2px) rotate(270deg); }
+  78.125% { transform: translate(-50%, -50%) translateX(-49.5px) translateY(-1px) rotate(281.25deg); }
+  81.25% { transform: translate(-50%, -50%) translateX(-43.8px) translateY(-3px) rotate(292.5deg); }
+  84.375% { transform: translate(-50%, -50%) translateX(-36.2px) translateY(-4.8px) rotate(303.75deg); }
+  87.5% { transform: translate(-50%, -50%) translateX(-26.8px) translateY(-6.2px) rotate(315deg); }
+  90.625% { transform: translate(-50%, -50%) translateX(-15.8px) translateY(-7.2px) rotate(326.25deg); }
+  93.75% { transform: translate(-50%, -50%) translateX(-3.5px) translateY(-7.8px) rotate(337.5deg); }
+  96.875% { transform: translate(-50%, -50%) translateX(9.2px) translateY(-8px) rotate(348.75deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(-8px) rotate(360deg); }
+}
+
+/* Animaciones ultra fluidas para desktop - 40 puntos de control */
+@keyframes elliptical-orbit-smooth-lg {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(0deg); }
+  2.5% { transform: translate(-50%, -50%) translateX(16px) translateY(-15.6px) rotate(9deg); }
+  5% { transform: translate(-50%, -50%) translateX(30px) translateY(-14.4px) rotate(18deg); }
+  7.5% { transform: translate(-50%, -50%) translateX(44px) translateY(-12.4px) rotate(27deg); }
+  10% { transform: translate(-50%, -50%) translateX(56px) translateY(-10px) rotate(36deg); }
+  12.5% { transform: translate(-50%, -50%) translateX(60px) translateY(-7px) rotate(45deg); }
+  15% { transform: translate(-50%, -50%) translateX(64px) translateY(-4px) rotate(54deg); }
+  17.5% { transform: translate(-50%, -50%) translateX(66px) translateY(-2px) rotate(63deg); }
+  20% { transform: translate(-50%, -50%) translateX(68px) translateY(0px) rotate(72deg); }
+  22.5% { transform: translate(-50%, -50%) translateX(66px) translateY(2px) rotate(81deg); }
+  25% { transform: translate(-50%, -50%) translateX(64px) translateY(4px) rotate(90deg); }
+  27.5% { transform: translate(-50%, -50%) translateX(60px) translateY(7px) rotate(99deg); }
+  30% { transform: translate(-50%, -50%) translateX(56px) translateY(10px) rotate(108deg); }
+  32.5% { transform: translate(-50%, -50%) translateX(50px) translateY(12.4px) rotate(117deg); }
+  35% { transform: translate(-50%, -50%) translateX(44px) translateY(14px) rotate(126deg); }
+  37.5% { transform: translate(-50%, -50%) translateX(36px) translateY(15.2px) rotate(135deg); }
+  40% { transform: translate(-50%, -50%) translateX(24px) translateY(16px) rotate(144deg); }
+  42.5% { transform: translate(-50%, -50%) translateX(12px) translateY(16px) rotate(153deg); }
+  45% { transform: translate(-50%, -50%) translateX(0px) translateY(16px) rotate(162deg); }
+  47.5% { transform: translate(-50%, -50%) translateX(-12px) translateY(16px) rotate(171deg); }
+  50% { transform: translate(-50%, -50%) translateX(-24px) translateY(16px) rotate(180deg); }
+  52.5% { transform: translate(-50%, -50%) translateX(-36px) translateY(15.2px) rotate(189deg); }
+  55% { transform: translate(-50%, -50%) translateX(-44px) translateY(14px) rotate(198deg); }
+  57.5% { transform: translate(-50%, -50%) translateX(-50px) translateY(12.4px) rotate(207deg); }
+  60% { transform: translate(-50%, -50%) translateX(-56px) translateY(10px) rotate(216deg); }
+  62.5% { transform: translate(-50%, -50%) translateX(-60px) translateY(7px) rotate(225deg); }
+  65% { transform: translate(-50%, -50%) translateX(-64px) translateY(4px) rotate(234deg); }
+  67.5% { transform: translate(-50%, -50%) translateX(-66px) translateY(2px) rotate(243deg); }
+  70% { transform: translate(-50%, -50%) translateX(-68px) translateY(0px) rotate(252deg); }
+  72.5% { transform: translate(-50%, -50%) translateX(-66px) translateY(-2px) rotate(261deg); }
+  75% { transform: translate(-50%, -50%) translateX(-64px) translateY(-4px) rotate(270deg); }
+  77.5% { transform: translate(-50%, -50%) translateX(-60px) translateY(-7px) rotate(279deg); }
+  80% { transform: translate(-50%, -50%) translateX(-56px) translateY(-10px) rotate(288deg); }
+  82.5% { transform: translate(-50%, -50%) translateX(-50px) translateY(-12.4px) rotate(297deg); }
+  85% { transform: translate(-50%, -50%) translateX(-44px) translateY(-14px) rotate(306deg); }
+  87.5% { transform: translate(-50%, -50%) translateX(-36px) translateY(-15.2px) rotate(315deg); }
+  90% { transform: translate(-50%, -50%) translateX(-24px) translateY(-16px) rotate(324deg); }
+  92.5% { transform: translate(-50%, -50%) translateX(-12px) translateY(-16px) rotate(333deg); }
+  95% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(342deg); }
+  97.5% { transform: translate(-50%, -50%) translateX(12px) translateY(-15.6px) rotate(351deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(360deg); }
+}
+
+/* Animación reversa ultra fluida para móvil - segunda estrella */
+@keyframes elliptical-orbit-reverse-smooth {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(8px) rotate(0deg); }
+  2.5% { transform: translate(-50%, -50%) translateX(-6px) translateY(8px) rotate(-9deg); }
+  5% { transform: translate(-50%, -50%) translateX(-12px) translateY(8px) rotate(-18deg); }
+  7.5% { transform: translate(-50%, -50%) translateX(-18px) translateY(7.6px) rotate(-27deg); }
+  10% { transform: translate(-50%, -50%) translateX(-22px) translateY(7px) rotate(-36deg); }
+  12.5% { transform: translate(-50%, -50%) translateX(-25px) translateY(6.2px) rotate(-45deg); }
+  15% { transform: translate(-50%, -50%) translateX(-28px) translateY(5px) rotate(-54deg); }
+  17.5% { transform: translate(-50%, -50%) translateX(-30px) translateY(3.5px) rotate(-63deg); }
+  20% { transform: translate(-50%, -50%) translateX(-32px) translateY(2px) rotate(-72deg); }
+  22.5% { transform: translate(-50%, -50%) translateX(-33px) translateY(1px) rotate(-81deg); }
+  25% { transform: translate(-50%, -50%) translateX(-34px) translateY(0px) rotate(-90deg); }
+  27.5% { transform: translate(-50%, -50%) translateX(-33px) translateY(-1px) rotate(-99deg); }
+  30% { transform: translate(-50%, -50%) translateX(-32px) translateY(-2px) rotate(-108deg); }
+  32.5% { transform: translate(-50%, -50%) translateX(-30px) translateY(-3.5px) rotate(-117deg); }
+  35% { transform: translate(-50%, -50%) translateX(-28px) translateY(-5px) rotate(-126deg); }
+  37.5% { transform: translate(-50%, -50%) translateX(-25px) translateY(-6.2px) rotate(-135deg); }
+  40% { transform: translate(-50%, -50%) translateX(-22px) translateY(-7px) rotate(-144deg); }
+  42.5% { transform: translate(-50%, -50%) translateX(-18px) translateY(-7.6px) rotate(-153deg); }
+  45% { transform: translate(-50%, -50%) translateX(-12px) translateY(-8px) rotate(-162deg); }
+  47.5% { transform: translate(-50%, -50%) translateX(-6px) translateY(-8px) rotate(-171deg); }
+  50% { transform: translate(-50%, -50%) translateX(0px) translateY(-8px) rotate(-180deg); }
+  52.5% { transform: translate(-50%, -50%) translateX(6px) translateY(-8px) rotate(-189deg); }
+  55% { transform: translate(-50%, -50%) translateX(12px) translateY(-8px) rotate(-198deg); }
+  57.5% { transform: translate(-50%, -50%) translateX(18px) translateY(-7.6px) rotate(-207deg); }
+  60% { transform: translate(-50%, -50%) translateX(22px) translateY(-7px) rotate(-216deg); }
+  62.5% { transform: translate(-50%, -50%) translateX(25px) translateY(-6.2px) rotate(-225deg); }
+  65% { transform: translate(-50%, -50%) translateX(28px) translateY(-5px) rotate(-234deg); }
+  67.5% { transform: translate(-50%, -50%) translateX(30px) translateY(-3.5px) rotate(-243deg); }
+  70% { transform: translate(-50%, -50%) translateX(32px) translateY(-2px) rotate(-252deg); }
+  72.5% { transform: translate(-50%, -50%) translateX(33px) translateY(-1px) rotate(-261deg); }
+  75% { transform: translate(-50%, -50%) translateX(34px) translateY(0px) rotate(-270deg); }
+  77.5% { transform: translate(-50%, -50%) translateX(33px) translateY(1px) rotate(-279deg); }
+  80% { transform: translate(-50%, -50%) translateX(32px) translateY(2px) rotate(-288deg); }
+  82.5% { transform: translate(-50%, -50%) translateX(30px) translateY(3.5px) rotate(-297deg); }
+  85% { transform: translate(-50%, -50%) translateX(28px) translateY(5px) rotate(-306deg); }
+  87.5% { transform: translate(-50%, -50%) translateX(25px) translateY(6.2px) rotate(-315deg); }
+  90% { transform: translate(-50%, -50%) translateX(22px) translateY(7px) rotate(-324deg); }
+  92.5% { transform: translate(-50%, -50%) translateX(18px) translateY(7.6px) rotate(-333deg); }
+  95% { transform: translate(-50%, -50%) translateX(12px) translateY(8px) rotate(-342deg); }
+  97.5% { transform: translate(-50%, -50%) translateX(6px) translateY(8px) rotate(-351deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(8px) rotate(-360deg); }
+}
+
+/* Animación reversa ultra fluida para desktop - segunda estrella */
+@keyframes elliptical-orbit-reverse-smooth-lg {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(16px) rotate(0deg); }
+  2.5% { transform: translate(-50%, -50%) translateX(-12px) translateY(16px) rotate(-9deg); }
+  5% { transform: translate(-50%, -50%) translateX(-24px) translateY(16px) rotate(-18deg); }
+  7.5% { transform: translate(-50%, -50%) translateX(-36px) translateY(15.2px) rotate(-27deg); }
+  10% { transform: translate(-50%, -50%) translateX(-44px) translateY(14px) rotate(-36deg); }
+  12.5% { transform: translate(-50%, -50%) translateX(-50px) translateY(12.4px) rotate(-45deg); }
+  15% { transform: translate(-50%, -50%) translateX(-56px) translateY(10px) rotate(-54deg); }
+  17.5% { transform: translate(-50%, -50%) translateX(-60px) translateY(7px) rotate(-63deg); }
+  20% { transform: translate(-50%, -50%) translateX(-64px) translateY(4px) rotate(-72deg); }
+  22.5% { transform: translate(-50%, -50%) translateX(-66px) translateY(2px) rotate(-81deg); }
+  25% { transform: translate(-50%, -50%) translateX(-68px) translateY(0px) rotate(-90deg); }
+  27.5% { transform: translate(-50%, -50%) translateX(-66px) translateY(-2px) rotate(-99deg); }
+  30% { transform: translate(-50%, -50%) translateX(-64px) translateY(-4px) rotate(-108deg); }
+  32.5% { transform: translate(-50%, -50%) translateX(-60px) translateY(-7px) rotate(-117deg); }
+  35% { transform: translate(-50%, -50%) translateX(-56px) translateY(-10px) rotate(-126deg); }
+  37.5% { transform: translate(-50%, -50%) translateX(-50px) translateY(-12.4px) rotate(-135deg); }
+  40% { transform: translate(-50%, -50%) translateX(-44px) translateY(-14px) rotate(-144deg); }
+  42.5% { transform: translate(-50%, -50%) translateX(-36px) translateY(-15.2px) rotate(-153deg); }
+  45% { transform: translate(-50%, -50%) translateX(-24px) translateY(-16px) rotate(-162deg); }
+  47.5% { transform: translate(-50%, -50%) translateX(-12px) translateY(-16px) rotate(-171deg); }
+  50% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(-180deg); }
+  52.5% { transform: translate(-50%, -50%) translateX(12px) translateY(-16px) rotate(-189deg); }
+  55% { transform: translate(-50%, -50%) translateX(24px) translateY(-16px) rotate(-198deg); }
+  57.5% { transform: translate(-50%, -50%) translateX(36px) translateY(-15.2px) rotate(-207deg); }
+  60% { transform: translate(-50%, -50%) translateX(44px) translateY(-14px) rotate(-216deg); }
+  62.5% { transform: translate(-50%, -50%) translateX(50px) translateY(-12.4px) rotate(-225deg); }
+  65% { transform: translate(-50%, -50%) translateX(56px) translateY(-10px) rotate(-234deg); }
+  67.5% { transform: translate(-50%, -50%) translateX(60px) translateY(-7px) rotate(-243deg); }
+  70% { transform: translate(-50%, -50%) translateX(64px) translateY(-4px) rotate(-252deg); }
+  72.5% { transform: translate(-50%, -50%) translateX(66px) translateY(-2px) rotate(-261deg); }
+  75% { transform: translate(-50%, -50%) translateX(68px) translateY(0px) rotate(-270deg); }
+  77.5% { transform: translate(-50%, -50%) translateX(66px) translateY(2px) rotate(-279deg); }
+  80% { transform: translate(-50%, -50%) translateX(64px) translateY(4px) rotate(-288deg); }
+  82.5% { transform: translate(-50%, -50%) translateX(60px) translateY(7px) rotate(-297deg); }
+  85% { transform: translate(-50%, -50%) translateX(56px) translateY(10px) rotate(-306deg); }
+  87.5% { transform: translate(-50%, -50%) translateX(50px) translateY(12.4px) rotate(-315deg); }
+  90% { transform: translate(-50%, -50%) translateX(44px) translateY(14px) rotate(-324deg); }
+  92.5% { transform: translate(-50%, -50%) translateX(36px) translateY(15.2px) rotate(-333deg); }
+  95% { transform: translate(-50%, -50%) translateX(24px) translateY(16px) rotate(-342deg); }
+  97.5% { transform: translate(-50%, -50%) translateX(12px) translateY(16px) rotate(-351deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(16px) rotate(-360deg); }
+}
+
+/* NUEVA ANIMACIÓN SIN RETROCESOS - Móvil */
+@keyframes elliptical-orbit-perfect {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(-8px) rotate(0deg); }
+  6.25% { transform: translate(-50%, -50%) translateX(16px) translateY(-7px) rotate(22.5deg); }
+  12.5% { transform: translate(-50%, -50%) translateX(28px) translateY(-4px) rotate(45deg); }
+  18.75% { transform: translate(-50%, -50%) translateX(34px) translateY(0px) rotate(67.5deg); }
+  25% { transform: translate(-50%, -50%) translateX(32px) translateY(4px) rotate(90deg); }
+  31.25% { transform: translate(-50%, -50%) translateX(24px) translateY(7px) rotate(112.5deg); }
+  37.5% { transform: translate(-50%, -50%) translateX(12px) translateY(8px) rotate(135deg); }
+  43.75% { transform: translate(-50%, -50%) translateX(-2px) translateY(8px) rotate(157.5deg); }
+  50% { transform: translate(-50%, -50%) translateX(-16px) translateY(6px) rotate(180deg); }
+  56.25% { transform: translate(-50%, -50%) translateX(-28px) translateY(2px) rotate(202.5deg); }
+  62.5% { transform: translate(-50%, -50%) translateX(-34px) translateY(-2px) rotate(225deg); }
+  68.75% { transform: translate(-50%, -50%) translateX(-32px) translateY(-6px) rotate(247.5deg); }
+  75% { transform: translate(-50%, -50%) translateX(-24px) translateY(-8px) rotate(270deg); }
+  81.25% { transform: translate(-50%, -50%) translateX(-12px) translateY(-8px) rotate(292.5deg); }
+  87.5% { transform: translate(-50%, -50%) translateX(2px) translateY(-7px) rotate(315deg); }
+  93.75% { transform: translate(-50%, -50%) translateX(14px) translateY(-8px) rotate(337.5deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(-8px) rotate(360deg); }
+}
+
+/* NUEVA ANIMACIÓN SIN RETROCESOS - Desktop */
+@keyframes elliptical-orbit-perfect-lg {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(0deg); }
+  6.25% { transform: translate(-50%, -50%) translateX(32px) translateY(-14px) rotate(22.5deg); }
+  12.5% { transform: translate(-50%, -50%) translateX(56px) translateY(-8px) rotate(45deg); }
+  18.75% { transform: translate(-50%, -50%) translateX(68px) translateY(0px) rotate(67.5deg); }
+  25% { transform: translate(-50%, -50%) translateX(64px) translateY(8px) rotate(90deg); }
+  31.25% { transform: translate(-50%, -50%) translateX(48px) translateY(14px) rotate(112.5deg); }
+  37.5% { transform: translate(-50%, -50%) translateX(24px) translateY(16px) rotate(135deg); }
+  43.75% { transform: translate(-50%, -50%) translateX(-4px) translateY(16px) rotate(157.5deg); }
+  50% { transform: translate(-50%, -50%) translateX(-32px) translateY(12px) rotate(180deg); }
+  56.25% { transform: translate(-50%, -50%) translateX(-56px) translateY(4px) rotate(202.5deg); }
+  62.5% { transform: translate(-50%, -50%) translateX(-68px) translateY(-4px) rotate(225deg); }
+  68.75% { transform: translate(-50%, -50%) translateX(-64px) translateY(-12px) rotate(247.5deg); }
+  75% { transform: translate(-50%, -50%) translateX(-48px) translateY(-16px) rotate(270deg); }
+  81.25% { transform: translate(-50%, -50%) translateX(-24px) translateY(-16px) rotate(292.5deg); }
+  87.5% { transform: translate(-50%, -50%) translateX(4px) translateY(-14px) rotate(315deg); }
+  93.75% { transform: translate(-50%, -50%) translateX(28px) translateY(-16px) rotate(337.5deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(360deg); }
+}
+
+/* ANIMACIONES ULTRA FLUIDAS SIN RETROCESOS MATEMÁTICAMENTE EXACTAS */
+@keyframes elliptical-orbit-ultrafluid {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(-8px) rotate(0deg); }
+  5% { transform: translate(-50%, -50%) translateX(12px) translateY(-7.6px) rotate(18deg); }
+  10% { transform: translate(-50%, -50%) translateX(22px) translateY(-6.5px) rotate(36deg); }
+  15% { transform: translate(-50%, -50%) translateX(30px) translateY(-4.8px) rotate(54deg); }
+  20% { transform: translate(-50%, -50%) translateX(34px) translateY(-2.6px) rotate(72deg); }
+  25% { transform: translate(-50%, -50%) translateX(36px) translateY(0px) rotate(90deg); }
+  30% { transform: translate(-50%, -50%) translateX(34px) translateY(2.6px) rotate(108deg); }
+  35% { transform: translate(-50%, -50%) translateX(30px) translateY(4.8px) rotate(126deg); }
+  40% { transform: translate(-50%, -50%) translateX(22px) translateY(6.5px) rotate(144deg); }
+  45% { transform: translate(-50%, -50%) translateX(12px) translateY(7.6px) rotate(162deg); }
+  50% { transform: translate(-50%, -50%) translateX(0px) translateY(8px) rotate(180deg); }
+  55% { transform: translate(-50%, -50%) translateX(-12px) translateY(7.6px) rotate(198deg); }
+  60% { transform: translate(-50%, -50%) translateX(-22px) translateY(6.5px) rotate(216deg); }
+  65% { transform: translate(-50%, -50%) translateX(-30px) translateY(4.8px) rotate(234deg); }
+  70% { transform: translate(-50%, -50%) translateX(-34px) translateY(2.6px) rotate(252deg); }
+  75% { transform: translate(-50%, -50%) translateX(-36px) translateY(0px) rotate(270deg); }
+  80% { transform: translate(-50%, -50%) translateX(-34px) translateY(-2.6px) rotate(288deg); }
+  85% { transform: translate(-50%, -50%) translateX(-30px) translateY(-4.8px) rotate(306deg); }
+  90% { transform: translate(-50%, -50%) translateX(-22px) translateY(-6.5px) rotate(324deg); }
+  95% { transform: translate(-50%, -50%) translateX(-12px) translateY(-7.6px) rotate(342deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(-8px) rotate(360deg); }
+}
+
+@keyframes elliptical-orbit-ultrafluid-lg {
+  0% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(0deg); }
+  5% { transform: translate(-50%, -50%) translateX(24px) translateY(-15.2px) rotate(18deg); }
+  10% { transform: translate(-50%, -50%) translateX(44px) translateY(-13px) rotate(36deg); }
+  15% { transform: translate(-50%, -50%) translateX(60px) translateY(-9.6px) rotate(54deg); }
+  20% { transform: translate(-50%, -50%) translateX(68px) translateY(-5.2px) rotate(72deg); }
+  25% { transform: translate(-50%, -50%) translateX(72px) translateY(0px) rotate(90deg); }
+  30% { transform: translate(-50%, -50%) translateX(68px) translateY(5.2px) rotate(108deg); }
+  35% { transform: translate(-50%, -50%) translateX(60px) translateY(9.6px) rotate(126deg); }
+  40% { transform: translate(-50%, -50%) translateX(44px) translateY(13px) rotate(144deg); }
+  45% { transform: translate(-50%, -50%) translateX(24px) translateY(15.2px) rotate(162deg); }
+  50% { transform: translate(-50%, -50%) translateX(0px) translateY(16px) rotate(180deg); }
+  55% { transform: translate(-50%, -50%) translateX(-24px) translateY(15.2px) rotate(198deg); }
+  60% { transform: translate(-50%, -50%) translateX(-44px) translateY(13px) rotate(216deg); }
+  65% { transform: translate(-50%, -50%) translateX(-60px) translateY(9.6px) rotate(234deg); }
+  70% { transform: translate(-50%, -50%) translateX(-68px) translateY(5.2px) rotate(252deg); }
+  75% { transform: translate(-50%, -50%) translateX(-72px) translateY(0px) rotate(270deg); }
+  80% { transform: translate(-50%, -50%) translateX(-68px) translateY(-5.2px) rotate(288deg); }
+  85% { transform: translate(-50%, -50%) translateX(-60px) translateY(-9.6px) rotate(306deg); }
+  90% { transform: translate(-50%, -50%) translateX(-44px) translateY(-13px) rotate(324deg); }
+  95% { transform: translate(-50%, -50%) translateX(-24px) translateY(-15.2px) rotate(342deg); }
+  100% { transform: translate(-50%, -50%) translateX(0px) translateY(-16px) rotate(360deg); }
 }

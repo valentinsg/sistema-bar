@@ -1,14 +1,14 @@
-import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import type React from "react"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Nocturnos - Bar & Boliche",
-  description: "Viví la experiencia que arranca como cena y termina como fiesta",
-    generator: 'v0.dev'
+  title: "Eleven Club - Bar & Boliche",
+  description: "Reserva tu lugar, eleva tus sentidos. Experiencia gastronómica y nocturna de primer nivel",
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
-      <body className={inter.className}>{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>{children}</body>
     </html>
   )
 }

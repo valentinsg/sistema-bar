@@ -62,6 +62,26 @@ const config: Config = {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
+  		fontFamily: {
+  			'legquinne': ['Legquinne', 'serif'],
+  			'sans': ['Inter', 'system-ui', 'sans-serif'],
+  		},
+  		fontSize: {
+  			'2xs': ['0.625rem', { lineHeight: '0.75rem' }],
+  		},
+  		spacing: {
+  			'18': '4.5rem',
+  			'88': '22rem',
+  		},
+  		backdropBlur: {
+  			'4xl': '72px',
+  		},
+  		boxShadow: {
+  			'premium': '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.12)',
+  			'glow': '0 0 20px rgba(249, 115, 22, 0.3), 0 0 40px rgba(249, 115, 22, 0.2), 0 0 80px rgba(249, 115, 22, 0.1)',
+  			'glow-red': '0 0 20px rgba(239, 68, 68, 0.3), 0 0 40px rgba(239, 68, 68, 0.2), 0 0 80px rgba(239, 68, 68, 0.1)',
+  			'inner-glow': 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
@@ -83,11 +103,29 @@ const config: Config = {
   				to: {
   					height: '0'
   				}
+  			},
+  			'pulse-glow': {
+  				'0%, 100%': {
+  					boxShadow: '0 0 5px rgba(249, 115, 22, 0.5), 0 0 10px rgba(249, 115, 22, 0.3), 0 0 20px rgba(249, 115, 22, 0.1)'
+  				},
+  				'50%': {
+  					boxShadow: '0 0 10px rgba(249, 115, 22, 0.8), 0 0 20px rgba(249, 115, 22, 0.5), 0 0 40px rgba(249, 115, 22, 0.2)'
+  				}
+  			},
+  			'shimmer': {
+  				'0%': {
+  					backgroundPosition: '-200% 0'
+  				},
+  				'100%': {
+  					backgroundPosition: '200% 0'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+  			'shimmer': 'shimmer 2s linear infinite'
   		}
   	}
   },

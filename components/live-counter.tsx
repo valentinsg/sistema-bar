@@ -1,9 +1,10 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
 import { getContador } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
-import { AlertCircle, Loader2, Users, Wifi, WifiOff } from "lucide-react"
+import { motion } from "framer-motion"
+import { Wifi, WifiOff } from "lucide-react"
+import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
@@ -16,10 +17,16 @@ export default function LiveCounter() {
   const [isConnected, setIsConnected] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [isRealtimeActive, setIsRealtimeActive] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const realtimeFailCount = useRef(0)
 
   useEffect(() => {
+    // Marcar como montado y hidratado
+    setIsMounted(true)
+    setIsHydrated(true)
+
     // Verificar si las variables de entorno están configuradas
     if (!LOCAL_ID) {
       console.error("❌ NEXT_PUBLIC_LOCAL_ID no está configurado")
@@ -164,103 +171,301 @@ export default function LiveCounter() {
     }
   }, [isRealtimeActive])
 
+    // No mostrar si no está montado e hidratado para evitar problemas de SSR
+  if (!isMounted || !isHydrated) return null
+
   // No mostrar si no está configurado o si no es el horario correcto
   if (!showCounter || !LOCAL_ID) return null
 
+  const getConnectionStatus = () => {
+    if (isRealtimeActive && isConnected) {
+      return (
+        <div className="flex items-center gap-2">
+          <Wifi className="w-4 h-4 text-green-400" />
+          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+          <span className="text-green-300 text-crisp">Tiempo real activo</span>
+        </div>
+      )
+    } else if (isConnected) {
+      return (
+        <div className="flex items-center gap-2">
+          <Wifi className="w-4 h-4 text-yellow-400" />
+          <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></div>
+          <span className="text-yellow-300 text-crisp">Polling activo</span>
+        </div>
+      )
+    } else {
+      return (
+        <div className="flex items-center gap-2">
+          <WifiOff className="w-4 h-4 text-red-400" />
+          <div className="w-2 h-2 rounded-full bg-red-400"></div>
+          <span className="text-red-300 text-crisp">Desconectado</span>
+        </div>
+      )
+    }
+  }
+
   if (loading) {
     return (
-      <Card className="w-full max-w-sm mx-auto bg-gradient-to-r from-purple-900/80 to-pink-900/80 border-purple-500/30 backdrop-blur-sm">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <Users className="w-6 h-6 text-purple-300" />
-              <span className="text-purple-300 font-medium">EN VIVO</span>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="w-full max-w-lg mx-auto mb-16"
+      >
+        <div className="relative">
+          {/* Fondo con imagen */}
+          <div className="absolute inset-0 rounded-3xl overflow-hidden">
+            <Image
+              src="/FONDOS-01.webp"
+              alt="Eleven Club background"
+              fill
+              className="object-cover smooth-rendering gpu-accelerated"
+              quality={90}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-orange-900/60 gradient-quality"></div>
+          </div>
+
+          {/* Efectos de brillo mejorados */}
+          <div className="absolute inset-0 rounded-3xl shadow-premium"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/30 via-red-600/20 to-orange-600/30 rounded-3xl blur-lg opacity-50 shadow-glow gpu-accelerated"></div>
+
+          {/* Contenido principal */}
+          <div className="relative z-10 p-8 text-center rounded-3xl glass-effect border-glow">
+            {/* Logo pequeño */}
+            <div className="mb-6">
+              <Image
+                src="/logo-eleven.webp"
+                alt="Eleven Club"
+                width={80}
+                height={80}
+                className="mx-auto opacity-90 logo-quality gpu-accelerated"
+                quality={100}
+              />
             </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
+
+            {/* Título mejorado */}
+            <div className="mb-6">
+              <h2 className="font-legquinne text-2xl lg:text-3xl text-white mb-2 text-crisp">
+                EN VIVO
+              </h2>
+              <p className="text-orange-300/90 text-sm font-medium tracking-wide text-crisp">
+                • Actualizado hace {Math.floor((Date.now() - lastUpdate!.getTime()) / 1000)} segundos
+              </p>
+            </div>
+
+            {/* Contador principal mejorado */}
+            <div className="relative mb-6">
+              {/* Círculo principal con mejor diseño */}
+              <div className="relative mx-auto w-32 h-32 lg:w-40 lg:h-40">
+                {/* Fondo del círculo */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 via-red-500/20 to-orange-500/30 rounded-full border-2 border-orange-400/40 shadow-glow gpu-accelerated">
+                  <div className="absolute inset-2 bg-gradient-to-br from-black/60 to-black/40 rounded-full glass-effect-dark"></div>
+                </div>
+
+                {/* Número con tipografía mejorada */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-legquinne text-5xl lg:text-6xl font-bold text-white shadow-glow text-crisp gpu-accelerated">
+                    {contador.toString().padStart(2, '0')}
+                  </span>
+                </div>
               </div>
-              <p className="text-purple-200 text-sm">Cargando contador...</p>
+
+              {/* Texto descriptivo mejorado */}
+              <div className="mt-4">
+                <p className="text-white/90 text-lg font-medium text-crisp">
+                  personas ahora mismo
+                </p>
+                <p className="text-orange-300/80 text-sm font-legquinne tracking-wider text-crisp">
+                  en Eleven Club
+                </p>
+              </div>
             </div>
-            <div className="flex justify-center">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+
+            {/* Estado de conexión mejorado */}
+            <div className="flex items-center justify-center gap-2 text-xs">
+              {getConnectionStatus()}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
     )
   }
 
   if (error && !lastUpdate) {
     return (
-      <Card className="w-full max-w-sm mx-auto bg-gradient-to-r from-red-900/80 to-pink-900/80 border-red-500/30 backdrop-blur-sm">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <AlertCircle className="w-6 h-6 text-red-300" />
-              <span className="text-red-300 font-medium">ERROR</span>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="w-full max-w-lg mx-auto mb-16"
+      >
+        <div className="relative">
+          {/* Fondo con imagen */}
+          <div className="absolute inset-0 rounded-3xl overflow-hidden">
+            <Image
+              src="/FONDOS-01.webp"
+              alt="Eleven Club background"
+              fill
+              className="object-cover smooth-rendering gpu-accelerated"
+              quality={90}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-red-900/60 gradient-quality"></div>
+          </div>
+
+          {/* Efectos de brillo de error */}
+          <div className="absolute inset-0 rounded-3xl shadow-premium"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-red-600/30 via-red-600/20 to-red-600/30 rounded-3xl blur-lg opacity-50 shadow-glow gpu-accelerated"></div>
+
+          {/* Contenido principal */}
+          <div className="relative z-10 p-8 text-center rounded-3xl glass-effect border-glow">
+            {/* Logo pequeño */}
+            <div className="mb-6">
+              <Image
+                src="/logo-eleven.webp"
+                alt="Eleven Club"
+                width={80}
+                height={80}
+                className="mx-auto opacity-60 grayscale logo-quality gpu-accelerated"
+                quality={100}
+              />
             </div>
-            <div className="space-y-1">
-              <div className="text-2xl font-bold text-white">---</div>
-              <p className="text-red-200 text-sm">{error}</p>
+
+            {/* Título de error */}
+            <div className="mb-6">
+              <h2 className="font-legquinne text-2xl lg:text-3xl text-red-300 mb-2 text-crisp">
+                ERROR
+              </h2>
+              <p className="text-red-300/90 text-sm font-medium tracking-wide text-crisp">
+                Sin conexión
+              </p>
             </div>
-            <div className="flex justify-center">
-              <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+
+            {/* Contador con error */}
+            <div className="relative mb-6">
+              <div className="relative mx-auto w-32 h-32 lg:w-40 lg:h-40">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/30 via-red-500/20 to-red-500/30 rounded-full border-2 border-red-400/40 shadow-glow gpu-accelerated">
+                  <div className="absolute inset-2 bg-gradient-to-br from-black/60 to-black/40 rounded-full glass-effect-dark"></div>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-legquinne text-5xl lg:text-6xl font-bold text-red-300 shadow-glow text-crisp gpu-accelerated">
+                    --
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Descripción de error */}
+            <div className="space-y-2 mb-6">
+              <p className="text-red-200/90 text-lg font-medium text-crisp">
+                No disponible
+              </p>
+              <p className="text-red-300/80 text-sm font-legquinne tracking-wider text-crisp">
+                {error}
+              </p>
+            </div>
+
+            {/* Elemento decorativo opaco */}
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/detalle-texto-eleven.webp"
+                alt="Eleven Club detail"
+                width={120}
+                height={40}
+                className="opacity-20 grayscale"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
     )
   }
 
-  const getConnectionStatus = () => {
-    if (isRealtimeActive && isConnected) {
-      return { icon: Wifi, color: 'text-green-400', text: 'Tiempo real activo' }
-    } else if (isConnected) {
-      return { icon: Wifi, color: 'text-yellow-400', text: 'Polling activo' }
-    } else {
-      return { icon: WifiOff, color: 'text-red-400', text: 'Desconectado' }
-    }
-  }
-
-  const connectionStatus = getConnectionStatus()
-
   return (
-    <Card className="w-full max-w-sm mx-auto mb-12 bg-gradient-to-r from-purple-900/80 to-pink-900/80 border-purple-500/30 backdrop-blur-sm">
-      <CardContent className="pt-6">
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-2">
-            <Users className="w-6 h-6 text-purple-300" />
-            <span className="text-purple-300 font-medium">EN VIVO</span>
-            <connectionStatus.icon className={`w-4 h-4 ${connectionStatus.color}`} />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="w-full max-w-lg mx-auto mb-16"
+    >
+      <div className="relative">
+        {/* Fondo con imagen */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden">
+          <Image
+            src="/FONDOS-01.webp"
+            alt="Eleven Club background"
+            fill
+            className="object-cover smooth-rendering gpu-accelerated"
+            quality={90}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-orange-900/60 gradient-quality"></div>
+        </div>
+
+        {/* Efectos de brillo mejorados */}
+        <div className="absolute inset-0 rounded-3xl shadow-premium"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/30 via-red-600/20 to-orange-600/30 rounded-3xl blur-lg opacity-50 shadow-glow gpu-accelerated"></div>
+
+        {/* Contenido principal */}
+        <div className="relative z-10 p-8 text-center rounded-3xl glass-effect border-glow">
+          {/* Logo pequeño */}
+          <div className="mb-6">
+            <Image
+              src="/logo-eleven.webp"
+              alt="Eleven Club"
+              width={80}
+              height={80}
+              className="mx-auto opacity-90 logo-quality gpu-accelerated"
+              quality={100}
+            />
           </div>
-          <div className="space-y-1">
-            <div className="text-3xl font-bold text-white">{contador}</div>
-            <p className="text-purple-200 text-sm">
-              {contador === 1 ? "persona" : "personas"} ahora mismo en el local
+
+          {/* Título mejorado */}
+          <div className="mb-6">
+            <h2 className="font-legquinne text-2xl lg:text-3xl text-white mb-2 text-crisp">
+              EN VIVO
+            </h2>
+            <p className="text-orange-300/90 text-sm font-medium tracking-wide text-crisp">
+              • Actualizado hace {Math.floor((Date.now() - lastUpdate!.getTime()) / 1000)} segundos
             </p>
-            {lastUpdate && (
-              <p className="text-purple-300 text-xs">
-                Actualizado: {lastUpdate.toLocaleTimeString()}
-              </p>
-            )}
-            <p className="text-purple-400 text-xs">
-              {connectionStatus.text}
-            </p>
-            {error && (
-              <p className="text-red-300 text-xs">
-                ⚠️ {error} (mostrando último valor)
-              </p>
-            )}
           </div>
-          <div className="flex justify-center">
-            <div className={`w-2 h-2 rounded-full ${
-              isRealtimeActive ? 'animate-pulse bg-green-400' :
-              isConnected ? 'animate-pulse bg-yellow-400' : 'bg-red-400'
-            }`}></div>
+
+          {/* Contador principal mejorado */}
+          <div className="relative mb-6">
+            {/* Círculo principal con mejor diseño */}
+            <div className="relative mx-auto w-32 h-32 lg:w-40 lg:h-40">
+              {/* Fondo del círculo */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 via-red-500/20 to-orange-500/30 rounded-full border-2 border-orange-400/40 shadow-glow gpu-accelerated">
+                <div className="absolute inset-2 bg-gradient-to-br from-black/60 to-black/40 rounded-full glass-effect-dark"></div>
+              </div>
+
+              {/* Número con tipografía mejorada */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-legquinne text-5xl lg:text-6xl font-bold text-white shadow-glow text-crisp gpu-accelerated">
+                  {contador.toString().padStart(2, '0')}
+                </span>
+              </div>
+            </div>
+
+            {/* Texto descriptivo mejorado */}
+            <div className="mt-4">
+              <p className="text-white/90 text-lg font-medium text-crisp">
+                personas ahora mismo
+              </p>
+              <p className="text-orange-300/80 text-sm font-legquinne tracking-wider text-crisp">
+                en Eleven Club
+              </p>
+            </div>
+          </div>
+
+          {/* Estado de conexión mejorado */}
+          <div className="flex items-center justify-center gap-2 text-xs">
+            {getConnectionStatus()}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </motion.div>
   )
 }
