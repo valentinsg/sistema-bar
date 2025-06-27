@@ -1,7 +1,6 @@
 "use client"
 
-import DebugCounter from "@/components/debug-counter"
-import LiveCounterTest from "@/components/live-counter-test"
+import LiveCounter from "@/components/live-counter-sse"
 import ReservationCalendar from "@/components/reservation-calendar"
 import ReservationForm from "@/components/reservation-form"
 import { motion } from "framer-motion"
@@ -12,9 +11,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Debug Counter - Temporal */}
-      <DebugCounter />
-
       {/* Hero Section */}
       <section className="relative h-screen flex items-start justify-center overflow-hidden pt-16 md:pt-20 lg:pt-24">
         {/* Background Image */}
@@ -199,8 +195,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
           >
-            <LiveCounterTest />
-
+            <LiveCounter />
           </motion.div>
         </motion.div>
         {/* Gradient overlay at bottom */}

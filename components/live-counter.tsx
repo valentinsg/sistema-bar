@@ -95,19 +95,10 @@ export default function LiveCounter() {
       return
     }
 
-    const checkTime = () => {
-      const now = new Date()
-      const hour = now.getHours()
-      const isDevelopment = process.env.NODE_ENV === "development" ||
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      const isOperatingTime = hour >= 19 || hour < 6
-      setShowCounter(isDevelopment || isOperatingTime)
-    }
-
-    checkTime()
+    // Mostrar siempre el contador
+    setShowCounter(true)
     startPolling()
-    const timeInterval = setInterval(checkTime, 60000)
+    const timeInterval = setInterval(() => {}, 60000) // ya no se usa checkTime
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
