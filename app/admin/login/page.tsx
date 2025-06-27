@@ -52,7 +52,7 @@ export default function AdminLogin() {
       const randomBytes = crypto.getRandomValues(new Uint8Array(32))
       const randomString = Array.from(randomBytes, byte => byte.toString(16).padStart(2, '0')).join('')
       const newToken = `admin_${timestamp}_${randomString}`
-      
+
       // Actualizar token en la base de datos
       await supabase
         .from("usuarios_admin")
@@ -75,7 +75,7 @@ export default function AdminLogin() {
 
       // Redireccionar al panel de admin
       router.push("/admin")
-      
+
     } catch (error) {
       console.error("Error en login:", error)
       setError("Error al iniciar sesión. Intenta nuevamente.")
@@ -92,7 +92,7 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center opacity-10"></div>
-      
+
       <Card className="w-full max-w-md bg-gray-900/90 border-gray-700 backdrop-blur-sm shadow-2xl relative z-10">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mb-4">
@@ -105,7 +105,7 @@ export default function AdminLogin() {
             Accede al sistema de gestión de <span className="text-purple-400 font-semibold">Nocturnos</span>
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -148,8 +148,6 @@ export default function AdminLogin() {
                 />
                 <Button
                   type="button"
-                  variant="ghost"
-                  size="sm"
                   className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
                   onClick={() => setShowPassword(!showPassword)}
                 >
@@ -180,4 +178,4 @@ export default function AdminLogin() {
       </Card>
     </div>
   )
-} 
+}

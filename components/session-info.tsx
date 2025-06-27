@@ -77,18 +77,17 @@ export default function SessionInfo() {
             <User className="w-3 h-3" />
             Usuario:
           </span>
-          <Badge variant="outline" className="text-xs">
+          <Badge className="text-xs">
             {sessionData.user.email}
           </Badge>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <span className="text-gray-400 text-sm flex items-center gap-2">
             <Clock className="w-3 h-3" />
             Expira en:
           </span>
-          <Badge 
-            variant={timeLeft === "Expirada" ? "destructive" : "secondary"}
+          <Badge
             className="text-xs"
           >
             {timeLeft}
@@ -106,4 +105,4 @@ export default function SessionInfo() {
       </CardContent>
     </Card>
   )
-} 
+}

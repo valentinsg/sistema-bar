@@ -12,6 +12,21 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Configuración para Source Sans Variable */
+:root {
+  --font-source-sans: 'Source Sans 3', system-ui, sans-serif;
+}
+
+/* Clase utilitaria para Source Sans */
+.font-source-sans {
+  font-family: var(--font-source-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga", "kern";
+  font-variant-ligatures: common-ligatures;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

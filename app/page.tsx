@@ -39,13 +39,14 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="flex justify-center"
           >
             <Image
               src="/logo-eleven.webp"
               alt="Eleven Club"
-              width={250}
-              height={250}
-              className="mx-auto logo-quality gpu-accelerated"
+              width={150}
+              height={150}
+              className="mx-auto logo-quality gpu-accelerated sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[250px] lg:h-[250px]"
               quality={100}
               priority
             />
@@ -53,16 +54,16 @@ export default function HomePage() {
 
           {/* Main Title with integrated aureola */}
           <motion.div
-            className="relative mb-6 mt-10"
+            className="relative mb-8 mt-10"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
           >
-            <h1 className="font-legquinne text-6xl md:text-8xl lg:text-9xl font-normal text-white tracking-wide leading-tight mb-2 text-crisp gpu-accelerated">
+            <h1 className="font-legquinne text-5xl md:text-8xl lg:text-9xl font-normal text-white tracking-wide leading-tighter text-crisp gpu-accelerated">
               <span className="relative inline-block">
-                R
+                E
                 {/* Aureola alargada horizontalmente con recorrido completo - MEJORADA */}
-                <div className="absolute -top-2 md:-top-3 lg:-top-4 -left-5 md:-left-8 lg:-left-12 w-16 md:w-24 lg:w-32 h-4 md:h-6 lg:h-8 gpu-accelerated">
+                <div className="absolute -top-1 md:-top-2 lg:-top-3 -left-5 md:-left-8 lg:-left-12 w-16 md:w-24 lg:w-32 h-3 md:h-4 lg:h-5 gpu-accelerated">
                   {/* Óvalo principal estático - más largo que alto con mejor calidad */}
                   <div className="absolute inset-0 border-2 md:border-3 lg:border-4 border-white/80 transform -rotate-12 opacity-90 gpu-accelerated"
                     style={{
@@ -71,6 +72,7 @@ export default function HomePage() {
                       width: "100%",
                       height: "100%",
                       top: "0%",
+                      transform: "rotate(-12deg)",
                       boxShadow: "0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.3)"
                     }}></div>
 
@@ -103,7 +105,7 @@ export default function HomePage() {
                   </div>
 
                   {/* Segunda estrella imperceptible pero mejorada */}
-                  <div className="absolute inset-0 gpu-accelerated" style={{ transform: "rotate(-12deg)" }}>
+                  <div className="absolute inset-0 gpu-accelerated" style={{ transform: "rotate(-20deg)" }}>
                     <div
                       className="absolute text-white/20 text-[6px] md:text-[8px] lg:hidden"
                       style={{
@@ -132,7 +134,7 @@ export default function HomePage() {
 
                   {/* Brillo interno muy sutil - MEJORADO */}
                   <motion.div
-                    className="absolute bg-gradient-to-br from-white/8 via-transparent to-white/4 transform -rotate-12 gpu-accelerated"
+                    className="absolute bg-gradient-to-br from-white/8 via-transparent to-white/4 transform -rotate-20 gpu-accelerated"
                     style={{
                       borderRadius: "50%",
                       width: "90%",
@@ -152,19 +154,19 @@ export default function HomePage() {
                   />
                 </div>
               </span>
-              eserva tu lugar
+              leva tus sentidos
             </h1>
           </motion.div>
 
           {/* Subtitle with decorative element */}
           <motion.div
-            className="relative mb-16"
+            className="relative mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
           >
-            <p className="font-legquinne text-2xl md:text-4xl lg:text-5xl text-white/95 mb-8 font-light tracking-wider text-crisp">
-              eleva tus sentidos
+            <p className="text-2xl md:text-4xl lg:text-5xl text-white/95 mb-8 font-light font-source-sans tracking-wider text-crisp">
+              Reserva tu Experiencia
             </p>
           </motion.div>
 
@@ -175,57 +177,10 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
           >
-            <motion.div
-              className="group relative overflow-hidden px-8 py-3 glass-effect-dark border-glow rounded-full text-white font-medium text-base transition-all duration-500 shadow-glow hover:shadow-glow gpu-accelerated"
-              style={{
-                background: "linear-gradient(135deg, rgba(249, 115, 22, 0.8) 0%, rgba(234, 88, 12, 0.7) 50%, rgba(239, 68, 68, 0.8) 100%)",
-                backdropFilter: "blur(24px) saturate(180%)",
-                boxShadow: "0 8px 32px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 20px rgba(249, 115, 22, 0.3)"
-              }}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <div className="flex items-center gap-2">
-                <motion.div
-                  className="w-2 h-2 bg-white rounded-full shadow-glow"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <span className="relative z-10 text-crisp">Cena desde las 19:00</span>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-300/25 via-orange-400/20 to-red-300/25 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full"></div>
-              <div className="absolute inset-0 bg-white/8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-            </motion.div>
+            <LiveCounter />
 
-            <motion.div
-              className="group relative overflow-hidden px-8 py-3 glass-effect-dark border-glow-red rounded-full text-white font-medium text-base transition-all duration-500 shadow-glow-red hover:shadow-glow-red gpu-accelerated"
-              style={{
-                background: "linear-gradient(135deg, rgba(239, 68, 68, 0.8) 0%, rgba(220, 38, 38, 0.7) 50%, rgba(236, 72, 153, 0.8) 100%)",
-                backdropFilter: "blur(24px) saturate(180%)",
-                boxShadow: "0 8px 32px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 20px rgba(239, 68, 68, 0.3)"
-              }}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <div className="flex items-center gap-2">
-                <motion.div
-                  className="w-2 h-2 bg-white rounded-full shadow-glow-red"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.7, 1, 0.7]
-                  }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <span className="relative z-10 text-crisp">After 00:00</span>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-red-300/25 via-red-400/20 to-pink-300/25 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full"></div>
-              <div className="absolute inset-0 bg-white/8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-            </motion.div>
           </motion.div>
         </motion.div>
-
         {/* Gradient overlay at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-5"></div>
       </section>
@@ -244,15 +199,6 @@ export default function HomePage() {
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               No te quedes afuera de la mejor noche de la ciudad. Asegurate tu lugar y viví una experiencia única en Eleven Club.
             </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-50px" }}
-          >
-            <LiveCounter />
           </motion.div>
 
           <motion.div

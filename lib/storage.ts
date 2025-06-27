@@ -31,18 +31,23 @@ export const saveReserva = async (reserva: Omit<Reserva, "id" | "created_at">): 
 }
 
 export const getReservas = async (local_id: string): Promise<Reserva[]> => {
-  const { data, error } = await supabase
-    .from("reservas")
-    .select("*")
-    .eq("local_id", local_id)
-    .order("fecha", { ascending: true })
+  try {
+    const { data, error } = await supabase
+      .from("reservas")
+      .select("*")
+      .eq("local_id", local_id)
+      .order("fecha", { ascending: true })
 
-  if (error) {
-    console.error("Error al obtener reservas:", error.message, error.details, error.hint)
+    if (error) {
+      console.error("Error al obtener reservas:", error)
+      return []
+    }
+
+    return data as Reserva[]
+  } catch (error) {
+    console.error("Error al obtener reservas:", error)
     return []
   }
-
-  return data as Reserva[]
 }
 
 export const deleteReserva = async (id: string): Promise<boolean> => {
@@ -59,10 +64,28 @@ export const deleteReserva = async (id: string): Promise<boolean> => {
   return true
 }
 
+// Cache en memoria para evitar llamadas excesivas
+const memoryCache = new Map<string, { data: number, timestamp: number }>()
+const CACHE_TTL = 2000 // 2 segundos de cache
+
 export const getContador = async (local_id: string): Promise<number> => {
   const fechaHoy = new Date().toISOString().split("T")[0]
+  const cacheKey = `${local_id}-${fechaHoy}`
+  const now = Date.now()
 
-  console.log("📊 getContador - Parámetros:", { local_id, fecha: fechaHoy })
+  // Verificar cache primero
+  const cached = memoryCache.get(cacheKey)
+  if (cached && (now - cached.timestamp) < CACHE_TTL) {
+    // Devolver datos del cache sin logs
+    return cached.data
+  }
+
+  // Solo log en desarrollo y con throttling
+  const isDevelopment = process.env.NODE_ENV === 'development'
+
+  if (isDevelopment) {
+    console.log("📊 getContador - Parámetros:", { local_id, fecha: fechaHoy })
+  }
 
   const { data, error } = await supabase
     .from("contador_personas")
@@ -71,18 +94,39 @@ export const getContador = async (local_id: string): Promise<number> => {
     .eq("fecha", fechaHoy)
     .single()
 
+  let result = 0
+
   if (error) {
-    console.log("ℹ️ getContador - Error (puede ser normal si no existe):", error.message)
-    return 0
+    if (isDevelopment) {
+      console.log("ℹ️ getContador - Error (puede ser normal si no existe):", error.message)
+    }
+    result = 0
+  } else if (!data) {
+    if (isDevelopment) {
+      console.log("ℹ️ getContador - No hay datos para hoy, retornando 0")
+    }
+    result = 0
+  } else {
+    if (isDevelopment) {
+      console.log("✅ getContador - Cantidad encontrada:", data.cantidad)
+    }
+    result = data.cantidad
   }
 
-  if (!data) {
-    console.log("ℹ️ getContador - No hay datos para hoy, retornando 0")
-    return 0
+  // Guardar en cache
+  memoryCache.set(cacheKey, { data: result, timestamp: now })
+
+  // Limpiar cache viejo cada 100 llamadas
+  if (memoryCache.size > 100) {
+    const cutoff = now - (CACHE_TTL * 2)
+    for (const [key, value] of memoryCache.entries()) {
+      if (value.timestamp < cutoff) {
+        memoryCache.delete(key)
+      }
+    }
   }
 
-  console.log("✅ getContador - Cantidad encontrada:", data.cantidad)
-  return data.cantidad
+  return result
 }
 
 export const updateContador = async (local_id: string, cantidad: number): Promise<boolean> => {

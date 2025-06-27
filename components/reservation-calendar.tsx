@@ -60,6 +60,9 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
         nuevasReservas[fecha] = allReservas.filter((r) => r.fecha === fecha).length
       })
       setReservasPorDia(nuevasReservas)
+    } catch (error) {
+      console.error("Error al cargar datos del mes:", error)
+      setReservasPorDia({})
     } finally {
       setLoading(false)
     }
@@ -80,6 +83,10 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
         nuevaDisponibilidad[horario] = disponibles
       }
       setDisponibilidadPorHorario(nuevaDisponibilidad)
+    } catch (error) {
+      console.error("Error al cargar datos del día:", error)
+      setReservasDelDia([])
+      setDisponibilidadPorHorario({})
     } finally {
       setLoadingDay(false)
     }
@@ -160,126 +167,168 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
             alt="Eleven Club background"
             fill
             className="object-cover"
+            quality={90}
+            priority
+            style={{
+              imageRendering: 'crisp-edges',
+              filter: 'contrast(1.1) brightness(1.05)'
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/85 to-orange-900/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-orange-900/50"></div>
         </div>
 
-        <Card className="relative overflow-hidden bg-transparent border-orange-500/30 backdrop-blur-xl shadow-2xl">
-          <CardHeader className="relative z-10 bg-gradient-to-r from-orange-500/20 to-red-500/20 border-b border-orange-500/30 backdrop-blur-sm">
+        <Card className="relative overflow-hidden bg-transparent border-2 border-orange-500/40 backdrop-blur-xl shadow-2xl"
+          style={{
+            backdropFilter: "blur(25px) saturate(1.2)",
+            boxShadow: "0 12px 40px rgba(249, 115, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+          }}>
+          <CardHeader className="relative z-10 bg-gradient-to-r from-orange-500/25 to-red-500/20 border-b-2 border-orange-500/40 backdrop-blur-md"
+            style={{
+              backdropFilter: "blur(20px) saturate(1.1)"
+            }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {/* Logo pequeño */}
+                {/* Logo pequeño mejorado */}
                 <Image
                   src="/logo-eleven.webp"
                   alt="Eleven Club"
-                  width={40}
-                  height={40}
-                  className="opacity-90"
+                  width={50}
+                  height={50}
+                  className="opacity-95 drop-shadow-lg"
+                  quality={100}
+                  priority
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    filter: 'contrast(1.1) brightness(1.05)'
+                  }}
                 />
                 <div>
-                  <CardTitle className="text-white flex items-center gap-3 text-xl font-legquinne font-normal">
-                    <div className="p-2 bg-orange-500/20 rounded-lg border border-orange-400/30">
-                      <Calendar className="w-6 h-6 text-orange-300" />
-            </div>
-            Calendario de Reservas
-                    {loading && <Loader2 className="w-5 h-5 animate-spin text-orange-400" />}
-          </CardTitle>
-                  <CardDescription className="text-white/80 text-base">
-            Selecciona una fecha para ver disponibilidad{isAdmin ? " y gestionar reservas" : ""}
-          </CardDescription>
+                  <CardTitle className="text-white flex items-center gap-3 text-2xl font-legquinne font-normal">
+                    <div className="p-2.5 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-xl border-2 border-orange-400/40 shadow-lg">
+                      <Calendar className="w-7 h-7 text-orange-200" />
+                    </div>
+                    Calendario de Reservas
+                    {loading && <Loader2 className="w-6 h-6 animate-spin text-orange-400" />}
+                  </CardTitle>
+                  <CardDescription className="text-white/95 text-lg font-medium mt-1">
+                    Selecciona una fecha para ver disponibilidad{isAdmin ? " y gestionar reservas" : ""}
+                  </CardDescription>
                 </div>
               </div>
-              {/* Elemento decorativo */}
+              {/* Elemento decorativo mejorado */}
               <Image
                 src="/detalle-texto-eleven.webp"
                 alt="Eleven Club detail"
-                width={100}
-                height={30}
-                className="opacity-40 hidden md:block"
+                width={120}
+                height={40}
+                className="opacity-50 hidden md:block drop-shadow-md"
+                quality={100}
+                style={{
+                  imageRendering: 'crisp-edges',
+                  filter: 'contrast(1.1) brightness(1.05)'
+                }}
               />
             </div>
-        </CardHeader>
-          <CardContent className="p-6 relative z-10">
-          {/* Navegación del mes */}
-          <div className="flex items-center justify-between mb-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-                className="group relative overflow-hidden bg-black/60 border-orange-500/30 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/30 hover:to-red-500/30 hover:border-orange-400/50 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/20 hover:scale-105 backdrop-blur-sm"
-              disabled={loading}
-            >
-              <ChevronLeft className="w-4 h-4" />
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-300/10 via-orange-400/5 to-red-300/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </Button>
-              <h3 className="text-2xl font-bold font-legquinne text-transparent bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </h3>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-                className="group relative overflow-hidden bg-black/60 border-orange-500/30 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/30 hover:to-red-500/30 hover:border-orange-400/50 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/20 hover:scale-105 backdrop-blur-sm"
-              disabled={loading}
-            >
-              <ChevronRight className="w-4 h-4" />
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-300/10 via-orange-400/5 to-red-300/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </Button>
-          </div>
+          </CardHeader>
+          <CardContent className="p-8 relative z-10"
+            style={{
+              backdropFilter: "blur(20px) saturate(1.1)",
+              background: "rgba(0, 0, 0, 0.15)"
+            }}>
+            {/* Navegación del mes */}
+            <div className="flex items-center justify-between mb-8">
+              <Button
+                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
+                className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-4 py-3 rounded-xl"
+                style={{
+                  backdropFilter: "blur(15px) saturate(1.1)"
+                }}
+                disabled={loading}
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-300/15 via-orange-400/10 to-red-300/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </Button>
+              <h3 className="text-3xl font-bold font-legquinne text-transparent bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text drop-shadow-lg">
+                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </h3>
+              <Button
+                onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
+                className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-4 py-3 rounded-xl"
+                style={{
+                  backdropFilter: "blur(15px) saturate(1.1)"
+                }}
+                disabled={loading}
+              >
+                <ChevronRight className="w-5 h-5" />
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-300/15 via-orange-400/10 to-red-300/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </Button>
+            </div>
 
-          {/* Días de la semana */}
-          <div className="grid grid-cols-7 gap-2 mb-4">
-            {dayNames.map((day) => (
-                <div key={day} className="text-center text-sm font-semibold text-orange-300 py-3 bg-black/40 rounded-lg border border-orange-500/20 backdrop-blur-sm">
-                {day}
-              </div>
-            ))}
-          </div>
+            {/* Días de la semana */}
+            <div className="grid grid-cols-7 gap-3 mb-6">
+              {dayNames.map((day) => (
+                <div key={day} className="text-center text-base font-bold text-orange-200 py-4 bg-black/60 rounded-xl border-2 border-orange-500/30 backdrop-blur-md shadow-lg"
+                  style={{
+                    backdropFilter: "blur(15px) saturate(1.1)",
+                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                  }}>
+                  {day}
+                </div>
+              ))}
+            </div>
 
-          {/* Días del mes */}
-          <div className="grid grid-cols-7 gap-2">
-            {getDaysInMonth(currentDate).map((day, index) => {
-              if (day === null) return <div key={`empty-${index}`} className="h-14" />
-              const dateStr = formatDateString(day)
-              const reservasCount = reservasPorDia[dateStr] || 0
-              const isSelected = selectedDate === dateStr
-              const todayClass = isToday(day)
-              const pastDate = isPastDate(day)
-              const todayAfter18 = isTodayAfter18(day)
+            {/* Días del mes */}
+            <div className="grid grid-cols-7 gap-3">
+              {getDaysInMonth(currentDate).map((day, index) => {
+                if (day === null) return <div key={`empty-${index}`} className="h-16" />
+                const dateStr = formatDateString(day)
+                const reservasCount = reservasPorDia[dateStr] || 0
+                const isSelected = selectedDate === dateStr
+                const todayClass = isToday(day)
+                const pastDate = isPastDate(day)
+                const todayAfter18 = isTodayAfter18(day)
 
-              return (
-                <button
-                  key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`}
-                  onClick={() => setSelectedDate(dateStr)}
-                  disabled={pastDate || todayAfter18 || loading}
-                    className={`h-14 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group backdrop-blur-sm
-                    ${isSelected ?
-                        "bg-gradient-to-br from-orange-600/80 to-red-600/80 text-white shadow-lg shadow-orange-500/30 scale-105 border-2 border-orange-400 backdrop-blur-md" :
-                      pastDate || todayAfter18 ?
-                          "text-gray-500 cursor-not-allowed bg-black/20" :
-                        todayClass ?
-                            "bg-gradient-to-br from-orange-500/40 to-red-500/40 text-orange-200 border-2 border-orange-400/50 shadow-lg shadow-orange-500/20 hover:scale-105" :
-                            "text-white bg-black/40 hover:bg-gradient-to-br hover:from-orange-500/30 hover:to-red-500/30 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/10 border border-orange-500/20 hover:border-orange-400/40"
-                    }`}>
-                  <span className="relative z-10">{day}</span>
+                return (
+                  <button
+                    key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`}
+                    onClick={() => setSelectedDate(dateStr)}
+                    disabled={pastDate || todayAfter18 || loading}
+                    className={`h-16 rounded-xl text-base font-bold transition-all duration-300 relative overflow-hidden group backdrop-blur-md shadow-lg
+                      ${isSelected ?
+                        "bg-gradient-to-br from-orange-600/90 to-red-600/80 text-white shadow-xl shadow-orange-500/40 scale-110 border-2 border-orange-300/60 backdrop-blur-md" :
+                        pastDate || todayAfter18 ?
+                          "text-gray-500 cursor-not-allowed bg-black/30 border border-gray-600/30" :
+                          todayClass ?
+                            "bg-gradient-to-br from-orange-500/50 to-red-500/40 text-orange-100 border-2 border-orange-400/60 shadow-lg shadow-orange-500/30 hover:scale-110" :
+                            "text-white bg-black/60 hover:bg-gradient-to-br hover:from-orange-500/40 hover:to-red-500/30 hover:scale-110 hover:shadow-lg hover:shadow-orange-500/20 border-2 border-orange-500/30 hover:border-orange-400/50"
+                      }`}
+                    style={!pastDate && !todayAfter18 ? {
+                      backdropFilter: "blur(15px) saturate(1.1)",
+                      boxShadow: isSelected ? "0 8px 32px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)" : "0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                    } : {}}>
+                    <span className="relative z-10">{day}</span>
 
-                  {/* Indicador de reservas */}
-                  {reservasCount > 0 && !pastDate && (
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-xs flex items-center justify-center text-white font-bold shadow-lg animate-pulse z-20 border border-red-400/50">
-                      {reservasCount}
-                    </div>
-                  )}
+                    {/* Indicador de reservas */}
+                    {reservasCount > 0 && !pastDate && (
+                      <div className="absolute -top-1 -right-1 w-7 h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-sm flex items-center justify-center text-white font-bold shadow-xl animate-pulse z-20 border-2 border-red-300/50"
+                        style={{
+                          backdropFilter: "blur(10px)",
+                          boxShadow: "0 4px 16px rgba(239, 68, 68, 0.5)"
+                        }}>
+                        {reservasCount}
+                      </div>
+                    )}
 
-                  {/* Efecto hover */}
-                  {!pastDate && !todayAfter18 && !isSelected && (
-                      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-red-500/0 group-hover:from-orange-500/20 group-hover:to-red-500/10 transition-all duration-300 rounded-xl" />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                    {/* Efecto hover */}
+                    {!pastDate && !todayAfter18 && !isSelected && (
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 to-red-500/0 group-hover:from-orange-500/25 group-hover:to-red-500/15 transition-all duration-300 rounded-xl" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Detalles del día seleccionado */}
@@ -297,225 +346,306 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
               alt="Eleven Club background"
               fill
               className="object-cover"
+              quality={90}
+              priority
+              style={{
+                imageRendering: 'crisp-edges',
+                filter: 'contrast(1.1) brightness(1.05)'
+              }}
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/85 to-red-900/40"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-red-900/50"></div>
           </div>
 
-          <Card className="relative overflow-hidden bg-transparent border-orange-500/30 backdrop-blur-xl shadow-2xl">
-            <CardHeader className="relative z-10 bg-gradient-to-r from-red-500/20 to-orange-500/20 border-b border-orange-500/30 backdrop-blur-sm">
+          <Card className="relative overflow-hidden bg-transparent border-2 border-orange-500/40 backdrop-blur-xl shadow-2xl"
+            style={{
+              backdropFilter: "blur(25px) saturate(1.2)",
+              boxShadow: "0 12px 40px rgba(249, 115, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+            }}>
+            <CardHeader className="relative z-10 bg-gradient-to-r from-red-500/25 to-orange-500/20 border-b-2 border-orange-500/40 backdrop-blur-md"
+              style={{
+                backdropFilter: "blur(20px) saturate(1.1)"
+              }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  {/* Logo pequeño */}
+                  {/* Logo pequeño mejorado */}
                   <Image
                     src="/logo-eleven.webp"
                     alt="Eleven Club"
-                    width={40}
-                    height={40}
-                    className="opacity-90"
+                    width={50}
+                    height={50}
+                    className="opacity-95 drop-shadow-lg"
+                    quality={100}
+                    priority
+                    style={{
+                      imageRendering: 'crisp-edges',
+                      filter: 'contrast(1.1) brightness(1.05)'
+                    }}
                   />
                   <div>
-                    <CardTitle className="text-white flex items-center gap-3 text-xl font-legquinne font-normal">
-                      <div className="p-2 bg-red-500/20 rounded-lg border border-red-400/30">
-                        <Clock className="w-6 h-6 text-red-300" />
-              </div>
-              {new Date(selectedDate + "T00:00:00").toLocaleDateString("es-AR", {
-                weekday: "long", year: "numeric", month: "long", day: "numeric"
-              })}
-                      {loadingDay && <Loader2 className="w-5 h-5 animate-spin text-red-400" />}
-            </CardTitle>
+                    <CardTitle className="text-white flex items-center gap-3 text-2xl font-legquinne font-normal">
+                      <div className="p-2.5 bg-gradient-to-br from-red-500/25 to-orange-500/20 rounded-xl border-2 border-red-400/40 shadow-lg">
+                        <Clock className="w-7 h-7 text-red-200" />
+                      </div>
+                      {new Date(selectedDate + "T00:00:00").toLocaleDateString("es-AR", {
+                        weekday: "long", year: "numeric", month: "long", day: "numeric"
+                      })}
+                      {loadingDay && <Loader2 className="w-6 h-6 animate-spin text-red-400" />}
+                    </CardTitle>
                   </div>
                 </div>
-                {/* Elemento decorativo */}
+                {/* Elemento decorativo mejorado */}
                 <Image
                   src="/detalle-texto-eleven.webp"
                   alt="Eleven Club detail"
-                  width={100}
-                  height={30}
-                  className="opacity-40 hidden md:block"
+                  width={120}
+                  height={40}
+                  className="opacity-50 hidden md:block drop-shadow-md"
+                  quality={100}
+                  style={{
+                    imageRendering: 'crisp-edges',
+                    filter: 'contrast(1.1) brightness(1.05)'
+                  }}
                 />
               </div>
-          </CardHeader>
-            <CardContent className="p-6 relative z-10">
-            {loadingDay ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-orange-400 mx-auto mb-4" />
-                    <span className="text-white/80 text-lg">Cargando disponibilidad...</span>
-                  </div>
-              </div>
-            ) : reservasDelDia.length === 0 ? (
-              <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-500/30">
-                    <Calendar className="w-10 h-10 text-orange-400" />
-                  </div>
-                  <p className="text-white/80 text-lg font-legquinne">No hay reservas para esta fecha</p>
-                  <p className="text-white/60 text-sm mt-2">¡Perfecto para nuevas reservas!</p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {/* Info para usuarios no admin */}
-                {!isAdmin && (
-                    <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 border border-orange-500/30 rounded-xl p-4 backdrop-blur-sm">
-                      <div className="text-orange-200 flex items-center gap-3">
-                        <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
-                      <span><strong>Info:</strong> El local tiene 50 mesas totales para todo el día.
-                      Cada 4 personas ocupan 1 mesa.</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Disponibilidad por horario */}
-                <div>
-                    <h4 className="text-white font-bold text-lg mb-6 flex items-center gap-2 font-legquinne">
-                      <div className="w-2 h-6 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"></div>
-                    Disponibilidad por horario
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {horarios.map((horario) => {
-                      const disponibles = disponibilidadPorHorario[horario] ?? "-"
-                      const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
-                      const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
-                      const ocupacion = typeof disponibles === "number" ? ((50 - disponibles) / 50) * 100 : 0
-
-                      return (
-                          <div key={horario} className="bg-black/60 rounded-xl p-4 border border-orange-500/30 hover:border-orange-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10 backdrop-blur-sm">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-white font-bold text-lg">{horario}</span>
-                            <Badge
-                              variant={disponibles > 30 ? "default" : disponibles > 15 ? "secondary" : "destructive"}
-                              className={`text-xs font-semibold px-3 py-1 ${
-                                disponibles > 30 ? "bg-green-500/20 text-green-300 border-green-500/30" :
-                                disponibles > 15 ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" :
-                                "bg-red-500/20 text-red-300 border-red-500/30"
-                              }`}
-                            >
-                              {disponibles}/50 libres
-                            </Badge>
-                          </div>
-
-                          {/* Barra de ocupación */}
-                            <div className="w-full bg-black/40 rounded-full h-2 mb-3 overflow-hidden border border-orange-500/20">
-                            <div
-                              className={`h-full transition-all duration-500 ${
-                                ocupacion > 70 ? "bg-gradient-to-r from-red-500 to-red-600" :
-                                ocupacion > 40 ? "bg-gradient-to-r from-yellow-500 to-yellow-600" :
-                                "bg-gradient-to-r from-green-500 to-green-600"
-                              }`}
-                              style={{ width: `${ocupacion}%` }}
-                            />
-                          </div>
-
-                          {reservasEnHorario.length > 0 ? (
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-sm">
-                                  <Users className="w-4 h-4 text-orange-400" />
-                                  <span className="text-orange-300 font-medium">
-                                  {reservasEnHorario.length} reserva{reservasEnHorario.length !== 1 ? "s" : ""}
-                                </span>
-                              </div>
-                                <div className="text-sm text-white/80">
-                                <strong>{personasEnHorario}</strong> personas total
-                              </div>
-                            </div>
-                          ) : (
-                              <div className="flex items-center gap-2 text-sm text-white/50">
-                              <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
-                              Sin reservas
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
+            </CardHeader>
+            <CardContent className="p-8 relative z-10"
+              style={{
+                backdropFilter: "blur(20px) saturate(1.1)",
+                background: "rgba(0, 0, 0, 0.15)"
+              }}>
+              {loadingDay ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center">
+                    <Loader2 className="w-16 h-16 animate-spin text-orange-400 mx-auto mb-6" />
+                    <span className="text-white/90 text-xl font-medium">Cargando disponibilidad...</span>
                   </div>
                 </div>
+              ) : reservasDelDia.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-orange-500/40 shadow-lg"
+                    style={{
+                      backdropFilter: "blur(15px) saturate(1.1)",
+                      boxShadow: "0 8px 32px rgba(249, 115, 22, 0.2)"
+                    }}>
+                    <Calendar className="w-12 h-12 text-orange-300" />
+                  </div>
+                  <p className="text-white/90 text-2xl font-legquinne font-medium mb-2">No hay reservas para esta fecha</p>
+                  <p className="text-white/70 text-lg">¡Perfecto para nuevas reservas!</p>
+                </div>
+              ) : (
+                <div className="space-y-10">
+                  {/* Info para usuarios no admin */}
+                  {!isAdmin && (
+                    <div className="bg-gradient-to-r from-orange-900/40 to-red-900/35 border-2 border-orange-500/40 rounded-xl p-6 backdrop-blur-md shadow-lg"
+                      style={{
+                        backdropFilter: "blur(20px) saturate(1.1)",
+                        boxShadow: "0 8px 32px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                      }}>
+                      <div className="text-orange-100 flex items-center gap-4 text-lg">
+                        <div className="w-4 h-4 bg-orange-400 rounded-full animate-pulse shadow-lg"></div>
+                        <span className="font-medium"><strong>Info:</strong> El local tiene 50 mesas totales para todo el día.
+                          Cada 4 personas ocupan 1 mesa.</span>
+                      </div>
+                    </div>
+                  )}
 
-                {/* Lista de reservas para admin */}
-                {isAdmin && (
+                  {/* Disponibilidad por horario */}
                   <div>
-                      <h4 className="text-white font-bold text-lg mb-6 flex items-center gap-2 font-legquinne">
-                        <div className="w-2 h-6 bg-gradient-to-b from-red-500 to-orange-500 rounded-full"></div>
-                      Reservas del día
+                    <h4 className="text-white font-bold text-2xl mb-8 flex items-center gap-3 font-legquinne">
+                      <div className="w-3 h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full shadow-lg"></div>
+                      Disponibilidad por horario
                     </h4>
-                    <div className="space-y-4">
-                      {reservasDelDia.map((reserva, index) => (
-                          <div key={reserva.id} className="bg-black/60 rounded-xl p-6 border border-orange-500/30 hover:border-orange-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/10 group backdrop-blur-sm">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full flex items-center justify-center border border-orange-500/30">
-                                    <User className="w-5 h-5 text-orange-300" />
-                                </div>
-                                <h5 className="text-white font-bold text-lg">{reserva.nombre}</h5>
-                                  <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/30 text-xs">
-                                  #{index + 1}
-                                </Badge>
-                              </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {horarios.map((horario) => {
+                        const disponibles = disponibilidadPorHorario[horario] ?? "-"
+                        const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
+                        const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
+                        const ocupacion = typeof disponibles === "number" ? ((50 - disponibles) / 50) * 100 : 0
 
-                              <div className="flex items-center gap-3 mb-4">
-                                  <div className="flex items-center gap-2 text-white/80">
-                                    <Phone className="w-4 h-4 text-orange-400" />
-                                  <span className="font-medium">{reserva.contacto}</span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-6 text-sm">
-                                  <div className="flex items-center gap-2 text-orange-300 bg-orange-500/10 px-3 py-2 rounded-lg border border-orange-500/20">
-                                  <Clock className="w-4 h-4" />
-                                  <span className="font-bold">{reserva.horario}</span>
-                                </div>
-                                  <div className="flex items-center gap-2 text-red-300 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/20">
-                                  <Users className="w-4 h-4" />
-                                  <span className="font-bold">{reserva.cantidad_personas} personas</span>
-                                </div>
-                                  <Badge variant="outline" className="border-orange-500/50 text-orange-300 bg-orange-500/10 font-semibold">
-                                  {Math.ceil(reserva.cantidad_personas / 4)} mesa{Math.ceil(reserva.cantidad_personas / 4) !== 1 ? 's' : ''}
-                                </Badge>
-                              </div>
+                        return (
+                          <div key={horario} className="bg-black/70 rounded-xl p-6 border-2 border-orange-500/40 hover:border-orange-400/60 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20 backdrop-blur-md hover:scale-105"
+                            style={{
+                              backdropFilter: "blur(20px) saturate(1.1)",
+                              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                            }}>
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-white font-bold text-xl">{horario}</span>
+                              <Badge
+                                className={`text-sm font-bold px-4 py-2 rounded-lg shadow-lg ${typeof disponibles === "number" && disponibles > 30 ? "bg-green-500/25 text-green-200 border-2 border-green-500/40" :
+                                    typeof disponibles === "number" && disponibles > 15 ? "bg-yellow-500/25 text-yellow-200 border-2 border-yellow-500/40" :
+                                      "bg-red-500/25 text-red-200 border-2 border-red-500/40"
+                                  }`}
+                                style={{
+                                  backdropFilter: "blur(10px) saturate(1.1)"
+                                }}
+                              >
+                                {disponibles}/50 libres
+                              </Badge>
                             </div>
 
-                            <div className="ml-6">
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                      className="border-red-500/50 text-red-400 bg-red-500/10 hover:bg-red-500/20 hover:border-red-400 hover:text-red-300 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 backdrop-blur-sm"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                  <AlertDialogContent className="bg-gradient-to-br from-black/95 to-gray-900/95 border-orange-500/30 backdrop-blur-xl">
-                                  <AlertDialogHeader>
-                                      <AlertDialogTitle className="text-white text-xl font-legquinne">¿Eliminar reserva?</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-white/80 text-base">
-                                        ¿Estás seguro de que quieres eliminar la reserva de <strong className="text-orange-300">{reserva.nombre}</strong>?
-                                      Esta acción no se puede deshacer.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                      <AlertDialogCancel className="bg-black/60 text-white border-orange-500/30 hover:bg-black/80 transition-all duration-300 backdrop-blur-sm">
-                                      Cancelar
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeleteReserva(reserva.id, reserva.nombre)}
-                                      className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-red-500/30"
-                                    >
-                                      Eliminar
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                            {/* Barra de ocupación */}
+                            <div className="w-full bg-black/60 rounded-full h-3 mb-4 overflow-hidden border-2 border-orange-500/30 shadow-inner">
+                              <div
+                                className={`h-full transition-all duration-700 shadow-lg ${ocupacion > 70 ? "bg-gradient-to-r from-red-500 to-red-600" :
+                                    ocupacion > 40 ? "bg-gradient-to-r from-yellow-500 to-yellow-600" :
+                                      "bg-gradient-to-r from-green-500 to-green-600"
+                                  }`}
+                                style={{
+                                  width: `${ocupacion}%`,
+                                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)"
+                                }}
+                              />
                             </div>
+
+                            {reservasEnHorario.length > 0 ? (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-3 text-base">
+                                  <div className="p-1.5 bg-orange-500/20 rounded-lg border border-orange-400/30">
+                                    <Users className="w-5 h-5 text-orange-300" />
+                                  </div>
+                                  <span className="text-orange-200 font-semibold">
+                                    {reservasEnHorario.length} reserva{reservasEnHorario.length !== 1 ? "s" : ""}
+                                  </span>
+                                </div>
+                                <div className="text-base text-white/90 bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+                                  <strong>{personasEnHorario}</strong> personas total
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-3 text-base text-white/60">
+                                <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+                                Sin reservas
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
+                  {/* Lista de reservas para admin */}
+                  {isAdmin && (
+                    <div>
+                      <h4 className="text-white font-bold text-2xl mb-8 flex items-center gap-3 font-legquinne">
+                        <div className="w-3 h-8 bg-gradient-to-b from-red-500 to-orange-500 rounded-full shadow-lg"></div>
+                        Reservas del día
+                      </h4>
+                      <div className="space-y-6">
+                        {reservasDelDia.map((reserva, index) => (
+                          <div key={reserva.id} className="bg-black/70 rounded-xl p-8 border-2 border-orange-500/40 hover:border-orange-400/60 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20 group backdrop-blur-md hover:scale-[1.02]"
+                            style={{
+                              backdropFilter: "blur(20px) saturate(1.1)",
+                              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                            }}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-4 mb-4">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-full flex items-center justify-center border-2 border-orange-500/40 shadow-lg"
+                                    style={{
+                                      backdropFilter: "blur(10px) saturate(1.1)"
+                                    }}>
+                                    <User className="w-6 h-6 text-orange-300" />
+                                  </div>
+                                  <h5 className="text-white font-bold text-2xl">{reserva.nombre}</h5>
+                                  <Badge className="bg-orange-500/25 text-orange-200 border-2 border-orange-500/40 text-sm font-bold px-3 py-1 rounded-lg shadow-lg"
+                                    style={{
+                                      backdropFilter: "blur(10px) saturate(1.1)"
+                                    }}>
+                                    #{index + 1}
+                                  </Badge>
+                                </div>
+
+                                <div className="flex items-center gap-4 mb-6">
+                                  <div className="flex items-center gap-3 text-white/90 bg-white/5 rounded-lg px-4 py-3 border border-white/10">
+                                    <div className="p-1.5 bg-orange-500/20 rounded-lg border border-orange-400/30">
+                                      <Phone className="w-5 h-5 text-orange-400" />
+                                    </div>
+                                    <span className="font-semibold text-lg">{reserva.contacto}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-8 text-base">
+                                  <div className="flex items-center gap-3 text-orange-200 bg-gradient-to-r from-orange-500/15 to-yellow-500/10 px-4 py-3 rounded-xl border-2 border-orange-500/30 shadow-lg"
+                                    style={{
+                                      backdropFilter: "blur(10px) saturate(1.1)"
+                                    }}>
+                                    <div className="p-1.5 bg-orange-500/20 rounded-lg border border-orange-400/30">
+                                      <Clock className="w-5 h-5" />
+                                    </div>
+                                    <span className="font-bold text-lg">{reserva.horario}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-red-200 bg-gradient-to-r from-red-500/15 to-pink-500/10 px-4 py-3 rounded-xl border-2 border-red-500/30 shadow-lg"
+                                    style={{
+                                      backdropFilter: "blur(10px) saturate(1.1)"
+                                    }}>
+                                    <div className="p-1.5 bg-red-500/20 rounded-lg border border-red-400/30">
+                                      <Users className="w-5 h-5" />
+                                    </div>
+                                    <span className="font-bold text-lg">{reserva.cantidad_personas} personas</span>
+                                  </div>
+                                  <Badge className="border-2 border-orange-500/60 text-orange-200 bg-gradient-to-r from-orange-500/15 to-yellow-500/10 font-bold text-base px-4 py-2 rounded-xl shadow-lg"
+                                    style={{
+                                      backdropFilter: "blur(10px) saturate(1.1)"
+                                    }}>
+                                    {Math.ceil(reserva.cantidad_personas / 4)} mesa{Math.ceil(reserva.cantidad_personas / 4) !== 1 ? 's' : ''}
+                                  </Badge>
+                                </div>
+                              </div>
+
+                              <div className="ml-8">
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      className="border-2 border-red-500/60 text-red-300 bg-gradient-to-r from-red-500/15 to-pink-500/10 hover:bg-gradient-to-r hover:from-red-500/25 hover:to-pink-500/15 hover:border-red-400/80 hover:text-red-200 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-red-500/30 backdrop-blur-md px-4 py-3 rounded-xl font-bold"
+                                      style={{
+                                        backdropFilter: "blur(15px) saturate(1.1)"
+                                      }}
+                                    >
+                                      <Trash2 className="w-5 h-5" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="bg-gradient-to-br from-black/98 to-gray-900/95 border-2 border-orange-500/40 backdrop-blur-xl rounded-xl"
+                                    style={{
+                                      backdropFilter: "blur(25px) saturate(1.2)",
+                                      boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)"
+                                    }}>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle className="text-white text-2xl font-legquinne font-bold">¿Eliminar reserva?</AlertDialogTitle>
+                                      <AlertDialogDescription className="text-white/90 text-lg leading-relaxed">
+                                        ¿Estás seguro de que quieres eliminar la reserva de <strong className="text-orange-300 bg-orange-500/20 px-2 py-0.5 rounded-md">{reserva.nombre}</strong>?
+                                        Esta acción no se puede deshacer.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel className="bg-black/70 text-white border-2 border-orange-500/40 hover:bg-black/90 transition-all duration-300 backdrop-blur-md rounded-xl px-6 py-3 font-semibold"
+                                        style={{
+                                          backdropFilter: "blur(15px) saturate(1.1)"
+                                        }}>
+                                        Cancelar
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteReserva(reserva.id, reserva.nombre)}
+                                        className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-red-500/40 rounded-xl px-6 py-3 font-bold text-lg"
+                                        style={{
+                                          backdropFilter: "blur(15px) saturate(1.1)"
+                                        }}
+                                      >
+                                        Eliminar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       )}
     </div>

@@ -2,6 +2,51 @@
 
 ## 🚨 Problemas Comunes
 
+### 0. Error: "can't access property 'getTime', lastUpdate is null"
+
+**Síntomas:**
+- Error en la consola: `TypeError: can't access property "getTime", lastUpdate is null`
+- Aplicación puede funcionar pero con errores en la consola
+
+**Causa:** El componente LiveCounter intenta acceder a `lastUpdate.getTime()` antes de que se haya inicializado.
+
+**Solución:** ✅ Ya solucionado - se agregó validación condicional
+
+### 0.1. Error: "NetworkError when attempting to fetch resource"
+
+**Síntomas:**
+- Error: `TypeError: NetworkError when attempting to fetch resource`
+- Error al obtener reservas
+- Las reservas no se cargan en el calendario
+
+**Causas Posibles:**
+1. Variables de entorno de Supabase no configuradas
+2. URL de Supabase incorrecta
+3. Problemas de conectividad
+
+**Soluciones:**
+
+#### A. Verificar Variables de Entorno
+Asegúrate de tener un archivo `.env.local` con:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave_anonima_aqui
+NEXT_PUBLIC_LOCAL_ID=tu_local_id_uuid
+```
+
+#### B. Reiniciar el Servidor
+```bash
+# Detener el servidor (Ctrl+C)
+# Luego reiniciar
+npm run dev
+```
+
+#### C. Verificar Conectividad con Supabase
+```bash
+# Test de conexión desde la consola del navegador
+await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL + '/rest/v1/')
+```
+
 ### 1. El contador en vivo se queda en 0
 
 **Síntomas:**
@@ -50,7 +95,7 @@ Ejecuta en el SQL Editor de Supabase:
 SELECT * FROM contador_personas;
 
 -- Ver datos del día de hoy
-SELECT * FROM contador_personas 
+SELECT * FROM contador_personas
 WHERE fecha = CURRENT_DATE;
 
 -- Ver el local_id configurado
@@ -115,9 +160,9 @@ npm run dev
 ### Resetear Contador
 Si necesitas resetear el contador a 0:
 ```sql
-UPDATE contador_personas 
-SET cantidad = 0 
-WHERE local_id = 'TU_LOCAL_ID' 
+UPDATE contador_personas
+SET cantidad = 0
+WHERE local_id = 'TU_LOCAL_ID'
 AND fecha = CURRENT_DATE;
 ```
 
@@ -172,4 +217,4 @@ await updateContador('tu_local_id', 10)
 - [ ] Real-time está habilitado en Supabase
 - [ ] LOCAL_ID coincide entre admin y frontend
 - [ ] No hay errores en la consola del navegador
-- [ ] El servidor de desarrollo está corriendo sin errores 
+- [ ] El servidor de desarrollo está corriendo sin errores

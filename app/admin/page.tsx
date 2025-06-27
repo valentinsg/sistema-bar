@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteReserva, getContador, getMesasEstadisticas } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
-import { BarChart3, Calendar, Clock, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Minus, Phone, Plus, RotateCcw, TableIcon, Trash2, User, Users } from "lucide-react"
+import { BarChart3, Calendar, Clock, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Minus, Phone, Plus, QrCode, RotateCcw, TableIcon, Trash2, User, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -363,13 +363,13 @@ export default function AdminPage() {
     const status = getStatus(fecha, horario)
     switch (status) {
       case "Pasada":
-        return <Badge variant="secondary">Pasada</Badge>
+        return <Badge>Pasada</Badge>
       case "Hoy":
         return <Badge className="bg-green-600 hover:bg-green-700">Hoy</Badge>
       case "Próxima":
-        return <Badge variant="outline">Próxima</Badge>
+        return <Badge>Próxima</Badge>
       default:
-        return <Badge variant="secondary">Pasada</Badge>
+        return <Badge>Pasada</Badge>
     }
   }
 
@@ -441,17 +441,22 @@ export default function AdminPage() {
 
           <div className="flex items-center space-x-3">
 
-            <Button onClick={downloadCSV} variant="outline" size="sm" disabled={reservas.length === 0}>
+            <Button onClick={downloadCSV}disabled={reservas.length === 0}>
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
 
-            <Button onClick={handleVerSitio} variant="outline" size="sm">
+            <Button onClick={() => router.push('/admin/qr-carta')}>
+              <QrCode className="w-4 h-4 mr-2" />
+              QR Carta
+            </Button>
+
+            <Button onClick={handleVerSitio}>
               <ExternalLink className="w-4 h-4 mr-2" />
               Ver Sitio
             </Button>
 
-            <Button onClick={handleLogout} variant="outline" size="sm" className="border-red-600 text-red-400 hover:bg-red-900/20">
+            <Button onClick={handleLogout} className="border-red-600 text-red-400 hover:bg-red-900/20">
               <LogOut className="w-4 h-4 mr-2" />
               Salir
             </Button>
@@ -486,15 +491,12 @@ export default function AdminPage() {
                 <div className="flex flex-col gap-1">
                   <Button
                     onClick={() => handleUpdateContador(true)}
-                    size="sm"
                     className="bg-green-600 hover:bg-green-700 px-3 py-1.5 transition-all duration-200 shadow-lg hover:shadow-green-500/25"
                   >
                     <Plus className="w-3 h-3" />
                   </Button>
                   <Button
                     onClick={() => handleUpdateContador(false)}
-                    size="sm"
-                    variant="outline"
                     className="border-red-600 text-red-400 hover:bg-red-900/20 px-3 py-1.5 transition-all duration-200"
                     disabled={personasActuales <= 0}
                   >
@@ -503,8 +505,6 @@ export default function AdminPage() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
-                        size="sm"
-                        variant="outline"
                         className="border-yellow-600 text-yellow-400 hover:bg-yellow-900/20 px-3 py-1.5 transition-all duration-200"
                       >
                         <RotateCcw className="w-3 h-3" />
@@ -656,12 +656,12 @@ export default function AdminPage() {
                               </div>
                             </TableCell>
                             <TableCell className="text-gray-300">
-                              <Badge variant="secondary" className="bg-blue-900/50 text-blue-300">
+                              <Badge className="bg-blue-900/50 text-blue-300">
                                 {r.cantidad_personas}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-gray-300">
-                              <Badge variant="outline" className="border-purple-500 text-purple-300">
+                              <Badge className="border-purple-500 text-purple-300">
                                 {Math.ceil(r.cantidad_personas / 4)}
                               </Badge>
                             </TableCell>
@@ -698,8 +698,6 @@ export default function AdminPage() {
                                 }}>
                                   <DialogTrigger asChild>
                                     <Button
-                                      variant="outline"
-                                      size="sm"
                                       className="border-blue-600 text-blue-400 hover:bg-blue-900/20"
                                       onClick={() => setEditingReserva(r)}
                                     >
@@ -721,7 +719,7 @@ export default function AdminPage() {
                                         <Input
                                           id="nombre"
                                           value={editingReserva?.nombre || ""}
-                                          onChange={(e) => setEditingReserva(prev => ({ ...prev, nombre: e.target.value }))}
+                                          onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, nombre: e.target.value }))}
                                           className="col-span-3 bg-gray-700 border-gray-600 text-white"
                                         />
                                       </div>
@@ -732,7 +730,7 @@ export default function AdminPage() {
                                         <Input
                                           id="contacto"
                                           value={editingReserva?.contacto || ""}
-                                          onChange={(e) => setEditingReserva(prev => ({ ...prev, contacto: e.target.value }))}
+                                          onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, contacto: e.target.value }))}
                                           className="col-span-3 bg-gray-700 border-gray-600 text-white"
                                         />
                                       </div>
@@ -744,7 +742,7 @@ export default function AdminPage() {
                                           id="fecha"
                                           type="date"
                                           value={editingReserva?.fecha || ""}
-                                          onChange={(e) => setEditingReserva(prev => ({ ...prev, fecha: e.target.value }))}
+                                          onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, fecha: e.target.value }))}
                                           className="col-span-3 bg-gray-700 border-gray-600 text-white"
                                         />
                                       </div>
@@ -754,7 +752,7 @@ export default function AdminPage() {
                                         </Label>
                                         <Select
                                           value={editingReserva?.horario || ""}
-                                          onValueChange={(value) => setEditingReserva(prev => ({ ...prev, horario: value }))}
+                                          onValueChange={(value) => setEditingReserva((prev: any) => ({ ...prev, horario: value }))}
                                         >
                                           <SelectTrigger className="col-span-3 bg-gray-700 border-gray-600 text-white">
                                             <SelectValue placeholder="Selecciona un horario" />
@@ -782,7 +780,7 @@ export default function AdminPage() {
                                             let value = parseInt(e.target.value)
                                             if (value > 20) value = 20
                                             if (value < 1) value = 1
-                                            setEditingReserva(prev => ({ ...prev, cantidad_personas: value }))
+                                            setEditingReserva((prev: any) => ({ ...prev, cantidad_personas: value }))
                                           }}
                                           className="col-span-3 bg-gray-700 border-gray-600 text-white"
                                         />
@@ -794,7 +792,7 @@ export default function AdminPage() {
                                         <Textarea
                                           id="notas"
                                           value={editingReserva?.notas || ""}
-                                          onChange={(e) => setEditingReserva(prev => ({ ...prev, notas: e.target.value }))}
+                                          onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, notas: e.target.value }))}
                                           className="col-span-3 bg-gray-700 border-gray-600 text-white resize-none"
                                           placeholder="Solicitudes especiales, alergias, celebraciones, etc."
                                           rows={3}
@@ -808,7 +806,6 @@ export default function AdminPage() {
                                           setIsEditDialogOpen(false)
                                           setEditingReserva(null)
                                         }}
-                                        variant="outline"
                                         className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600"
                                       >
                                         Cancelar
@@ -826,8 +823,6 @@ export default function AdminPage() {
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button
-                                      variant="outline"
-                                      size="sm"
                                       className="border-red-600 text-red-400 hover:bg-red-900/20"
                                     >
                                       <Trash2 className="w-4 h-4" />
