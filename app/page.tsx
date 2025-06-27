@@ -165,9 +165,27 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
           >
-            <p className="text-2xl md:text-4xl lg:text-5xl text-white/95 mb-8 font-light font-source-sans tracking-wider text-crisp">
-              Reserva tu Experiencia
-            </p>
+            <button
+              onClick={() => {
+                const reservationSection = document.getElementById('reservation-section')
+                if (reservationSection) {
+                  reservationSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                  })
+                }
+              }}
+              className="group relative inline-flex items-center gap-3 px-6 py-3 border border-white/30 rounded-full text-2xl md:text-4xl lg:text-5xl text-white/95 font-light font-source-sans tracking-wider text-crisp hover:border-white/50 hover:bg-white/5 transition-all duration-300 cursor-pointer"
+            >
+              <span>Reserva tu Experiencia</span>
+              <motion.div
+                className="text-white/70 group-hover:text-white/90 transition-colors duration-300"
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                ↓
+              </motion.div>
+            </button>
           </motion.div>
 
           {/* Action Buttons - Mejorados con efectos premium */}
@@ -195,8 +213,8 @@ export default function HomePage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true, margin: "-100px" }}
           >
-            <h2 className="font-legquinne text-4xl md:text-5xl font-normal text-white mb-4">Reservá tu Experiencia</h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <h2 className="font-source-sans text-4xl md:text-5xl font-normal text-white mb-4">Reservá tu Experiencia</h2>
+            <p className="text-xl font-source-sans text-gray-300 max-w-2xl mx-auto">
               No te quedes afuera de la mejor noche de la ciudad. Asegurate tu lugar y viví una experiencia única en Eleven Club.
             </p>
           </motion.div>

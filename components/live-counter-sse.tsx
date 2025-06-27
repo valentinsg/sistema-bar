@@ -1,13 +1,12 @@
 "use client"
 
-import { getContador } from "@/lib/storage"
 import { motion } from "framer-motion"
 import { RefreshCw, WifiOff } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 
-export default function LiveCounter() {
+export default function LiveCounterSSE() {
   const [loading, setLoading] = useState(true)
   const [contador, setContador] = useState<number>(0)
   const [showCounter, setShowCounter] = useState(false)
@@ -15,75 +14,81 @@ export default function LiveCounter() {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
-  const [requestCount, setRequestCount] = useState(0)
-  const [isRetrying, setIsRetrying] = useState(false)
+  const [isConnected, setIsConnected] = useState(false)
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const eventSourceRef = useRef<EventSource | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isActiveRef = useRef(true)
-  const retryCountRef = useRef(0)
 
-  // Configuración mejorada para Vercel
-  const BASE_INTERVAL = 15000 // 15 segundos base
-  const MAX_RETRIES = 5
-  const RETRY_MULTIPLIER = 1.5
-
-  const cleanup = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current)
-      retryTimeoutRef.current = null
-    }
-  }, [])
-
-  const cargarContador = useCallback(async (isRetry = false) => {
+  const connectSSE = () => {
     if (!LOCAL_ID || !isActiveRef.current) return
 
     try {
-      setIsRetrying(isRetry)
-      const contadorData = await getContador(LOCAL_ID)
-      setContador(contadorData)
-      setLastUpdate(new Date())
-      setRequestCount(prev => prev + 1)
-      setError(null)
-      retryCountRef.current = 0 // Reset retry count on success
-    } catch (error) {
-      console.error("Error al cargar contador:", error)
-      retryCountRef.current++
+      // Cerrar conexión existente si hay una
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+      }
 
-      if (retryCountRef.current < MAX_RETRIES) {
-        // Retry exponencial
-        const retryDelay = BASE_INTERVAL * Math.pow(RETRY_MULTIPLIER, retryCountRef.current)
-        setError(`Reintentando en ${Math.round(retryDelay / 1000)}s...`)
+      const url = `/api/contador/sse?local_id=${encodeURIComponent(LOCAL_ID)}`
+      const eventSource = new EventSource(url)
+      eventSourceRef.current = eventSource
 
-        retryTimeoutRef.current = setTimeout(() => {
-          if (isActiveRef.current) {
-            cargarContador(true)
+      eventSource.onopen = () => {
+        console.log("SSE conectado")
+        setIsConnected(true)
+        setError(null)
+        setLoading(false)
+      }
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          if (data.error) {
+            setError(data.error)
+          } else {
+            setContador(data.contador)
+            setLastUpdate(new Date(data.timestamp))
+            setError(null)
           }
-        }, retryDelay)
-      } else {
-        setError("Error de conexión. Verifica tu conexión a internet.")
+        } catch (error) {
+          console.error("Error al parsear datos SSE:", error)
+        }
       }
-    } finally {
+
+      eventSource.onerror = (error) => {
+        console.error("Error en SSE:", error)
+        setIsConnected(false)
+        setError("Error de conexión")
+
+        // Reintentar conexión después de 5 segundos
+        if (isActiveRef.current) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (isActiveRef.current) {
+              connectSSE()
+            }
+          }, 5000)
+        }
+      }
+
+    } catch (error) {
+      console.error("Error al conectar SSE:", error)
+      setError("Error al establecer conexión")
       setLoading(false)
-      setIsRetrying(false)
     }
-  }, [])
+  }
 
-  const startPolling = useCallback(() => {
-    if (!isActiveRef.current) return
-
-    cleanup()
-    cargarContador()
-    intervalRef.current = setInterval(() => {
-      if (isActiveRef.current) {
-        cargarContador()
-      }
-    }, BASE_INTERVAL)
-  }, [cargarContador, cleanup])
+  const disconnectSSE = () => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close()
+      eventSourceRef.current = null
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current)
+      reconnectTimeoutRef.current = null
+    }
+    setIsConnected(false)
+  }
 
   useEffect(() => {
     setIsMounted(true)
@@ -106,18 +111,18 @@ export default function LiveCounter() {
     }
 
     checkTime()
-    startPolling()
+    connectSSE()
     const timeInterval = setInterval(checkTime, 60000)
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
         isActiveRef.current = false
-        cleanup()
+        disconnectSSE()
       } else {
         isActiveRef.current = true
         setTimeout(() => {
           if (isActiveRef.current) {
-            startPolling()
+            connectSSE()
           }
         }, 1000)
       }
@@ -125,14 +130,14 @@ export default function LiveCounter() {
 
     const handleOnline = () => {
       if (isActiveRef.current) {
-        retryCountRef.current = 0
         setError(null)
-        startPolling()
+        connectSSE()
       }
     }
 
     const handleOffline = () => {
       setError("Sin conexión a internet")
+      setIsConnected(false)
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
@@ -141,18 +146,17 @@ export default function LiveCounter() {
 
     return () => {
       isActiveRef.current = false
-      cleanup()
+      disconnectSSE()
       clearInterval(timeInterval)
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       window.removeEventListener("online", handleOnline)
       window.removeEventListener("offline", handleOffline)
     }
-  }, [startPolling, cleanup])
+  }, [])
 
   const handleManualRefresh = () => {
-    retryCountRef.current = 0
     setError(null)
-    cargarContador()
+    connectSSE()
   }
 
   if (!isMounted || !isHydrated) return null
@@ -174,14 +178,9 @@ export default function LiveCounter() {
             {error && !error.includes("Variables de entorno") && (
               <button
                 onClick={handleManualRefresh}
-                disabled={isRetrying}
-                className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-white text-sm transition-colors disabled:opacity-50"
+                className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-white text-sm transition-colors"
               >
-                {isRetrying ? (
-                  <RefreshCw className="w-4 h-4 animate-spin inline mr-2" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 inline mr-2" />
-                )}
+                <RefreshCw className="w-4 h-4 inline mr-2" />
                 Reintentar
               </button>
             )}
@@ -202,7 +201,7 @@ export default function LiveCounter() {
         <div className="relative z-10 p-8 text-center rounded-3xl glass-effect border-glow">
           <div className="text-white mb-4">
             <div className="w-12 h-12 mx-auto mb-2 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-            <p className="text-lg font-medium">Cargando...</p>
+            <p className="text-lg font-medium">Conectando...</p>
           </div>
         </div>
       </motion.div>
@@ -234,7 +233,9 @@ export default function LiveCounter() {
       >
         <div className="flex items-center justify-center gap-3">
           <motion.div
-            className="w-3 h-3 rounded-full bg-emerald-400 shadow-emerald-400/50 shadow-glow"
+            className={`w-3 h-3 rounded-full shadow-glow ${
+              isConnected ? 'bg-emerald-400 shadow-emerald-400/50' : 'bg-yellow-400 shadow-yellow-400/50'
+            }`}
             animate={{
               opacity: [0.5, 1, 0.5],
               scale: [1, 1.2, 1]
@@ -245,14 +246,14 @@ export default function LiveCounter() {
               ease: "easeInOut"
             }}
           />
-          <span className="text-sm font-medium font-source-sans text-emerald-300">
-            Live
+          <span className={`text-sm font-medium font-source-sans ${
+            isConnected ? 'text-emerald-300' : 'text-yellow-300'
+          }`}>
+            {isConnected ? 'Live' : 'Conectando...'}
           </span>
         </div>
 
-        <motion.div
-          className="mb-8"
-        >
+        <motion.div className="mb-8">
           <div className="text-6xl my-8 lg:text-9xl font-bold font-legquinne text-white tracking-tighter leading-none text-crisp">
             {contador} | 111
           </div>

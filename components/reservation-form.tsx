@@ -345,7 +345,7 @@ export default function ReservationForm() {
         exit={{ opacity: 0, scale: 0.8, y: 10 }}
         transition={{ duration: 0.2 }}
         className={
-          `fixed z-[9999] pointer-events-none ${isMobile ? 'w-[95vw] max-w-xs left-1/2 -translate-x-1/2' : ''}`
+          `fixed font-source-sans z-[9999] pointer-events-none ${isMobile ? 'w-[95vw] max-w-xs font-source-sans' : ''}`
         }
         style={{
           top: privacyPosition.top,
@@ -384,7 +384,7 @@ export default function ReservationForm() {
         initial={{ opacity: 0, scale: 0.8, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative"
+        className="relative font-source-sans"
       >
         {/* Fondo con imagen */}
         <div className="absolute inset-0 rounded-xl overflow-hidden">

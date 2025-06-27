@@ -152,7 +152,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
   const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 
   return (
-    <div className="space-y-8 p-4">
+    <div className="space-y-8 p-2 sm:p-4 max-w-[430px] mx-auto">
       {/* Calendario Principal */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -161,7 +161,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
         className="relative"
       >
         {/* Fondo con imagen */}
-        <div className="absolute inset-0 rounded-xl overflow-hidden">
+        <div className="absolute inset-0 rounded-xl overflow-hidden" style={{ minHeight: '100%' }}>
           <Image
             src="/FONDOS-01.webp"
             alt="Eleven Club background"
@@ -182,18 +182,18 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
             backdropFilter: "blur(25px) saturate(1.2)",
             boxShadow: "0 12px 40px rgba(249, 115, 22, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
           }}>
-          <CardHeader className="relative z-10 bg-gradient-to-r from-orange-500/25 to-red-500/20 border-b-2 border-orange-500/40 backdrop-blur-md"
+          <CardHeader className="relative z-10 bg-gradient-to-r from-orange-500/25 to-red-500/20 border-b-2 border-orange-500/40 backdrop-blur-md px-2 py-3 sm:px-6 sm:py-4"
             style={{
               backdropFilter: "blur(20px) saturate(1.1)"
             }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-4">
                 {/* Logo pequeño mejorado */}
                 <Image
                   src="/logo-eleven.webp"
                   alt="Eleven Club"
-                  width={50}
-                  height={50}
+                  width={38}
+                  height={38}
                   className="opacity-95 drop-shadow-lg"
                   quality={100}
                   priority
@@ -203,14 +203,14 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                   }}
                 />
                 <div>
-                  <CardTitle className="text-white flex items-center gap-3 text-2xl font-legquinne font-normal">
-                    <div className="p-2.5 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-xl border-2 border-orange-400/40 shadow-lg">
-                      <Calendar className="w-7 h-7 text-orange-200" />
+                  <CardTitle className="text-white flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl font-legquinne font-normal">
+                    <div className="p-2 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-xl border-2 border-orange-400/40 shadow-lg">
+                      <Calendar className="w-5 h-5 sm:w-7 sm:h-7 text-orange-200" />
                     </div>
-                    Calendario de Reservas
-                    {loading && <Loader2 className="w-6 h-6 animate-spin text-orange-400" />}
+                    <span className="block leading-tight">Calendario<br className="sm:hidden"/>de Reservas</span>
+                    {loading && <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-orange-400" />}
                   </CardTitle>
-                  <CardDescription className="text-white/95 text-lg font-medium mt-1">
+                  <CardDescription className="text-white/95 text-sm sm:text-lg font-medium mt-1 leading-tight">
                     Selecciona una fecha para ver disponibilidad{isAdmin ? " y gestionar reservas" : ""}
                   </CardDescription>
                 </div>
@@ -219,8 +219,8 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
               <Image
                 src="/detalle-texto-eleven.webp"
                 alt="Eleven Club detail"
-                width={120}
-                height={40}
+                width={90}
+                height={30}
                 className="opacity-50 hidden md:block drop-shadow-md"
                 quality={100}
                 style={{
@@ -230,44 +230,44 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
               />
             </div>
           </CardHeader>
-          <CardContent className="p-8 relative z-10"
+          <CardContent className="p-3 sm:p-8 relative z-10"
             style={{
               backdropFilter: "blur(20px) saturate(1.1)",
               background: "rgba(0, 0, 0, 0.15)"
             }}>
             {/* Navegación del mes */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-4 sm:mb-8">
               <Button
                 onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-                className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-4 py-3 rounded-xl"
+                className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-2 py-2 sm:px-4 sm:py-3 rounded-xl"
                 style={{
                   backdropFilter: "blur(15px) saturate(1.1)"
                 }}
                 disabled={loading}
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-300/15 via-orange-400/10 to-red-300/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </Button>
-              <h3 className="text-3xl font-bold font-legquinne text-transparent bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text drop-shadow-lg">
+              <h3 className="text-xl sm:text-3xl font-bold font-legquinne text-transparent bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text drop-shadow-lg">
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
               </h3>
               <Button
                 onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-                className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-4 py-3 rounded-xl"
+                className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-2 py-2 sm:px-4 sm:py-3 rounded-xl"
                 style={{
                   backdropFilter: "blur(15px) saturate(1.1)"
                 }}
                 disabled={loading}
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-300/15 via-orange-400/10 to-red-300/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </Button>
             </div>
 
             {/* Días de la semana */}
-            <div className="grid grid-cols-7 gap-3 mb-6">
+            <div className="grid grid-cols-7 gap-1 sm:gap-3 mb-2 sm:mb-6">
               {dayNames.map((day) => (
-                <div key={day} className="text-center text-base font-bold text-orange-200 py-4 bg-black/60 rounded-xl border-2 border-orange-500/30 backdrop-blur-md shadow-lg"
+                <div key={day} className="text-center text-xs sm:text-base font-bold text-orange-200 py-2 sm:py-4 bg-black/60 rounded-xl border-2 border-orange-500/30 backdrop-blur-md shadow-lg"
                   style={{
                     backdropFilter: "blur(15px) saturate(1.1)",
                     boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
@@ -278,9 +278,9 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
             </div>
 
             {/* Días del mes */}
-            <div className="grid grid-cols-7 gap-3">
+            <div className="grid grid-cols-7 gap-1 sm:gap-3">
               {getDaysInMonth(currentDate).map((day, index) => {
-                if (day === null) return <div key={`empty-${index}`} className="h-16" />
+                if (day === null) return <div key={`empty-${index}`} className="h-10 sm:h-16" />
                 const dateStr = formatDateString(day)
                 const reservasCount = reservasPorDia[dateStr] || 0
                 const isSelected = selectedDate === dateStr
@@ -293,7 +293,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                     key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`}
                     onClick={() => setSelectedDate(dateStr)}
                     disabled={pastDate || todayAfter18 || loading}
-                    className={`h-16 rounded-xl text-base font-bold transition-all duration-300 relative overflow-hidden group backdrop-blur-md shadow-lg
+                    className={`h-10 sm:h-16 rounded-xl text-xs sm:text-base font-bold transition-all duration-300 relative overflow-hidden group backdrop-blur-md shadow-lg
                       ${isSelected ?
                         "bg-gradient-to-br from-orange-600/90 to-red-600/80 text-white shadow-xl shadow-orange-500/40 scale-110 border-2 border-orange-300/60 backdrop-blur-md" :
                         pastDate || todayAfter18 ?
@@ -310,7 +310,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
 
                     {/* Indicador de reservas */}
                     {reservasCount > 0 && !pastDate && (
-                      <div className="absolute -top-1 -right-1 w-7 h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-sm flex items-center justify-center text-white font-bold shadow-xl animate-pulse z-20 border-2 border-red-300/50"
+                      <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-7 sm:h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-[10px] sm:text-sm flex items-center justify-center text-white font-bold shadow-xl animate-pulse z-20 border-2 border-red-300/50"
                         style={{
                           backdropFilter: "blur(10px)",
                           boxShadow: "0 4px 16px rgba(239, 68, 68, 0.5)"
@@ -436,26 +436,25 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                 <div className="space-y-10">
                   {/* Info para usuarios no admin */}
                   {!isAdmin && (
-                    <div className="bg-gradient-to-r from-orange-900/40 to-red-900/35 border-2 border-orange-500/40 rounded-xl p-6 backdrop-blur-md shadow-lg"
+                    <div className="bg-gradient-to-r from-orange-900/40 to-red-900/35 border-2 border-orange-500/40 rounded-xl p-3 sm:p-6 backdrop-blur-md shadow-lg max-w-xs mx-auto text-center"
                       style={{
                         backdropFilter: "blur(20px) saturate(1.1)",
                         boxShadow: "0 8px 32px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                       }}>
-                      <div className="text-orange-100 flex items-center gap-4 text-lg">
-                        <div className="w-4 h-4 bg-orange-400 rounded-full animate-pulse shadow-lg"></div>
-                        <span className="font-medium"><strong>Info:</strong> El local tiene 50 mesas totales para todo el día.
-                          Cada 4 personas ocupan 1 mesa.</span>
+                      <div className="text-orange-100 flex flex-col items-center gap-2 text-sm sm:text-lg">
+                        <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-lg mb-1"></div>
+                        <span className="font-medium leading-tight">Info: El local tiene 50 mesas totales<br className="sm:hidden"/>para todo el día.<br className="sm:hidden"/>Cada 4 personas ocupan 1 mesa.</span>
                       </div>
                     </div>
                   )}
 
                   {/* Disponibilidad por horario */}
                   <div>
-                    <h4 className="text-white font-bold text-2xl mb-8 flex items-center gap-3 font-legquinne">
-                      <div className="w-3 h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full shadow-lg"></div>
-                      Disponibilidad por horario
+                    <h4 className="text-white font-bold text-lg sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2 sm:gap-3 font-legquinne">
+                      <div className="w-2 h-6 sm:w-3 sm:h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full shadow-lg"></div>
+                      <span className="leading-tight">Disponibilidad<br className='sm:hidden'/>por horario</span>
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
                       {horarios.map((horario) => {
                         const disponibles = disponibilidadPorHorario[horario] ?? "-"
                         const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
