@@ -1,6 +1,6 @@
 "use client"
 
-import LiveCounter from "@/components/live-counter"
+import LiveCounter from "@/components/live-counter-sse"
 import ReservationCalendar from "@/components/reservation-calendar"
 import ReservationForm from "@/components/reservation-form"
 import { motion } from "framer-motion"
