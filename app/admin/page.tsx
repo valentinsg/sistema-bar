@@ -1,6 +1,6 @@
 "use client"
 
-import ReservationCalendar from "@/components/reservation-calendar"
+import ReservationCalendarAdmin from "@/components/ReservationCalendarAdmin"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import { deleteReserva, getContador, getMesasEstadisticas } from "@/lib/storage"
+import { deleteReserva, getContador, getPlazasEstadisticas } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
 import { BarChart3, Calendar, Clock, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Minus, Phone, Plus, QrCode, RotateCcw, TableIcon, Trash2, User, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -25,10 +25,10 @@ interface AdminData {
   local_id: string
 }
 
-interface MesasStats {
-  mesasTotales: number
-  mesasOcupadas: number
-  mesasDisponibles: number
+interface PlazasStats {
+  plazasTotales: number
+  plazasOcupadas: number
+  plazasDisponibles: number
   personasTotales: number
 }
 
@@ -37,10 +37,10 @@ export default function AdminPage() {
   const [adminData, setAdminData] = useState<AdminData | null>(null)
   const [reservas, setReservas] = useState<any[]>([])
   const [personasActuales, setPersonasActuales] = useState<number>(0)
-  const [mesasStats, setMesasStats] = useState<MesasStats>({
-    mesasTotales: 50,
-    mesasOcupadas: 0,
-    mesasDisponibles: 50,
+  const [plazasStats, setPlazasStats] = useState<PlazasStats>({
+    plazasTotales: 30,
+    plazasOcupadas: 0,
+    plazasDisponibles: 30,
     personasTotales: 0
   })
   const [loadingStats, setLoadingStats] = useState(false)
@@ -113,12 +113,12 @@ export default function AdminPage() {
 
         const contadorData = await getContador(adminData.local_id)
 
-        // Cargar estadísticas de mesas para hoy
-        const stats = await getMesasEstadisticas(adminData.local_id, today)
+        // Cargar estadísticas de plazas para hoy
+        const stats = await getPlazasEstadisticas(adminData.local_id, today)
 
         setReservas(reservasData || [])
         setPersonasActuales(contadorData)
-        setMesasStats(stats)
+        setPlazasStats(stats)
       } finally {
         setLoadingStats(false)
         setLoading(false)
@@ -270,11 +270,11 @@ export default function AdminPage() {
     const success = await deleteReserva(id)
     if (success) {
       setReservas(prev => prev.filter(r => r.id !== id))
-      // Recargar estadísticas de mesas
+      // Recargar estadísticas de plazas
       if (adminData?.local_id) {
         const today = new Date().toISOString().split("T")[0]
-        const stats = await getMesasEstadisticas(adminData.local_id, today)
-        setMesasStats(stats)
+        const stats = await getPlazasEstadisticas(adminData.local_id, today)
+        setPlazasStats(stats)
       }
     } else {
       alert("Error al eliminar la reserva. Intenta nuevamente.")
@@ -536,51 +536,51 @@ export default function AdminPage() {
             </CardContent>
           </Card>
 
-          {/* Mesas Totales */}
-          <Card className="bg-gradient-to-br from-blue-700/80 to-blue-800/80 border-blue-400/60 hover:from-blue-600/80 hover:to-blue-700/80 transition-all duration-200 shadow-lg hover:shadow-blue-500/25">
+          {/* Plazas Totales */}
+          <Card className="bg-gradient-to-br from-blue-900/40 to-blue-800/30 border-2 border-blue-500/40 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm font-medium">Capacidad total</p>
-                  <p className="text-3xl font-bold text-white mt-1">{mesasStats.mesasTotales}</p>
-                  <p className="text-xs text-blue-200 mt-1">mesas disponibles</p>
+                  <p className="text-3xl font-bold text-white mt-1">{plazasStats.plazasTotales}</p>
+                  <p className="text-xs text-blue-200 mt-1">plazas disponibles</p>
                 </div>
                 <div className="p-3 bg-blue-500/30 rounded-full">
-                  <TableIcon className="w-6 h-6 text-blue-200" />
+                  <BarChart3 className="w-8 h-8 text-blue-300" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Mesas Ocupadas */}
-          <Card className="bg-gradient-to-br from-red-700/80 to-red-800/80 border-red-400/60 hover:from-red-600/80 hover:to-red-700/80 transition-all duration-200 shadow-lg hover:shadow-red-500/25">
+          {/* Plazas Ocupadas */}
+          <Card className="bg-gradient-to-br from-red-900/40 to-red-800/30 border-2 border-red-500/40 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-red-100 text-sm font-medium">Mesas ocupadas hoy</p>
-                  <p className="text-3xl font-bold text-white mt-1">{mesasStats.mesasOcupadas}</p>
-                  <p className="text-xs text-red-200 mt-1">{mesasStats.personasTotales} personas reservadas</p>
+                  <p className="text-red-100 text-sm font-medium">Plazas ocupadas hoy</p>
+                  <p className="text-3xl font-bold text-white mt-1">{plazasStats.plazasOcupadas}</p>
+                  <p className="text-xs text-red-200 mt-1">{plazasStats.personasTotales} personas reservadas</p>
                 </div>
                 <div className="p-3 bg-red-500/30 rounded-full">
-                  <BarChart3 className="w-6 h-6 text-red-200" />
+                  <Users className="w-8 h-8 text-red-300" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Mesas Disponibles */}
-          <Card className="bg-gradient-to-br from-green-700/80 to-green-800/80 border-green-400/60 hover:from-green-600/80 hover:to-green-700/80 transition-all duration-200 shadow-lg hover:shadow-green-500/25">
+          {/* Plazas Disponibles */}
+          <Card className="bg-gradient-to-br from-green-900/40 to-green-800/30 border-2 border-green-500/40 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm font-medium">Mesas disponibles</p>
-                  <p className="text-3xl font-bold text-white mt-1">{mesasStats.mesasDisponibles}</p>
+                  <p className="text-green-100 text-sm font-medium">Plazas disponibles</p>
+                  <p className="text-3xl font-bold text-white mt-1">{plazasStats.plazasDisponibles}</p>
                   <p className="text-xs text-green-200 mt-1">
-                    {Math.round((mesasStats.mesasDisponibles / mesasStats.mesasTotales) * 100)}% libre
+                    {Math.round((plazasStats.plazasDisponibles / plazasStats.plazasTotales) * 100)}% libre
                   </p>
                 </div>
                 <div className="p-3 bg-green-500/30 rounded-full">
-                  <Users className="w-6 h-6 text-green-200" />
+                  <TableIcon className="w-8 h-8 text-green-300" />
                 </div>
               </div>
             </CardContent>
@@ -626,7 +626,7 @@ export default function AdminPage() {
                           <TableHead className="text-gray-300">Cliente</TableHead>
                           <TableHead className="text-gray-300">Contacto</TableHead>
                           <TableHead className="text-gray-300">Personas</TableHead>
-                          <TableHead className="text-gray-300">Mesas</TableHead>
+                          <TableHead className="text-gray-300">Plazas</TableHead>
                           <TableHead className="text-gray-300">Notas</TableHead>
                           <TableHead className="text-gray-300">Registrado</TableHead>
                           <TableHead className="text-gray-300 text-center">Acciones</TableHead>
@@ -662,7 +662,7 @@ export default function AdminPage() {
                             </TableCell>
                             <TableCell className="text-gray-300">
                               <Badge className="border-purple-500 text-purple-300">
-                                {Math.ceil(r.cantidad_personas / 4)}
+                                {r.cantidad_personas}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-gray-300 max-w-48">
@@ -870,7 +870,7 @@ export default function AdminPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ReservationCalendar isAdmin={true} />
+                <ReservationCalendarAdmin />
               </CardContent>
             </Card>
           </TabsContent>

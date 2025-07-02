@@ -4,24 +4,19 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { deleteReserva, getReservas, type Reserva } from "@/lib/storage"
-import { supabase } from "@/lib/supabase"
+import { type Reserva } from "@/lib/storage"
 import { motion } from "framer-motion"
-import { Calendar, ChevronLeft, ChevronRight, Clock, Loader2, Phone, Trash2, User, Users } from "lucide-react"
-import Image from "next/image"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { Calendar, ChevronLeft, ChevronRight, Clock, Info, Loader2, Phone, Trash2, User, Users } from "lucide-react"
+import { useMemo, useState } from "react"
 
-const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
-
-interface ReservationCalendarProps {
-  isAdmin?: boolean
+interface CalendarUIProps {
+  isAdmin: boolean
+  allReservas: Reserva[]
+  loading: boolean
+  onDeleteReserva?: (id: string, nombre: string) => Promise<void>
 }
 
-// Cache en memoria para evitar llamadas repetidas
-const calendarCache = new Map<string, { data: any, timestamp: number }>()
-const CACHE_TTL = 30 * 1000 // 30 segundos
-
-export default function ReservationCalendar({ isAdmin = false }: ReservationCalendarProps) {
+export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: CalendarUIProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date()
@@ -30,12 +25,10 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
     const day = String(today.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
   })
-  const [allReservas, setAllReservas] = useState<Reserva[]>([])
-  const [loading, setLoading] = useState(false)
 
-  const horarios = useMemo(() => ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], [])
+  const horarios = useMemo(() => ["19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], [])
 
-  // Funciones auxiliares movidas al principio
+  // Funciones auxiliares
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
@@ -95,97 +88,24 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
   }, [allReservas, selectedDate])
 
   const disponibilidadPorHorario = useMemo(() => {
-    const MESAS_TOTALES = 50
-    const mesasOcupadasDelDia = reservasDelDia.reduce((acc, r) => {
-      return acc + Math.ceil(r.cantidad_personas / 4)
+    const PLAZAS_TOTALES = 30
+    const plazasOcupadasDelDia = reservasDelDia.reduce((acc, r) => {
+      return acc + r.cantidad_personas
     }, 0)
-    const mesasDisponibles = Math.max(0, MESAS_TOTALES - mesasOcupadasDelDia)
+    const plazasDisponibles = Math.max(0, PLAZAS_TOTALES - plazasOcupadasDelDia)
 
     const nuevaDisponibilidad: Record<string, number> = {}
     horarios.forEach(horario => {
-      nuevaDisponibilidad[horario] = mesasDisponibles
+      nuevaDisponibilidad[horario] = plazasDisponibles
     })
     return nuevaDisponibilidad
   }, [reservasDelDia, horarios])
-
-  // Función optimizada para cargar todas las reservas una sola vez
-  const loadAllReservas = useCallback(async () => {
-    const cacheKey = `reservas-${LOCAL_ID}`
-    const cached = calendarCache.get(cacheKey)
-
-    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-      setAllReservas(cached.data)
-      return
-    }
-
-    setLoading(true)
-    try {
-      const reservas = await getReservas(LOCAL_ID)
-      setAllReservas(reservas)
-
-      // Guardar en cache
-      calendarCache.set(cacheKey, {
-        data: reservas,
-        timestamp: Date.now()
-      })
-    } catch (error) {
-      console.error("Error al cargar reservas:", error)
-      setAllReservas([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const handleDeleteReserva = async (id: string, nombre: string) => {
-    if (!isAdmin) return
-
-    const success = await deleteReserva(id)
-    if (success) {
-      // Limpiar cache y recargar
-      calendarCache.clear()
-      await loadAllReservas()
-    } else {
-      alert("Error al eliminar la reserva. Intenta nuevamente.")
-    }
-  }
-
-  // Cargar datos solo una vez al montar el componente
-  useEffect(() => {
-    loadAllReservas()
-  }, [loadAllReservas])
-
-  // Suscribirse a cambios en tiempo real solo si es admin
-  useEffect(() => {
-    if (!isAdmin) return
-
-    const subscription = supabase
-      .channel('reservas_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reservas',
-          filter: `local_id=eq.${LOCAL_ID}`
-        },
-        () => {
-          // Limpiar cache y recargar
-          calendarCache.clear()
-          loadAllReservas()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [isAdmin, loadAllReservas])
 
   const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
   const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 
   return (
-    <div className="space-y-8 p-2 sm:p-4 max-w-[600px] mx-auto font-source-sans">
+    <div className="space-y-8 p-2 sm:p-4 max-w-[560px] mx-auto font-source-sans">
       {/* Calendario Principal */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -195,14 +115,6 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
       >
         {/* Fondo con imagen */}
         <div className="absolute inset-0 rounded-xl overflow-hidden" style={{ minHeight: '100%' }}>
-          <Image
-            src="/FONDOS-01.webp"
-            alt="Eleven Club background"
-            fill
-            className="object-cover"
-            quality={90}
-            priority
-          />
           <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-orange-900/50"></div>
         </div>
 
@@ -210,15 +122,6 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
           <CardHeader className="relative z-10 bg-gradient-to-r from-orange-500/25 to-red-500/20 border-b-2 border-orange-500/40 backdrop-blur-md px-2 py-3 sm:px-6 sm:py-4">
             <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
               <div className="flex items-center gap-2 sm:gap-4">
-                <Image
-                  src="/logo-eleven.webp"
-                  alt="Eleven Club"
-                  width={38}
-                  height={38}
-                  className="opacity-95 drop-shadow-lg"
-                  quality={100}
-                  priority
-                />
                 <div>
                   <CardTitle className="text-white flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl font-legquinne font-normal">
                     <div className="p-2 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-xl border-2 border-orange-400/40 shadow-lg">
@@ -314,14 +217,6 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
           className="relative"
         >
           <div className="absolute inset-0 rounded-xl overflow-hidden">
-            <Image
-              src="/FONDOS-01.webp"
-              alt="Eleven Club background"
-              fill
-              className="object-cover"
-              quality={90}
-              priority
-            />
             <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-red-900/50"></div>
           </div>
 
@@ -329,15 +224,6 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
             <CardHeader className="relative z-10 bg-gradient-to-r from-red-500/25 to-orange-500/20 border-b-2 border-orange-500/40 backdrop-blur-md">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Image
-                    src="/logo-eleven.webp"
-                    alt="Eleven Club"
-                    width={50}
-                    height={50}
-                    className="opacity-95 drop-shadow-lg"
-                    quality={100}
-                    priority
-                  />
                   <div>
                     <CardTitle className="text-white flex items-center gap-3 text-2xl font-legquinne font-normal">
                       <div className="p-2.5 bg-gradient-to-br from-red-500/25 to-orange-500/20 rounded-xl border-2 border-red-400/40 shadow-lg">
@@ -349,14 +235,6 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                     </CardTitle>
                   </div>
                 </div>
-                <Image
-                  src="/detalle-texto-eleven.webp"
-                  alt="Eleven Club detail"
-                  width={120}
-                  height={40}
-                  className="opacity-50 hidden md:block drop-shadow-md"
-                  quality={100}
-                />
               </div>
             </CardHeader>
             <CardContent className="p-8 relative z-10">
@@ -370,16 +248,6 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                 </div>
               ) : (
                 <div className="space-y-10">
-                  {/* Info para usuarios no admin */}
-                  {!isAdmin && (
-                    <div className="bg-gradient-to-r from-orange-900/40 to-red-900/35 border-2 border-orange-500/40 rounded-xl p-3 sm:p-6 backdrop-blur-md shadow-lg max-w-xs mx-auto text-center">
-                      <div className="text-orange-100 flex flex-col items-center gap-2 text-sm sm:text-lg">
-                        <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-lg mb-1"></div>
-                        <span className="font-medium leading-tight">Info: El local tiene 50 mesas totales<br className="sm:hidden"/>para todo el día.<br className="sm:hidden"/>Cada 4 personas ocupan 1 mesa.</span>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Disponibilidad por horario */}
                   <div>
                     <h4 className="text-white font-bold text-lg sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2 sm:gap-3 font-legquinne">
@@ -391,7 +259,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                         const disponibles = disponibilidadPorHorario[horario] ?? "-"
                         const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
                         const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
-                        const ocupacion = typeof disponibles === "number" ? ((50 - disponibles) / 50) * 100 : 0
+                        const ocupacion = typeof disponibles === "number" ? ((30 - disponibles) / 30) * 100 : 0
 
                         return (
                           <div key={horario} className="bg-black/70 rounded-xl p-6 border-2 border-orange-500/40 hover:border-orange-400/60 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20 backdrop-blur-md hover:scale-105">
@@ -403,7 +271,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                                       "bg-red-500/25 text-red-200 border-2 border-red-500/40"
                                   }`}
                               >
-                                {disponibles}/50 libres
+                                {disponibles}/30 libres
                               </Badge>
                             </div>
 
@@ -489,7 +357,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                                     <span className="font-bold text-lg">{reserva.cantidad_personas} personas</span>
                                   </div>
                                   <Badge className="border-2 border-orange-500/60 text-orange-200 bg-gradient-to-r from-orange-500/15 to-yellow-500/10 font-bold text-base px-4 py-2 rounded-xl shadow-lg">
-                                    {Math.ceil(reserva.cantidad_personas / 4)} mesa{Math.ceil(reserva.cantidad_personas / 4) !== 1 ? 's' : ''}
+                                    {reserva.cantidad_personas} plaza{reserva.cantidad_personas !== 1 ? 's' : ''}
                                   </Badge>
                                 </div>
                               </div>
@@ -516,7 +384,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                                         Cancelar
                                       </AlertDialogCancel>
                                       <AlertDialogAction
-                                        onClick={() => handleDeleteReserva(reserva.id, reserva.nombre)}
+                                        onClick={() => onDeleteReserva?.(reserva.id, reserva.nombre)}
                                         className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-red-500/40 rounded-xl px-6 py-3 font-bold text-lg"
                                       >
                                         Eliminar

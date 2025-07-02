@@ -123,9 +123,9 @@ export default function ReservationForm() {
     // Validar disponibilidad si todos los campos están completos
     if (formData.fecha && formData.horario && formData.cantidad_personas && !newErrors.horario && !newErrors.cantidad_personas) {
       const disponibles = disponibilidad[formData.horario] || 0
-      const mesasNecesarias = Math.ceil(Number.parseInt(formData.cantidad_personas) / 4)
-      if (mesasNecesarias > disponibles) {
-        newErrors.horario = `Solo quedan ${disponibles} mesas disponibles en este horario`
+      const personasSolicitadas = Number.parseInt(formData.cantidad_personas)
+      if (personasSolicitadas > disponibles) {
+        newErrors.horario = `Solo quedan ${disponibles} plazas disponibles en este horario`
       }
     }
 
@@ -677,7 +677,7 @@ export default function ReservationForm() {
                         disabled={isNoAvailability}
                         className="bg-[#2d1a0b] text-orange-100 hover:bg-orange-200 hover:text-orange-900 focus:bg-orange-200 focus:text-orange-900 transition-colors"
                       >
-                        {horario} {isNoAvailability ? ' - Sin disponibilidad' : `- ${disponibles} mesas`}
+                        {horario} {isNoAvailability ? ' - Sin disponibilidad' : `- ${disponibles} plazas`}
                       </option>
                     )
                   })}

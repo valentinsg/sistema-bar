@@ -1,18 +1,16 @@
 "use client"
 
+import ReservationCalendarUser from "@/components/ReservationCalendarUser"
 import LiveCounter from "@/components/live-counter-sse"
-import ReservationCalendar from "@/components/reservation-calendar"
-import ReservationForm from "@/components/reservation-form"
+import ReservationForm from "@/components/reservation-form-optimized"
 import { motion } from "framer-motion"
 import Image from "next/image"
 
 export default function HomePage() {
-
-
   return (
-    <div className="min-h-screen bg-black">
+    <div className="bg-black">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-start justify-center overflow-hidden pt-16 md:pt-20 lg:pt-24">
+      <section className="relative flex items-start justify-center overflow-hidden pt-16 md:pt-20 lg:pt-24">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -187,23 +185,22 @@ export default function HomePage() {
               </motion.div>
             </button>
           </motion.div>
-
-          {/* Action Buttons - Mejorados con efectos premium */}
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
-          >
-            <LiveCounter />
-          </motion.div>
+            {/* Action Buttons - Mejorados con efectos premium */}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
+            >
+              <LiveCounter />
+            </motion.div>
         </motion.div>
         {/* Gradient overlay at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-5"></div>
       </section>
 
       {/* Reservation Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
+      <section id="reservation-section" className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
         <div className="max-w-7xl mx-auto">
           <motion.div
             className="text-center mb-12"
@@ -242,7 +239,7 @@ export default function HomePage() {
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <ReservationCalendar isAdmin={false} />
+              <ReservationCalendarUser />
             </motion.div>
           </motion.div>
         </div>

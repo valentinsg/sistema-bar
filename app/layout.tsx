@@ -10,7 +10,7 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: "Eleven Club - Bar & Boliche",
+  title: "Eleven Club - Club Nocturno",
   description: "Reserva tu lugar, eleva tus sentidos. Experiencia gastronómica y nocturna de primer nivel",
   generator: 'v0.dev',
   icons: {

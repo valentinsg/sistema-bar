@@ -23,31 +23,53 @@ export async function GET(request: NextRequest) {
         controller.enqueue(encoder.encode(message))
       }
 
+      let isActive = true
+      let lastContador: number | null = null
+
       try {
         // Enviar datos iniciales
-        const contador = await getContador(localId)
-        sendData({ contador, timestamp: new Date().toISOString() })
+        const initialContador = await getContador(localId)
+        lastContador = initialContador
+        sendData({ contador: initialContador, timestamp: new Date().toISOString() })
 
-        // Configurar polling del servidor (más eficiente que cliente)
+        // Configurar polling del servidor con intervalo más largo
         const interval = setInterval(async () => {
+          if (!isActive) return
+
           try {
             const contador = await getContador(localId)
-            sendData({ contador, timestamp: new Date().toISOString() })
+
+            // Solo enviar si el valor cambió o es la primera vez
+            if (contador !== lastContador) {
+              lastContador = contador
+              sendData({ contador, timestamp: new Date().toISOString() })
+            }
           } catch (error) {
             console.error('Error en SSE polling:', error)
-            sendError('Error al obtener datos')
+            // No enviar error en cada fallo, solo log
           }
-        }, 15000) // 15 segundos
+        }, 30000) // 30 segundos en lugar de 15
 
         // Limpiar cuando se cierre la conexión
         request.signal.addEventListener('abort', () => {
+          isActive = false
           clearInterval(interval)
           controller.close()
         })
 
+        // También manejar el cierre de la conexión
+        const cleanup = () => {
+          isActive = false
+          clearInterval(interval)
+          controller.close()
+        }
+
+        // Agregar listener para detectar si el cliente se desconectó
+        request.signal.addEventListener('abort', cleanup)
+
       } catch (error) {
         console.error('Error en SSE:', error)
-        sendError('Error de conexión')
+        sendError('Error de conexión inicial')
         controller.close()
       }
     }

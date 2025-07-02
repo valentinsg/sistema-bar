@@ -166,10 +166,10 @@ export const updateContador = async (local_id: string, cantidad: number): Promis
 }
 
 export const getDisponibilidad = async (local_id: string, fecha: string, horario: string): Promise<number> => {
-  const MESAS_TOTALES = 50
+  const PLAZAS_TOTALES = 30
 
   try {
-    // Obtener todas las reservas del día para calcular mesas ocupadas totales
+    // Obtener todas las reservas del día para calcular plazas ocupadas totales
     const { data: reservasDelDia, error } = await supabase
       .from("reservas")
       .select("cantidad_personas")
@@ -178,35 +178,35 @@ export const getDisponibilidad = async (local_id: string, fecha: string, horario
 
     if (error) {
       console.error("Error al obtener reservas:", error)
-      return MESAS_TOTALES
+      return PLAZAS_TOTALES
     }
 
     if (!reservasDelDia || reservasDelDia.length === 0) {
-      return MESAS_TOTALES
+      return PLAZAS_TOTALES
     }
 
-    // Calcular mesas ocupadas para todo el día: cada 4 personas ocupan 1 mesa
-    const mesasOcupadasDelDia = reservasDelDia.reduce((acc: number, r: { cantidad_personas: number }) => {
-      return acc + Math.ceil(r.cantidad_personas / 4)
+    // Calcular plazas ocupadas para todo el día: sumar directamente las personas
+    const plazasOcupadasDelDia = reservasDelDia.reduce((acc: number, r: { cantidad_personas: number }) => {
+      return acc + r.cantidad_personas
     }, 0)
 
-    const mesasDisponibles = Math.max(0, MESAS_TOTALES - mesasOcupadasDelDia)
+    const plazasDisponibles = Math.max(0, PLAZAS_TOTALES - plazasOcupadasDelDia)
 
-    return mesasDisponibles
+    return plazasDisponibles
 
   } catch (error) {
     console.error("Error en getDisponibilidad:", error)
-    return MESAS_TOTALES
+    return PLAZAS_TOTALES
   }
 }
 
-export const getMesasEstadisticas = async (local_id: string, fecha: string): Promise<{
-  mesasTotales: number
-  mesasOcupadas: number
-  mesasDisponibles: number
+export const getPlazasEstadisticas = async (local_id: string, fecha: string): Promise<{
+  plazasTotales: number
+  plazasOcupadas: number
+  plazasDisponibles: number
   personasTotales: number
 }> => {
-  const MESAS_TOTALES = 50
+  const PLAZAS_TOTALES = 30
 
   const { data, error } = await supabase
     .from("reservas")
@@ -216,22 +216,22 @@ export const getMesasEstadisticas = async (local_id: string, fecha: string): Pro
 
   if (error || !data) {
     return {
-      mesasTotales: MESAS_TOTALES,
-      mesasOcupadas: 0,
-      mesasDisponibles: MESAS_TOTALES,
+      plazasTotales: PLAZAS_TOTALES,
+      plazasOcupadas: 0,
+      plazasDisponibles: PLAZAS_TOTALES,
       personasTotales: 0
     }
   }
 
   const personasTotales = data.reduce((acc: number, r: { cantidad_personas: number }) => acc + r.cantidad_personas, 0)
-  const mesasOcupadas = data.reduce((acc: number, r: { cantidad_personas: number }) => {
-    return acc + Math.ceil(r.cantidad_personas / 4)
+  const plazasOcupadas = data.reduce((acc: number, r: { cantidad_personas: number }) => {
+    return acc + r.cantidad_personas
   }, 0)
 
   return {
-    mesasTotales: MESAS_TOTALES,
-    mesasOcupadas,
-    mesasDisponibles: Math.max(0, MESAS_TOTALES - mesasOcupadas),
+    plazasTotales: PLAZAS_TOTALES,
+    plazasOcupadas,
+    plazasDisponibles: Math.max(0, PLAZAS_TOTALES - plazasOcupadas),
     personasTotales
   }
 }

@@ -6,6 +6,124 @@ import { useEffect, useRef, useState } from "react"
 
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 
+// Singleton para manejar una única conexión SSE global
+class SSEManager {
+  private static instance: SSEManager
+  private eventSource: EventSource | null = null
+  private listeners: Set<(data: any) => void> = new Set()
+  private reconnectTimeout: NodeJS.Timeout | null = null
+  private isConnecting = false
+  private reconnectAttempts = 0
+  private maxReconnectAttempts = 3
+
+  static getInstance(): SSEManager {
+    if (!SSEManager.instance) {
+      SSEManager.instance = new SSEManager()
+    }
+    return SSEManager.instance
+  }
+
+  subscribe(callback: (data: any) => void): () => void {
+    this.listeners.add(callback)
+
+    // Si ya hay datos, enviarlos inmediatamente
+    if (this.eventSource?.readyState === EventSource.OPEN) {
+      // Enviar estado actual si está disponible
+    }
+
+    return () => {
+      this.listeners.delete(callback)
+      // Si no hay más listeners, cerrar la conexión
+      if (this.listeners.size === 0) {
+        this.disconnect()
+      }
+    }
+  }
+
+  private notifyListeners(data: any) {
+    this.listeners.forEach(callback => callback(data))
+  }
+
+  connect() {
+    if (this.isConnecting || this.eventSource?.readyState === EventSource.OPEN) {
+      return
+    }
+
+    if (!LOCAL_ID) {
+      this.notifyListeners({ error: "Variables de entorno no configuradas" })
+      return
+    }
+
+    this.isConnecting = true
+
+    try {
+      // Cerrar conexión existente si hay una
+      if (this.eventSource) {
+        this.eventSource.close()
+      }
+
+      const url = `/api/contador/sse?local_id=${encodeURIComponent(LOCAL_ID)}`
+      this.eventSource = new EventSource(url)
+
+      this.eventSource.onopen = () => {
+        console.log("SSE conectado")
+        this.isConnecting = false
+        this.reconnectAttempts = 0
+        this.notifyListeners({ connected: true, error: null })
+      }
+
+      this.eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          this.notifyListeners(data)
+        } catch (error) {
+          console.error("Error al parsear datos SSE:", error)
+        }
+      }
+
+      this.eventSource.onerror = (error) => {
+        console.error("Error en SSE:", error)
+        this.isConnecting = false
+
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.reconnectAttempts++
+          const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000) // Backoff exponencial
+
+          this.reconnectTimeout = setTimeout(() => {
+            this.connect()
+          }, delay)
+        } else {
+          this.notifyListeners({ error: "Error de conexión persistente" })
+        }
+      }
+
+    } catch (error) {
+      console.error("Error al conectar SSE:", error)
+      this.isConnecting = false
+      this.notifyListeners({ error: "Error al establecer conexión" })
+    }
+  }
+
+  disconnect() {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout)
+      this.reconnectTimeout = null
+    }
+
+    if (this.eventSource) {
+      this.eventSource.close()
+      this.eventSource = null
+    }
+
+    this.isConnecting = false
+    this.reconnectAttempts = 0
+  }
+
+  isConnected(): boolean {
+    return this.eventSource?.readyState === EventSource.OPEN
+  }
+}
+
 export default function LiveCounterSSE() {
   const [loading, setLoading] = useState(true)
   const [contador, setContador] = useState<number>(0)
@@ -16,79 +134,8 @@ export default function LiveCounterSSE() {
   const [isMounted, setIsMounted] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
 
-  const eventSourceRef = useRef<EventSource | null>(null)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const isActiveRef = useRef(true)
-
-  const connectSSE = () => {
-    if (!LOCAL_ID || !isActiveRef.current) return
-
-    try {
-      // Cerrar conexión existente si hay una
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close()
-      }
-
-      const url = `/api/contador/sse?local_id=${encodeURIComponent(LOCAL_ID)}`
-      const eventSource = new EventSource(url)
-      eventSourceRef.current = eventSource
-
-      eventSource.onopen = () => {
-        console.log("SSE conectado")
-        setIsConnected(true)
-        setError(null)
-        setLoading(false)
-      }
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-
-          if (data.error) {
-            setError(data.error)
-          } else {
-            setContador(data.contador)
-            setLastUpdate(new Date(data.timestamp))
-            setError(null)
-          }
-        } catch (error) {
-          console.error("Error al parsear datos SSE:", error)
-        }
-      }
-
-      eventSource.onerror = (error) => {
-        console.error("Error en SSE:", error)
-        setIsConnected(false)
-        setError("Error de conexión")
-
-        // Reintentar conexión después de 5 segundos
-        if (isActiveRef.current) {
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (isActiveRef.current) {
-              connectSSE()
-            }
-          }, 5000)
-        }
-      }
-
-    } catch (error) {
-      console.error("Error al conectar SSE:", error)
-      setError("Error al establecer conexión")
-      setLoading(false)
-    }
-  }
-
-  const disconnectSSE = () => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close()
-      eventSourceRef.current = null
-    }
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current)
-      reconnectTimeoutRef.current = null
-    }
-    setIsConnected(false)
-  }
+  const unsubscribeRef = useRef<(() => void) | null>(null)
+  const sseManager = SSEManager.getInstance()
 
   useEffect(() => {
     setIsMounted(true)
@@ -102,27 +149,45 @@ export default function LiveCounterSSE() {
 
     // Mostrar siempre el contador
     setShowCounter(true)
-    connectSSE()
-    const timeInterval = setInterval(() => {}, 60000) // ya no se usa checkTime
 
+    // Suscribirse al SSE manager
+    unsubscribeRef.current = sseManager.subscribe((data) => {
+      if (data.error) {
+        setError(data.error)
+        setIsConnected(false)
+      } else if (data.connected) {
+        setIsConnected(true)
+        setError(null)
+        setLoading(false)
+      } else if (data.contador !== undefined) {
+        setContador(data.contador)
+        setLastUpdate(new Date(data.timestamp))
+        setError(null)
+        setLoading(false)
+      }
+    })
+
+    // Conectar SSE
+    sseManager.connect()
+
+    // Manejar cambios de visibilidad de manera más eficiente
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        isActiveRef.current = false
-        disconnectSSE()
+        // No desconectar inmediatamente, solo marcar como inactivo
+        setIsConnected(false)
       } else {
-        isActiveRef.current = true
-        setTimeout(() => {
-          if (isActiveRef.current) {
-            connectSSE()
-          }
-        }, 1000)
+        // Reconectar solo si no está conectado
+        if (!sseManager.isConnected()) {
+          sseManager.connect()
+        }
+        setIsConnected(true)
       }
     }
 
     const handleOnline = () => {
-      if (isActiveRef.current) {
-        setError(null)
-        connectSSE()
+      setError(null)
+      if (!sseManager.isConnected()) {
+        sseManager.connect()
       }
     }
 
@@ -136,9 +201,9 @@ export default function LiveCounterSSE() {
     window.addEventListener("offline", handleOffline)
 
     return () => {
-      isActiveRef.current = false
-      disconnectSSE()
-      clearInterval(timeInterval)
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+      }
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       window.removeEventListener("online", handleOnline)
       window.removeEventListener("offline", handleOffline)
@@ -147,7 +212,7 @@ export default function LiveCounterSSE() {
 
   const handleManualRefresh = () => {
     setError(null)
-    connectSSE()
+    sseManager.connect()
   }
 
   if (!isMounted || !isHydrated) return null
@@ -263,3 +328,4 @@ export default function LiveCounterSSE() {
     </motion.div>
   )
 }
+
