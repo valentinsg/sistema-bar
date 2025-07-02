@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react"
 
 // Cache en memoria para evitar llamadas repetidas
 const calendarCache = new Map<string, { data: any, timestamp: number }>()
-const CACHE_TTL = 30 * 1000 // 30 segundos
+const CACHE_TTL = 60 * 1000 // 60 segundos
 
 export function useReservas(localId: string) {
   const [allReservas, setAllReservas] = useState<Reserva[]>([])

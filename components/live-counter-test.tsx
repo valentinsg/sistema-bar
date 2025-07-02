@@ -18,6 +18,7 @@ export default function LiveCounterTest() {
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const isActiveRef = useRef(true)
+  const isVisibleRef = useRef(true)
 
   const cleanup = useCallback(() => {
     if (intervalRef.current) {
@@ -27,8 +28,12 @@ export default function LiveCounterTest() {
   }, [])
 
   const cargarContador = useCallback(async () => {
-    if (!LOCAL_ID || !isActiveRef.current) {
-      console.log("❌ No LOCAL_ID o no activo:", { LOCAL_ID, isActive: isActiveRef.current })
+    if (!LOCAL_ID || !isActiveRef.current || !isVisibleRef.current) {
+      console.log("❌ No LOCAL_ID, no activo, o pestaña oculta:", {
+        LOCAL_ID,
+        isActive: isActiveRef.current,
+        isVisible: isVisibleRef.current
+      })
       return
     }
 
@@ -72,11 +77,22 @@ export default function LiveCounterTest() {
 
     console.log("🚀 Iniciando live counter test")
     cargarContador()
-    intervalRef.current = setInterval(cargarContador, 10000)
+
+    // OPTIMIZACIÓN: Cambiar de 10 segundos a 30 segundos para reducir llamadas
+    intervalRef.current = setInterval(cargarContador, 30000)
+
+    // Manejar cambios de visibilidad para pausar polling cuando la pestaña no está activa
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = !document.hidden
+      console.log("👁️ Cambio de visibilidad:", isVisibleRef.current ? "visible" : "oculta")
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
       isActiveRef.current = false
       cleanup()
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, [cargarContador, cleanup])
 
@@ -119,6 +135,8 @@ export default function LiveCounterTest() {
           <div>LOCAL_ID: {LOCAL_ID ? '✅ Configurado' : '❌ No configurado'}</div>
           <div>Env: {process.env.NODE_ENV}</div>
           <div>Hora: {new Date().getHours()}:{new Date().getMinutes()}</div>
+          <div>Polling: 30s (optimizado)</div>
+          <div>Visible: {isVisibleRef.current ? '✅' : '❌'}</div>
         </div>
 
         <div className="flex items-center justify-center gap-3 mb-4">

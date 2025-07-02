@@ -1,7 +1,7 @@
 "use client"
 
 import ReservationCalendarUser from "@/components/ReservationCalendarUser"
-import LiveCounter from "@/components/live-counter-sse"
+import LiveCounter from "@/components/live-counter-optimized"
 import ReservationForm from "@/components/reservation-form-optimized"
 import { motion } from "framer-motion"
 import Image from "next/image"
@@ -219,7 +219,7 @@ export default function HomePage() {
             className="grid lg:grid-cols-2 gap-12 items-start"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut", staggerChildren: 0.2 }}
+            transition={{ duration: 0.8, ease: "easeOut"}}
             viewport={{ once: true, margin: "-100px" }}
           >
             <motion.div
@@ -234,9 +234,9 @@ export default function HomePage() {
 
             <motion.div
               className="space-y-8"
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               viewport={{ once: true }}
             >
               <ReservationCalendarUser />

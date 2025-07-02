@@ -29,6 +29,11 @@ export function useConnectionStatus() {
     }
 
     const pingServer = async () => {
+      if (document.hidden) {
+        console.log("🔄 Ping omitido - pestaña oculta")
+        return
+      }
+
       const start = Date.now()
       try {
         const response = await fetch('/api/health', {
@@ -57,20 +62,26 @@ export function useConnectionStatus() {
       }
     }
 
-    // Ping inicial
     pingServer()
 
-    // Ping cada 30 segundos
-    const pingInterval = setInterval(pingServer, 30000)
+    const pingInterval = setInterval(pingServer, 60000)
 
-    // Event listeners
     window.addEventListener('online', updateOnlineStatus)
     window.addEventListener('offline', updateOnlineStatus)
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        pingServer()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
       clearInterval(pingInterval)
       window.removeEventListener('online', updateOnlineStatus)
       window.removeEventListener('offline', updateOnlineStatus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 

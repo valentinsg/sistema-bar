@@ -1,5 +1,6 @@
 "use client"
 
+import ContadorConfirmacion from "@/components/ContadorConfirmacion"
 import ReservationCalendarAdmin from "@/components/ReservationCalendarAdmin"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { deleteReserva, getContador, getPlazasEstadisticas } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
-import { BarChart3, Calendar, Clock, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Minus, Phone, Plus, QrCode, RotateCcw, TableIcon, Trash2, User, Users } from "lucide-react"
+import { BarChart3, Calendar, Clock, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Phone, QrCode, TableIcon, Trash2, User, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
@@ -222,8 +223,47 @@ export default function AdminPage() {
         return
       }
 
-      // Disparar evento para actualizar el contador en vivo
-      window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: nuevoValor } }))
+      // NO disparar evento manual - dejar que SSE maneje la actualización
+      // window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: nuevoValor } }))
+
+    } catch (error) {
+      console.error("Error al actualizar contador:", error)
+      // Revertir el cambio optimista si hay error
+      setPersonasActuales(personasActuales)
+      alert("Error al actualizar el contador")
+    }
+  }
+
+  const handleBulkUpdateContador = async (changes: number) => {
+    if (!adminData?.local_id) return
+
+    const nuevoValor = Math.max(0, personasActuales + changes)
+
+    // Actualizar optimísticamente la UI
+    setPersonasActuales(nuevoValor)
+
+    try {
+      const today = new Date().toISOString().split("T")[0]
+      const { error } = await supabase
+        .from("contador_personas")
+        .upsert({
+          local_id: adminData.local_id,
+          fecha: today,
+          cantidad: nuevoValor
+        }, {
+          onConflict: 'local_id,fecha'
+        })
+
+      if (error) {
+        console.error("Error al actualizar contador:", error)
+        // Revertir el cambio optimista si hay error
+        setPersonasActuales(personasActuales)
+        alert("Error al actualizar el contador")
+        return
+      }
+
+      // NO disparar evento manual - dejar que SSE maneje la actualización
+      // window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: nuevoValor } }))
 
     } catch (error) {
       console.error("Error al actualizar contador:", error)
@@ -257,8 +297,8 @@ export default function AdminPage() {
         return
       }
 
-      // Disparar evento para actualizar el contador en vivo
-      window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: 0 } }))
+      // NO disparar evento manual - dejar que SSE maneje la actualización
+      // window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: 0 } }))
 
     } catch (error) {
       console.error("Error al resetear contador:", error)
@@ -489,48 +529,13 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Button
-                    onClick={() => handleUpdateContador(true)}
-                    className="bg-green-600 hover:bg-green-700 px-3 py-1.5 transition-all duration-200 shadow-lg hover:shadow-green-500/25"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    onClick={() => handleUpdateContador(false)}
-                    className="border-red-600 text-red-400 hover:bg-red-900/20 px-3 py-1.5 transition-all duration-200"
-                    disabled={personasActuales <= 0}
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        className="border-yellow-600 text-yellow-400 hover:bg-yellow-900/20 px-3 py-1.5 transition-all duration-200"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-gray-800 border-gray-700">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="text-white">¿Resetear contador?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-300">
-                          ¿Estás seguro de que quieres resetear el contador a 0?
-                          Esta acción no se puede deshacer.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-gray-700 text-white border-gray-600 hover:bg-gray-600">
-                          Cancelar
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleResetContador}
-                          className="bg-yellow-600 hover:bg-yellow-700"
-                        >
-                          Resetear
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <ContadorConfirmacion
+                    personasActuales={personasActuales}
+                    onIncrement={() => handleUpdateContador(true)}
+                    onDecrement={() => handleUpdateContador(false)}
+                    onReset={handleResetContador}
+                    onBulkUpdate={handleBulkUpdateContador}
+                  />
                 </div>
               </div>
             </CardContent>

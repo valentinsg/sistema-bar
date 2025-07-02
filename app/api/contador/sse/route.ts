@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         lastContador = initialContador
         sendData({ contador: initialContador, timestamp: new Date().toISOString() })
 
-        // Configurar polling del servidor con intervalo más largo
+        // OPTIMIZACIÓN: Aumentar intervalo de polling de 60 segundos a 90 segundos
         const interval = setInterval(async () => {
           if (!isActive) return
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
             console.error('Error en SSE polling:', error)
             // No enviar error en cada fallo, solo log
           }
-        }, 30000) // 30 segundos en lugar de 15
+        }, 90000) // 90 segundos para reducir llamadas significativamente
 
         // Limpiar cuando se cierre la conexión
         request.signal.addEventListener('abort', () => {

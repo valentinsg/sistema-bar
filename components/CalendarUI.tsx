@@ -177,20 +177,23 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                 const isSelected = selectedDate === dateStr
                 const todayClass = isToday(day)
                 const pastDate = isPastDate(day)
+                const diaSinPlazas = reservasCount >= 30
 
                 return (
                   <button
                     key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`}
                     onClick={() => setSelectedDate(dateStr)}
-                    disabled={pastDate || loading}
+                    disabled={pastDate || loading || diaSinPlazas}
                     className={`h-10 sm:h-16 rounded-xl text-xs sm:text-base font-bold transition-all duration-300 relative overflow-hidden group backdrop-blur-md shadow-lg
                       ${isSelected ?
                         "bg-gradient-to-br from-orange-600/90 to-red-600/80 text-white shadow-xl shadow-orange-500/40 scale-110 border-2 border-orange-300/60 backdrop-blur-md" :
                         pastDate ?
                           "text-gray-500 cursor-not-allowed bg-black/30 border border-gray-600/30" :
-                          todayClass ?
-                            "bg-gradient-to-br from-orange-500/50 to-red-500/40 text-orange-100 border-2 border-orange-400/60 shadow-lg shadow-orange-500/30 hover:scale-110" :
-                            "text-white bg-black/60 hover:bg-gradient-to-br hover:from-orange-500/40 hover:to-red-500/30 hover:scale-110 hover:shadow-lg hover:shadow-orange-500/20 border-2 border-orange-500/30 hover:border-orange-400/50"
+                          diaSinPlazas ?
+                            "text-gray-500 cursor-not-allowed bg-black/30 border border-red-600/40 opacity-60" :
+                            todayClass ?
+                              "bg-gradient-to-br from-orange-500/50 to-red-500/40 text-orange-100 border-2 border-orange-400/60 shadow-lg shadow-orange-500/30 hover:scale-110" :
+                              "text-white bg-black/60 hover:bg-gradient-to-br hover:from-orange-500/40 hover:to-red-500/30 hover:scale-110 hover:shadow-lg hover:shadow-orange-500/20 border-2 border-orange-500/30 hover:border-orange-400/50"
                       }`}>
                     <span className="relative z-10">{day}</span>
 
@@ -198,6 +201,13 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                     {reservasCount > 0 && !pastDate && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-7 sm:h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-[10px] sm:text-sm flex items-center justify-center text-white font-bold shadow-xl animate-pulse z-20 border-2 border-red-300/50">
                         {reservasCount}
+                      </div>
+                    )}
+
+                    {/* Indicador de sin plazas */}
+                    {diaSinPlazas && !pastDate && (
+                      <div className="absolute inset-0 flex items-center justify-center z-20">
+                        <span className="text-xs sm:text-sm font-bold text-red-400 bg-black/80 rounded px-1">Sin plazas</span>
                       </div>
                     )}
                   </button>
@@ -248,6 +258,20 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                 </div>
               ) : (
                 <div className="space-y-10">
+                  {/* Info para usuarios no admin */}
+                  {!isAdmin && (
+                    <div className="flex justify-center">
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-orange-500/80 to-red-500/80 text-white px-3 py-1 rounded font-bold text-xs flex items-center gap-1 border border-orange-400/30 hover:from-orange-600/90 hover:to-red-600/90 transition-all duration-300"
+                        style={{ minWidth: 0 }}
+                      >
+                        <Info className="w-4 h-4 text-orange-200" />
+                        Capacidad: 30 plazas
+                      </Button>
+                    </div>
+                  )}
+
                   {/* Disponibilidad por horario */}
                   <div>
                     <h4 className="text-white font-bold text-lg sm:text-2xl mb-4 sm:mb-8 flex items-center gap-2 sm:gap-3 font-legquinne">

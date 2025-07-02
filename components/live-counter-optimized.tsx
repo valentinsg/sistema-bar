@@ -7,28 +7,29 @@ import { useEffect, useRef, useState } from "react"
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 
 // Singleton para manejar una única conexión SSE global
-class SSEManager {
-  private static instance: SSEManager
+class OptimizedSSEManager {
+  private static instance: OptimizedSSEManager
   private eventSource: EventSource | null = null
   private listeners: Set<(data: any) => void> = new Set()
   private reconnectTimeout: NodeJS.Timeout | null = null
   private isConnecting = false
   private reconnectAttempts = 0
   private maxReconnectAttempts = 3
+  private lastData: any = null
 
-  static getInstance(): SSEManager {
-    if (!SSEManager.instance) {
-      SSEManager.instance = new SSEManager()
+  static getInstance(): OptimizedSSEManager {
+    if (!OptimizedSSEManager.instance) {
+      OptimizedSSEManager.instance = new OptimizedSSEManager()
     }
-    return SSEManager.instance
+    return OptimizedSSEManager.instance
   }
 
   subscribe(callback: (data: any) => void): () => void {
     this.listeners.add(callback)
 
-    // Si ya hay datos, enviarlos inmediatamente
-    if (this.eventSource?.readyState === EventSource.OPEN) {
-      // Enviar estado actual si está disponible
+    // Enviar datos actuales si están disponibles
+    if (this.lastData) {
+      callback(this.lastData)
     }
 
     return () => {
@@ -41,6 +42,7 @@ class SSEManager {
   }
 
   private notifyListeners(data: any) {
+    this.lastData = data
     this.listeners.forEach(callback => callback(data))
   }
 
@@ -66,7 +68,7 @@ class SSEManager {
       this.eventSource = new EventSource(url)
 
       this.eventSource.onopen = () => {
-        console.log("SSE conectado")
+        console.log("🔗 SSE conectado (optimizado)")
         this.isConnecting = false
         this.reconnectAttempts = 0
         this.notifyListeners({ connected: true, error: null })
@@ -85,10 +87,10 @@ class SSEManager {
         console.error("Error en SSE:", error)
         this.isConnecting = false
 
-        // Solo reconectar si hay listeners activos
+        // Solo reconectar si hay listeners activos y no se excedió el límite
         if (this.listeners.size > 0 && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++
-          const delay = Math.min(5000 * Math.pow(2, this.reconnectAttempts), 30000) // Backoff más conservador
+          const delay = Math.min(5000 * Math.pow(2, this.reconnectAttempts), 30000)
 
           this.reconnectTimeout = setTimeout(() => {
             this.connect()
@@ -125,10 +127,9 @@ class SSEManager {
   }
 }
 
-export default function LiveCounterSSE() {
+export default function LiveCounterOptimized() {
   const [loading, setLoading] = useState(true)
   const [contador, setContador] = useState<number>(0)
-  const [showCounter, setShowCounter] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
@@ -136,7 +137,7 @@ export default function LiveCounterSSE() {
   const [isConnected, setIsConnected] = useState(false)
 
   const unsubscribeRef = useRef<(() => void) | null>(null)
-  const sseManager = SSEManager.getInstance()
+  const sseManager = OptimizedSSEManager.getInstance()
 
   useEffect(() => {
     setIsMounted(true)
@@ -148,10 +149,7 @@ export default function LiveCounterSSE() {
       return
     }
 
-    // Mostrar siempre el contador
-    setShowCounter(true)
-
-    // Suscribirse al SSE manager
+    // Suscribirse al SSE manager optimizado
     unsubscribeRef.current = sseManager.subscribe((data) => {
       if (data.error) {
         setError(data.error)
@@ -171,7 +169,7 @@ export default function LiveCounterSSE() {
     // Conectar SSE
     sseManager.connect()
 
-    // Manejar cambios de visibilidad de manera más eficiente
+    // Manejar cambios de visibilidad de manera eficiente
     const handleVisibilityChange = () => {
       if (document.hidden) {
         // Solo marcar como inactivo, no desconectar
@@ -216,7 +214,6 @@ export default function LiveCounterSSE() {
   }
 
   if (!isMounted || !isHydrated) return null
-  if (!showCounter) return null
 
   if (!LOCAL_ID || error) {
     return (
@@ -328,4 +325,3 @@ export default function LiveCounterSSE() {
     </motion.div>
   )
 }
-

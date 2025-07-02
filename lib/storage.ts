@@ -66,7 +66,8 @@ export const deleteReserva = async (id: string): Promise<boolean> => {
 
 // Cache en memoria para evitar llamadas excesivas
 const memoryCache = new Map<string, { data: number, timestamp: number }>()
-const CACHE_TTL = 2000 // 2 segundos de cache
+// OPTIMIZACIÓN: Aumentar TTL de 10 segundos a 30 segundos para reducir llamadas significativamente
+const CACHE_TTL = 30000 // 30 segundos de cache para reducir llamadas significativamente
 
 export const getContador = async (local_id: string): Promise<number> => {
   const fechaHoy = new Date().toISOString().split("T")[0]
@@ -116,8 +117,8 @@ export const getContador = async (local_id: string): Promise<number> => {
   // Guardar en cache
   memoryCache.set(cacheKey, { data: result, timestamp: now })
 
-  // Limpiar cache viejo cada 100 llamadas
-  if (memoryCache.size > 100) {
+  // OPTIMIZACIÓN: Limpiar cache viejo cada 50 llamadas (reducido de 100)
+  if (memoryCache.size > 50) {
     const cutoff = now - (CACHE_TTL * 2)
     for (const [key, value] of memoryCache.entries()) {
       if (value.timestamp < cutoff) {

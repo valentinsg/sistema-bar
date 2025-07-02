@@ -46,7 +46,8 @@
   transform: translateZ(0);
 }
 
-html {
+html, body {
+  overflow-x: hidden !important;
   /* Habilitar scroll suave */
   scroll-behavior: smooth;
   /* Mejorar renderizado de texto */
