@@ -1,8 +1,8 @@
 "use client"
 
 import ReservationCalendarUser from "@/components/ReservationCalendarUser"
-import LiveCounter from "@/components/live-counter-optimized"
-import ReservationForm from "@/components/reservation-form-optimized"
+import LiveCounter from "@/components/live-counter"
+import ReservationForm from "@/components/reservation-form"
 import { motion } from "framer-motion"
 import Image from "next/image"
 
@@ -185,15 +185,15 @@ export default function HomePage() {
               </motion.div>
             </button>
           </motion.div>
-            {/* Action Buttons - Mejorados con efectos premium */}
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
-            >
-              <LiveCounter />
-            </motion.div>
+          {/* Action Buttons - Mejorados con efectos premium */}
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
+          >
+            <LiveCounter />
+          </motion.div>
         </motion.div>
         {/* Gradient overlay at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-5"></div>
@@ -219,7 +219,7 @@ export default function HomePage() {
             className="grid lg:grid-cols-2 gap-12 items-start"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut"}}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true, margin: "-100px" }}
           >
             <motion.div
@@ -245,13 +245,53 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black border-t border-gray-800 py-8 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-gray-400">© 2024 Eleven Club. Todos los derechos reservados.</p>
-          <p className="text-gray-500 text-sm mt-2">Experiencia gastronómica y nocturna de primer nivel</p>
+      <footer className="relative bg-gradient-to-br from-black/95 via-black/30 to-orange-900/50 font-source-sans border-t border-orange-500/20 py-12 px-6 text-white overflow-hidden">
+        {/* Efectos de brillo mejorados */}
+        <div className="absolute inset-0 rounded-xl shadow-premium"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/30 via-red-600/15 to-orange-600/20 rounded-xl blur-lg opacity-40"></div>
+
+        <div className="relative z-10 max-w-5xl mx-auto flex flex-col gap-10 text-center md:text-left md:flex-row md:justify-between">
+
+          {/* Branding */}
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <Image src="/logo-eleven.webp" alt="Eleven Club" width={64} height={64} />
+            <p className="text-lg font-legquinne">Eleven Club</p>
+            <p className="text-orange-300/70 text-sm">Eleva tus sentidos.</p>
+
+          </div>
+
+          {/* Redes */}
+          <div className="flex flex-col items-end md:items-end">
+            <p className="font-semibold text-lg">Seguinos</p>
+            <div className="flex gap-4 mt-2">
+              <a href="#" aria-label="Facebook" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="..." /></svg>
+              </a>
+              <a href="#" aria-label="Instagram" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="..." /></svg>
+              </a>
+              <a href="#" aria-label="WhatsApp" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="..." /></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Partners (opcional o colapsable) */}
+        <div className="relative z-10 mt-10 md:mr-20 text-center flex flex-col items-end gap-4">
+          <div className="flex gap-4 items-center justify-end">
+            <p className="text-sm text-white/50">Partners</p>
+            <Image src="/campari_logo.png" alt="Campari" width={240} height={240} className="opacity-90 drop-shadow-lg w-32 h-32 md:w-60 md:h-60" />
+            <Image src="/bulldog_logo.png" alt="Bulldog" width={240} height={240} className="opacity-90 drop-shadow-lg w-32 h-32 md:w-60 md:h-60" />
+          </div>
+        </div>
+
+        {/* Footer base */}
+        <div className="relative z-10 mt-12 border-t border-orange-500/20 pt-4 text-center text-sm text-white/50">
+          © 2024 Eleven Club — Todos los derechos reservados
         </div>
       </footer>
+
     </div>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useReservas, useReservasRealtime } from "@/hooks/useReservas"
-import { CalendarUI } from "./CalendarUI"
+import { CalendarUI } from "./ui/CalendarUI"
 
 export default function ReservationCalendarAdmin() {
   const localId = process.env.NEXT_PUBLIC_LOCAL_ID!
