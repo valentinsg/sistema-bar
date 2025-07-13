@@ -33,7 +33,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
   const [allReservas, setAllReservas] = useState<Reserva[]>([])
   const [loading, setLoading] = useState(false)
 
-  const horarios = useMemo(() => ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"], [])
+  const horarios = useMemo(() => ["20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30", "00:00"], [])
 
   // Funciones auxiliares movidas al principio
   const getDaysInMonth = (date: Date) => {
@@ -94,16 +94,42 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
     return allReservas.filter((r) => r.fecha === selectedDate)
   }, [allReservas, selectedDate])
 
+  // Función para determinar el turno de un horario
+  const getTurno = (horario: string): 'primer' | 'segundo' => {
+    const hora = parseInt(horario.split(':')[0])
+
+    // Primer turno: 20:00 a 21:59
+    if (hora >= 20 && hora < 22) {
+      return 'primer'
+    }
+    // Segundo turno: 22:00 a 00:00
+    if (hora >= 22 || hora === 0) {
+      return 'segundo'
+    }
+
+    return 'primer' // fallback
+  }
+
   const disponibilidadPorHorario = useMemo(() => {
-    const MESAS_TOTALES = 50
-    const mesasOcupadasDelDia = reservasDelDia.reduce((acc, r) => {
-      return acc + Math.ceil(r.cantidad_personas / 4)
-    }, 0)
-    const mesasDisponibles = Math.max(0, MESAS_TOTALES - mesasOcupadasDelDia)
+    const LIMITE_PRIMER_TURNO = 40
+    const LIMITE_SEGUNDO_TURNO = 50
+
+    // Separar reservas por turno
+    const reservasPrimerTurno = reservasDelDia.filter(r => getTurno(r.horario) === 'primer')
+    const reservasSegundoTurno = reservasDelDia.filter(r => getTurno(r.horario) === 'segundo')
+
+    // Calcular personas ocupadas por turno
+    const personasPrimerTurno = reservasPrimerTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
+    const personasSegundoTurno = reservasSegundoTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
 
     const nuevaDisponibilidad: Record<string, number> = {}
     horarios.forEach(horario => {
-      nuevaDisponibilidad[horario] = mesasDisponibles
+      const turno = getTurno(horario)
+      if (turno === 'primer') {
+        nuevaDisponibilidad[horario] = Math.max(0, LIMITE_PRIMER_TURNO - personasPrimerTurno)
+      } else {
+        nuevaDisponibilidad[horario] = Math.max(0, LIMITE_SEGUNDO_TURNO - personasSegundoTurno)
+      }
     })
     return nuevaDisponibilidad
   }, [reservasDelDia, horarios])
@@ -375,7 +401,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                     <div className="bg-gradient-to-r from-orange-900/40 to-red-900/35 border-2 border-orange-500/40 rounded-xl p-3 sm:p-6 backdrop-blur-md shadow-lg max-w-xs mx-auto text-center">
                       <div className="text-orange-100 flex flex-col items-center gap-2 text-sm sm:text-lg">
                         <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-lg mb-1"></div>
-                        <span className="font-medium leading-tight">Info: El local tiene 50 mesas totales<br className="sm:hidden"/>para todo el día.<br className="sm:hidden"/>Cada 4 personas ocupan 1 mesa.</span>
+                        <span className="font-medium leading-tight">Info: Primer turno (20:00-22:00): 40 personas<br className="sm:hidden"/>Segundo turno (22:00-00:00): 50 personas</span>
                       </div>
                     </div>
                   )}
@@ -391,7 +417,9 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                         const disponibles = disponibilidadPorHorario[horario] ?? "-"
                         const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
                         const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
-                        const ocupacion = typeof disponibles === "number" ? ((50 - disponibles) / 50) * 100 : 0
+                        const turno = getTurno(horario)
+                        const limiteTotal = turno === 'primer' ? 40 : 50
+                        const ocupacion = typeof disponibles === "number" ? ((limiteTotal - disponibles) / limiteTotal) * 100 : 0
 
                         return (
                           <div key={horario} className="bg-black/70 rounded-xl p-6 border-2 border-orange-500/40 hover:border-orange-400/60 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20 backdrop-blur-md hover:scale-105">
@@ -403,7 +431,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                                       "bg-red-500/25 text-red-200 border-2 border-red-500/40"
                                   }`}
                               >
-                                {disponibles}/50 libres
+                                {disponibles}/{limiteTotal} libres
                               </Badge>
                             </div>
 

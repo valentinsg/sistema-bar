@@ -20,21 +20,45 @@ const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 const disponibilidadCache = new Map<string, { data: Record<string, number>, timestamp: number }>()
 const CACHE_TTL = 30 * 1000 // 30 segundos (aumentado de 5 minutos)
 
-// Función optimizada para calcular disponibilidad localmente
+// Función para determinar el turno de un horario
+const getTurno = (horario: string): 'primer' | 'segundo' => {
+  const hora = parseInt(horario.split(':')[0])
+  const minuto = parseInt(horario.split(':')[1])
+
+  // Primer turno: 20:00 a 21:59
+  if (hora >= 20 && hora < 22) {
+    return 'primer'
+  }
+  // Segundo turno: 22:00 a 00:00
+  if (hora >= 22 || hora === 0) {
+    return 'segundo'
+  }
+
+  return 'primer' // fallback
+}
+
+// Función optimizada para calcular disponibilidad por turnos
 const calcularDisponibilidadLocal = (reservas: any[], horarios: string[]) => {
-  const MESAS_TOTALES = 30
+  const LIMITE_PRIMER_TURNO = 40
+  const LIMITE_SEGUNDO_TURNO = 50
   const disponibilidad: Record<string, number> = {}
 
-  // Calcular mesas ocupadas para todo el día
-  const mesasOcupadasDelDia = reservas.reduce((acc, r) => {
-    return acc + Math.ceil(r.cantidad_personas / 4)
-  }, 0)
+  // Separar reservas por turno
+  const reservasPrimerTurno = reservas.filter(r => getTurno(r.horario) === 'primer')
+  const reservasSegundoTurno = reservas.filter(r => getTurno(r.horario) === 'segundo')
 
-  const mesasDisponibles = Math.max(0, MESAS_TOTALES - mesasOcupadasDelDia)
+  // Calcular personas ocupadas por turno
+  const personasPrimerTurno = reservasPrimerTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
+  const personasSegundoTurno = reservasSegundoTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
 
-  // Misma disponibilidad para todos los horarios del día
+  // Calcular disponibilidad por horario
   horarios.forEach(horario => {
-    disponibilidad[horario] = mesasDisponibles
+    const turno = getTurno(horario)
+    if (turno === 'primer') {
+      disponibilidad[horario] = Math.max(0, LIMITE_PRIMER_TURNO - personasPrimerTurno)
+    } else {
+      disponibilidad[horario] = Math.max(0, LIMITE_SEGUNDO_TURNO - personasSegundoTurno)
+    }
   })
 
   return disponibilidad
@@ -75,6 +99,7 @@ export default function ReservationFormOptimized() {
     contacto: "",
     fecha: new Date().toISOString().split("T")[0],
     horario: "",
+    cantidad_personas: 1,
     notas: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -90,10 +115,10 @@ export default function ReservationFormOptimized() {
   const [totalPersonasReservadas, setTotalPersonasReservadas] = useState(0)
   const [quiereNovedades, setQuiereNovedades] = useState(false)
 
-  // Memoizar horarios para evitar recreación
+    // Memoizar horarios para evitar recreación - Nuevo sistema de turnos
   const horarios = useMemo(() => [
-    "19:30", "20:00", "20:30", "21:00", "21:30",
-    "22:00", "22:30", "23:00", "23:30"
+    "20:00", "20:30", "21:00", "21:30",
+    "22:00", "22:30", "23:00", "23:30", "00:00"
   ], [])
 
   // Debounce para cambios de fecha (aumentado a 500ms para reducir llamadas)
@@ -129,7 +154,7 @@ export default function ReservationFormOptimized() {
         // Una sola llamada para obtener todas las reservas del día
         const { data: reservasDelDia, error } = await supabase
           .from("reservas")
-          .select("cantidad_personas")
+          .select("cantidad_personas, horario")
           .eq("local_id", LOCAL_ID)
           .eq("fecha", debouncedFecha)
 
@@ -216,14 +241,23 @@ export default function ReservationFormOptimized() {
       newErrors.horario = "El horario es requerido"
     }
 
-    // Validar disponibilidad (solo 1 plaza por reserva)
-    if (formData.fecha && formData.horario && !newErrors.horario) {
+    // Validar cantidad de personas
+    if (!formData.cantidad_personas || formData.cantidad_personas < 1) {
+      newErrors.cantidad_personas = "La cantidad de personas es requerida"
+    } else if (formData.cantidad_personas > 20) {
+      newErrors.cantidad_personas = "El máximo de personas por reserva es 20"
+    }
+
+    // Validar disponibilidad por turno
+    if (formData.fecha && formData.horario && !newErrors.horario && !newErrors.cantidad_personas) {
       const disponibles = disponibilidad[formData.horario] || 0
-      if (disponibles < 1) {
-        newErrors.horario = `No quedan plazas disponibles en este horario`
+      if (disponibles < formData.cantidad_personas) {
+        const turno = getTurno(formData.horario)
+        const turnoTexto = turno === 'primer' ? 'primer turno (20:00-22:00)' : 'segundo turno (22:00-00:00)'
+        newErrors.horario = `No hay suficientes plazas disponibles en el ${turnoTexto}. Disponibles: ${disponibles}`
       }
-      if (totalPersonasReservadas >= 30) {
-        newErrors.horario = `No se pueden reservar más de 30 plazas en total por día.`
+      if (totalPersonasReservadas >= 90) {
+        newErrors.horario = `No se pueden reservar más de 90 plazas en total por día.`
       }
     }
 
@@ -261,7 +295,7 @@ export default function ReservationFormOptimized() {
         contacto: formData.contacto.trim(),
         fecha: formData.fecha,
         horario: formData.horario,
-        cantidad_personas: 1,
+        cantidad_personas: formData.cantidad_personas,
         notas: formData.notas.trim() || null,
       })
 
@@ -277,6 +311,7 @@ export default function ReservationFormOptimized() {
         contacto: "",
         fecha: new Date().toISOString().split("T")[0],
         horario: "",
+        cantidad_personas: 1,
         notas: ""
       })
       setQuiereNovedades(false)
@@ -292,16 +327,22 @@ export default function ReservationFormOptimized() {
 
   // Memoizar handleInputChange
   const handleInputChange = useCallback((field: string, value: string) => {
-    if (field === "cantidad_personas" && value !== "") {
-      const numValue = Number.parseInt(value)
-      if (numValue > 20) {
-        value = "20"
-      } else if (numValue < 0) {
-        value = "1"
+    if (field === "cantidad_personas") {
+      if (value === "") {
+        setFormData((prev) => ({ ...prev, [field]: 1 }))
+      } else {
+        const numValue = Number.parseInt(value)
+        if (numValue > 20) {
+          setFormData((prev) => ({ ...prev, [field]: 20 }))
+        } else if (numValue < 1) {
+          setFormData((prev) => ({ ...prev, [field]: 1 }))
+        } else {
+          setFormData((prev) => ({ ...prev, [field]: numValue }))
+        }
       }
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }))
     }
-
-    setFormData((prev) => ({ ...prev, [field]: value }))
 
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
@@ -313,7 +354,8 @@ export default function ReservationFormOptimized() {
     return formData.nombre.trim() &&
       formData.contacto.trim() &&
       formData.fecha &&
-      formData.horario
+      formData.horario &&
+      formData.cantidad_personas > 0
   }, [formData])
 
   // Throttle para actualizar posición del popover
@@ -700,19 +742,36 @@ return (
               )}
             </motion.div>
 
-            {/* Checkbox para novedades */}
-            <motion.div className="flex items-center gap-3 mb-2">
-              <input
-                id="novedades"
-                type="checkbox"
-                checked={quiereNovedades}
-                onChange={e => setQuiereNovedades(e.target.checked)}
-                className="accent-orange-500 w-5 h-5 rounded border border-orange-400/40 focus:ring-2 focus:ring-orange-400/40"
-              />
-              <Label htmlFor="novedades" className="text-white/90 text-base select-none cursor-pointer">
-                Quiero recibir novedades sobre Eleven Club
+            {/* Cantidad de personas */}
+            <motion.div className="space-y-2 sm:space-y-4">
+              <Label htmlFor="cantidad_personas" className="text-white font-bold flex items-center gap-2 sm:gap-4 text-base sm:text-xl">
+                <div className="p-1 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 shadow flex-shrink-0">
+                  <User className="w-4 h-4 text-orange-200" />
+                </div>
+                <span className="min-w-0">Cantidad de personas <span className="text-orange-400">*</span></span>
               </Label>
+              <Input
+                id="cantidad_personas"
+                type="number"
+                min="1"
+                max="20"
+                value={formData.cantidad_personas}
+                onChange={e => handleInputChange("cantidad_personas", e.target.value)}
+                className="glass-effect border border-orange-400/10 text-white placeholder:text-white/60 focus:border-orange-400/30 focus:shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-orange-300/20 text-sm sm:text-lg py-2 sm:py-4 px-5 sm:px-6 rounded font-medium bg-[#2d1a0b] w-full"
+                placeholder="Número de personas"
+              />
+              {triedSubmit && errors.cantidad_personas && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-red-300 text-xs sm:text-base flex items-center gap-2 sm:gap-3 font-semibold bg-red-500/10 border border-red-400/20 rounded px-2 sm:px-4 py-1 sm:py-3 backdrop-blur-md"
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span className="min-w-0">{errors.cantidad_personas}</span>
+                </motion.p>
+              )}
             </motion.div>
+
 
             {/* Notas */}
             <motion.div className="space-y-2 sm:space-y-4">
@@ -749,6 +808,20 @@ return (
                   {formData.notas.length}/500 caracteres
                 </p>
               </div>
+            </motion.div>
+
+                        {/* Checkbox para novedades */}
+            <motion.div className="flex items-center gap-3 mb-2">
+              <input
+                id="novedades"
+                type="checkbox"
+                checked={quiereNovedades}
+                onChange={e => setQuiereNovedades(e.target.checked)}
+                className="accent-orange-500 w-5 h-5 rounded border border-orange-400/40 focus:ring-2 focus:ring-orange-400/40"
+              />
+              <Label htmlFor="novedades" className="text-white/90 text-base select-none cursor-pointer">
+                Quiero recibir novedades sobre Eleven Club
+              </Label>
             </motion.div>
 
             {/* Botón de enviar */}

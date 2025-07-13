@@ -92,3 +92,74 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Estilos personalizados para toasts */
+[data-sonner-toaster] {
+  --normal-bg: #ffffff;
+  --normal-border: #e2e8f0;
+  --normal-text: #0f172a;
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+  --success-text: #166534;
+  --error-bg: #fef2f2;
+  --error-border: #fecaca;
+  --error-text: #dc2626;
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 50;
+  max-width: 320px;
+  pointer-events: none;
+}
+
+[data-sonner-toast] {
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-family: inherit;
+  max-width: 320px;
+  margin-bottom: 0.5rem;
+  position: relative;
+  pointer-events: auto;
+}
+
+[data-sonner-toast][data-type="success"] {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+}
+
+[data-sonner-toast][data-type="error"] {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
+}
+
+[data-sonner-toast] [data-title] {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+[data-sonner-toast] [data-description] {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
+/* Evitar que el toaster afecte el layout */
+[data-sonner-toaster] * {
+  box-sizing: border-box;
+}
+
+/* Responsive para mobile */
+@media (max-width: 640px) {
+  [data-sonner-toaster] {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+
+  [data-sonner-toast] {
+    max-width: none;
+  }
+}

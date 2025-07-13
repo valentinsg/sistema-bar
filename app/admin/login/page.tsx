@@ -1,18 +1,18 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { AlertCircle, Eye, EyeOff, Lock, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
-    email: "",
+    user: "",
     password: "",
   })
   const [showPassword, setShowPassword] = useState(false)
@@ -26,15 +26,15 @@ export default function AdminLogin() {
     setError("")
 
     try {
-      // Buscar el usuario admin por email
+      // Buscar el usuario admin por user
       const { data: adminData, error: adminError } = await supabase
         .from("usuarios_admin")
-        .select("id, nombre, email, local_id, password, token_acceso")
-        .eq("email", formData.email)
+        .select("id, nombre, user, local_id, password, token_acceso")
+        .eq("user", formData.user)
         .single()
 
       if (adminError || !adminData) {
-        setError("Email no encontrado")
+        setError("Usuario no encontrado")
         setIsLoading(false)
         return
       }
@@ -66,7 +66,7 @@ export default function AdminLogin() {
         user: {
           id: adminData.id,
           nombre: adminData.nombre,
-          email: adminData.email,
+          user: adminData.user,
           local_id: adminData.local_id
         }
       }
@@ -116,17 +116,17 @@ export default function AdminLogin() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                Email
+              <Label htmlFor="user" className="text-white flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Usuario
               </Label>
               <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
+                id="user"
+                type="text"
+                value={formData.user}
+                onChange={(e) => handleInputChange("user", e.target.value)}
                 className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 focus:border-purple-500"
-                placeholder="admin@nocturnos.com"
+                placeholder="admin"
                 required
               />
             </div>
@@ -165,15 +165,6 @@ export default function AdminLogin() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-gray-700">
-            <div className="text-center space-y-2">
-              <p className="text-xs text-gray-400">Credenciales por defecto:</p>
-              <div className="bg-gray-800/50 rounded-lg p-3 text-xs">
-                <p className="text-gray-300">Email: <span className="text-purple-400">admin@nocturnos.com</span></p>
-                <p className="text-gray-300">Contraseña: <span className="text-purple-400">admin123</span></p>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

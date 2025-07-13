@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner"
 import type { Metadata } from "next"
 import { Inter, Source_Sans_3 } from "next/font/google"
 import type React from "react"
@@ -27,7 +28,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning className={`${sourceSans.variable}`}>
-      <body className={`${inter.className} ${sourceSans.variable}`} suppressHydrationWarning>{children}</body>
+      <body className={`${inter.className} ${sourceSans.variable}`} suppressHydrationWarning>
+        {children}
+        <Toaster
+          position="bottom-right"
+          richColors
+          closeButton
+          duration={3000}
+          expand={false}
+          visibleToasts={3}
+        />
+      </body>
     </html>
   )
 }

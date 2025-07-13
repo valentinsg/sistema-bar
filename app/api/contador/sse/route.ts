@@ -51,17 +51,17 @@ export async function GET(request: NextRequest) {
         }, 90000) // 90 segundos para reducir llamadas significativamente
 
         // Limpiar cuando se cierre la conexión
-        request.signal.addEventListener('abort', () => {
-          isActive = false
-          clearInterval(interval)
-          controller.close()
-        })
-
-        // También manejar el cierre de la conexión
         const cleanup = () => {
-          isActive = false
-          clearInterval(interval)
-          controller.close()
+          if (isActive) {
+            isActive = false
+            clearInterval(interval)
+            try {
+              controller.close()
+            } catch (error) {
+              // El controlador ya puede estar cerrado, ignorar el error
+              console.log('Controller already closed')
+            }
+          }
         }
 
         // Agregar listener para detectar si el cliente se desconectó
@@ -70,7 +70,11 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         console.error('Error en SSE:', error)
         sendError('Error de conexión inicial')
-        controller.close()
+        try {
+          controller.close()
+        } catch (closeError) {
+          console.log('Controller already closed in catch block')
+        }
       }
     }
   })
