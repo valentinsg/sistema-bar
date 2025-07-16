@@ -9,9 +9,23 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Configuraciones específicas para Vercel
-  experimental: {
-    serverComponentsExternalPackages: [],
+  // Configuraciones para resolver warnings de dependencias
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      }
+    }
+
+    // Suprimir warnings específicos de Supabase Realtime
+    config.module.exprContextCritical = false
+    config.module.unknownContextCritical = false
+
+    return config
   },
   // Optimizaciones para API routes
   async headers() {

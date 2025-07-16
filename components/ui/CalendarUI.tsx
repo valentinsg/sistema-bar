@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { type Reserva } from "@/lib/storage"
 import { motion } from "framer-motion"
 import { Calendar, ChevronLeft, ChevronRight, Clock, Copy, Info, Loader2, Phone, User, Users } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 interface CalendarUIProps {
@@ -15,11 +15,25 @@ interface CalendarUIProps {
   allReservas: Reserva[]
   loading: boolean
   onDeleteReserva?: (id: string, nombre: string) => Promise<void>
+  selectedDate?: string
+  selectedTime?: string
+  onDateSelect?: (date: string) => void
+  onTimeSelect?: (time: string) => void
 }
 
-export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: CalendarUIProps) {
+export function CalendarUI({
+  isAdmin,
+  allReservas,
+  loading,
+  onDeleteReserva,
+  selectedDate: externalSelectedDate,
+  selectedTime: externalSelectedTime,
+  onDateSelect,
+  onTimeSelect
+}: CalendarUIProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string>(() => {
+    if (externalSelectedDate) return externalSelectedDate
     const today = new Date()
     const year = today.getFullYear()
     const month = String(today.getMonth() + 1).padStart(2, '0')
@@ -28,6 +42,13 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
   })
 
   const horarios = useMemo(() => ["20:15", "22:30"], [])
+
+  // Sincronizar con fecha externa
+  useEffect(() => {
+    if (externalSelectedDate && externalSelectedDate !== selectedDate) {
+      setSelectedDate(externalSelectedDate)
+    }
+  }, [externalSelectedDate, selectedDate])
 
   // Función para copiar al portapapeles
   const copyToClipboard = async (text: string) => {
@@ -153,71 +174,68 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
 
   return (
     <TooltipProvider>
-      <div className="space-y-8 p-2 sm:p-4 w-full max-w-none font-source-sans">
+      <div className="space-y-6 p-2 sm:p-4 w-full max-w-none">
         {/* Calendario Principal */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative"
+          transition={{ duration: 0.4, ease: "easeOut" }}
         >
-          {/* Fondo con imagen */}
-          <div className="absolute inset-0 rounded-xl overflow-hidden" style={{ minHeight: '100%' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-orange-900/50"></div>
-          </div>
-
-          <Card className="relative overflow-hidden bg-transparent border-2 border-orange-500/40 backdrop-blur-xl shadow-2xl">
-            <CardHeader className="relative z-10 bg-gradient-to-r from-orange-500/25 to-red-500/20 border-b-2 border-orange-500/40 backdrop-blur-md px-2 py-3 sm:px-6 sm:py-4">
-              <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
-                <div className="flex items-center gap-2 sm:gap-4">
+          <Card className="bg-gradient-to-br from-amber-950/90 to-orange-950/90 border-2 border-amber-600/50 shadow-2xl">
+            <CardHeader className="border-b border-amber-600/30 px-4 py-3 bg-gradient-to-r from-amber-900/30 to-orange-900/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-600/30 rounded-lg border border-amber-500/50">
+                    <Calendar className="w-5 h-5 text-amber-400" />
+                  </div>
                   <div>
-                    <CardTitle className="text-white flex items-center gap-2 sm:gap-3 text-lg sm:text-2xl font-legquinne font-normal">
-                      <div className="p-2 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-xl border-2 border-orange-400/40 shadow-lg">
-                        <Calendar className="w-5 h-5 sm:w-7 sm:h-7 text-orange-200" />
-                      </div>
-                      <span className="block leading-tight">Calendario<br className="sm:hidden" />de Reservas</span>
-                      {loading && <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-orange-400" />}
+                    <CardTitle className="font-legquinne text-amber-100 text-lg sm:text-xl font-semibold">
+                      Calendario de Reservas
+                      {loading && <Loader2 className="w-5 h-5 animate-spin text-amber-400 inline ml-2" />}
                     </CardTitle>
-                    <CardDescription className="text-white/95 text-sm sm:text-lg font-medium mt-1 leading-tight">
+                    <CardDescription className="font-source-sans text-amber-300 text-sm">
                       Selecciona una fecha para ver disponibilidad{isAdmin ? " y gestionar reservas" : ""}
                     </CardDescription>
                   </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-3 sm:p-8 relative z-10">
+
+            <CardContent className="p-4 sm:p-6">
               {/* Navegación del mes */}
-              <div className="flex items-center justify-between mb-4 sm:mb-8">
+              <div className="flex items-center justify-between mb-6">
                 <Button
                   onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
-                  className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-2 py-2 sm:px-4 sm:py-3 rounded-xl"
+                  className="bg-amber-950/70 border-2 border-amber-700/50 text-amber-300 hover:bg-amber-900/70 hover:text-amber-100 hover:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                   disabled={loading}
+                  size="sm"
                 >
-                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <h3 className="text-xl sm:text-3xl font-bold font-legquinne text-transparent bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text drop-shadow-lg">
+                <h3 className="font-legquinne text-xl sm:text-2xl font-bold text-amber-100">
                   {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </h3>
                 <Button
                   onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
-                  className="group relative overflow-hidden bg-black/70 border-2 border-orange-500/40 text-orange-200 hover:bg-gradient-to-r hover:from-orange-500/40 hover:to-red-500/30 hover:border-orange-400/60 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/30 hover:scale-105 backdrop-blur-md px-2 py-2 sm:px-4 sm:py-3 rounded-xl"
+                  className="bg-amber-950/70 border-2 border-amber-700/50 text-amber-300 hover:bg-amber-900/70 hover:text-amber-100 hover:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                   disabled={loading}
+                  size="sm"
                 >
-                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
 
               {/* Días de la semana */}
-              <div className="grid grid-cols-7 gap-1 sm:gap-3 mb-2 sm:mb-6">
+              <div className="grid grid-cols-7 gap-2 mb-4">
                 {dayNames.map((day) => (
-                  <div key={day} className="text-center text-xs sm:text-base font-bold text-orange-200 py-2 sm:py-4 bg-black/60 rounded-xl border-2 border-orange-500/30 backdrop-blur-md shadow-lg">
+                  <div key={day} className="font-source-sans text-center text-sm font-semibold text-amber-300 py-2 bg-amber-950/50 border border-amber-700/40 rounded-lg">
                     {day}
                   </div>
                 ))}
               </div>
 
               {/* Días del mes */}
-              <div className="grid grid-cols-7 gap-1 sm:gap-3">
+              <div className="grid grid-cols-7 gap-2">
                 {getDaysInMonth(currentDate).map((day, index) => {
                   if (day === null) return <div key={`empty-${index}`} className="h-10 sm:h-16" />
                   const dateStr = formatDateString(day)
@@ -241,44 +259,41 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                     <button
                       key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`}
                       onClick={() => {
-                        try {
-                          setSelectedDate(dateStr)
-                        } catch (error) {
-                          console.error('Error al seleccionar fecha:', error)
-                        }
+                        setSelectedDate(dateStr)
+                        onDateSelect?.(dateStr)
                       }}
                       disabled={pastDate || loading || diaSinPlazas || isDayClosed}
-                      className={`h-10 sm:h-16 rounded-xl text-xs sm:text-base font-bold transition-all duration-300 relative overflow-hidden group backdrop-blur-md shadow-lg
+                      className={`font-source-sans h-12 sm:h-16 rounded-lg text-sm font-semibold transition-all duration-200 relative
                         ${isSelected ?
-                          "bg-gradient-to-br from-orange-600/90 to-red-600/80 text-white shadow-xl shadow-orange-500/40 scale-110 border-2 border-orange-300/60 backdrop-blur-md" :
+                          "bg-gradient-to-br from-amber-600 to-orange-600 text-white border-2 border-amber-400 shadow-lg" :
                           pastDate || isDayClosed ?
-                            "text-gray-500 cursor-not-allowed bg-black/30 border border-gray-600/30" :
+                            "text-amber-700 cursor-not-allowed bg-amber-950/30 border border-amber-800/50" :
                             diaSinPlazas ?
-                              "text-gray-500 cursor-not-allowed bg-black/30 border border-red-600/40 opacity-60" :
+                              "text-amber-700 cursor-not-allowed bg-amber-950/30 border border-amber-800/50 opacity-50" :
                               todayClass ?
-                                "bg-gradient-to-br from-orange-500/50 to-red-500/40 text-orange-100 border-2 border-orange-400/60 shadow-lg shadow-orange-500/30 hover:scale-110" :
-                                "text-white bg-black/60 hover:bg-gradient-to-br hover:from-orange-500/40 hover:to-red-500/30 hover:scale-110 hover:shadow-lg hover:shadow-orange-500/20 border-2 border-orange-500/30 hover:border-orange-400/50"
+                                "bg-amber-600/30 text-amber-100 border-2 border-amber-500 shadow-md" :
+                                "text-amber-200 bg-amber-950/60 hover:bg-amber-900/70 border border-amber-700/60 hover:border-amber-500"
                         }`}>
-                      <span className="relative z-10">{day}</span>
+                      <span>{day}</span>
 
                       {/* Indicador de reservas */}
                       {reservasCount > 0 && !pastDate && !isDayClosed && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-7 sm:h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-[10px] sm:text-sm flex items-center justify-center text-white font-bold shadow-xl animate-pulse z-20 border-2 border-red-300/50">
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full text-xs flex items-center justify-center text-white font-bold">
                           {reservasCount}
                         </div>
                       )}
 
                       {/* Indicador de sin plazas */}
                       {diaSinPlazas && !pastDate && !isDayClosed && (
-                        <div className="absolute inset-0 flex items-center justify-center z-20">
-                          <span className="text-xs sm:text-sm font-bold text-red-400 bg-black/80 rounded px-1">Sin plazas</span>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs text-red-400 bg-gray-900 rounded px-1">Sin plazas</span>
                         </div>
                       )}
 
                       {/* Indicador de cerrado */}
                       {isDayClosed && !pastDate && (
-                        <div className="absolute inset-0 flex items-center justify-center z-20">
-                          <span className="text-xs sm:text-sm font-bold text-gray-400 bg-black/80 rounded px-1">Cerrado</span>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs text-gray-400 bg-gray-900 rounded px-1">Cerrado</span>
                         </div>
                       )}
                     </button>
@@ -292,64 +307,50 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
         {/* Detalles del día seleccionado */}
         {selectedDate && (
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-            className="relative"
+            transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            <div className="absolute inset-0 rounded-xl overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-red-900/50"></div>
-            </div>
 
-            <Card className="relative overflow-hidden bg-transparent border-2 border-orange-500/40 backdrop-blur-xl shadow-2xl">
-              <CardHeader className="relative z-10 bg-gradient-to-r from-red-500/25 to-orange-500/20 border-b-2 border-orange-500/40 backdrop-blur-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <CardTitle className="text-white flex items-center gap-3 text-2xl font-legquinne font-normal">
-                        <div className="p-2.5 bg-gradient-to-br from-red-500/25 to-orange-500/20 rounded-xl border-2 border-red-400/40 shadow-lg">
-                          <Clock className="w-7 h-7 text-red-200" />
-                        </div>
-                        {new Date(selectedDate + "T00:00:00").toLocaleDateString("es-AR", {
-                          weekday: "long", year: "numeric", month: "long", day: "numeric"
-                        })}
-                      </CardTitle>
-                    </div>
+            <Card className="bg-gradient-to-br from-amber-950/90 to-orange-950/90 border-2 border-amber-600/50 shadow-2xl">
+              <CardHeader className="border-b border-amber-600/30 bg-gradient-to-r from-amber-900/30 to-orange-900/30">
+                <CardTitle className="text-amber-100 flex items-center gap-3 text-lg sm:text-xl">
+                  <div className="p-2 bg-amber-600/30 rounded-lg border border-amber-500/50">
+                    <Clock className="w-5 h-5 text-amber-400" />
                   </div>
-                </div>
+                  {new Date(selectedDate + "T00:00:00").toLocaleDateString("es-AR", {
+                    weekday: "long", year: "numeric", month: "long", day: "numeric"
+                  })}
+                </CardTitle>
               </CardHeader>
-              <CardContent className="relative z-10">
+              <CardContent className="p-4 sm:p-6">
                 {reservasDelDia.length === 0 ? (
-                  <div className="text-center py-16">
-                    <div className="w-24 h-24 bg-gradient-to-br from-orange-500/25 to-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border-2  shadow-lg">
-                      <Calendar className="w-12 h-12 text-orange-300" />
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-amber-600/30 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-amber-500/50">
+                      <Calendar className="w-8 h-8 text-amber-400" />
                     </div>
-                    <p className="text-white/90 text-2xl font-legquinne font-medium mb-2">No hay reservas para esta fecha</p>
-                    <p className="text-white/70 text-lg">¡Perfecto para nuevas reservas!</p>
+                    <p className="text-amber-100 text-lg font-semibold mb-2">No hay reservas para esta fecha</p>
+                    <p className="text-amber-300">¡Perfecto para nuevas reservas!</p>
                   </div>
                 ) : (
-                  <div className="space-y-10">
+                  <div className="space-y-6">
                     {/* Info para usuarios no admin */}
                     {!isAdmin && (
                       <div className="flex justify-center">
-                        <Button
-                          size="sm"
-                          className="bg-gradient-to-r from-orange-500/80 to-red-500/80 text-white px-3 py-1 rounded font-bold text-xs flex items-center gap-1 border border-orange-400/30 hover:from-orange-600/90 hover:to-red-600/90 transition-all duration-300"
-                          style={{ minWidth: 0 }}
-                        >
-                          <Info className="w-4 h-4 text-orange-200" />
-                          Turnos: 20:15 y 22:30 (30p c/u). Barra libre
-                        </Button>
+                        <div className="bg-gradient-to-r from-amber-600/30 to-orange-600/30 border-2 border-amber-500/50 rounded-xl px-6 py-3 text-sm text-amber-100 shadow-lg">
+                          <Info className="w-4 h-4 inline mr-2" />
+                          <span className="font-source-sans font-medium">Turnos: 20:15 y 22:30</span> • 30 plazas por turno • Barra libre
+                        </div>
                       </div>
                     )}
 
                     {/* Disponibilidad por horario */}
                     <div>
-                      <h4 className="text-white font-bold text-lg sm:text-2xl mb-4 mt-4 sm:mb-8 flex items-center gap-2 sm:gap-3 font-legquinne">
-                        <div className="w-2 h-6 sm:w-3 sm:h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full shadow-lg"></div>
-                        <span className="leading-tight">Disponibilidad<br className='sm:hidden' />por horario</span>
+                      <h4 className="font-legquinne text-amber-100 font-semibold text-lg mb-4 flex items-center gap-2">
+                        <div className="w-1 h-6 bg-amber-500 rounded"></div>
+                        Disponibilidad por horario
                       </h4>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2">
                         {horarios.map((horario) => {
                           const disponibles = disponibilidadPorHorario[horario] ?? "-"
                           const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
@@ -358,15 +359,24 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                           const ocupacion = typeof disponibles === "number" ? ((limiteTotal - disponibles) / limiteTotal) * 100 : 0
 
                           return (
-                            <div key={horario} className="bg-black/70 rounded-xl p-4 border-2 border-orange-500/40 hover:border-orange-400/60 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20 backdrop-blur-md hover:scale-105">
+                                                        <button
+                              key={horario}
+                              className={`w-full text-left rounded-xl p-5 border-2 transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                externalSelectedTime === horario
+                                  ? 'bg-gradient-to-br from-amber-700/60 to-orange-700/60 border-amber-400 shadow-lg shadow-amber-500/30'
+                                  : 'bg-gradient-to-br from-amber-950/80 to-amber-900/60 border-amber-600/50 hover:border-amber-500/70 hover:shadow-amber-500/20'
+                              }`}
+                              onClick={() => onTimeSelect?.(horario)}
+                              disabled={typeof disponibles === "number" && disponibles === 0}
+                            >
                               <div className="flex items-center justify-between mb-4">
-                                <span className="text-white font-bold text-xl">{horario}</span>
+                                <span className="font-legquinne text-amber-100 font-bold text-xl">{horario}</span>
                                 <Badge
                                   className={`text-sm font-bold px-4 py-2 rounded-lg shadow-lg ${typeof disponibles === "number" && disponibles > (limiteTotal * 0.7) ?
-                                    "bg-green-500/25 text-green-200 border-2 border-green-500/40" :
+                                    "bg-green-600/30 text-green-200 border-2 border-green-500/50" :
                                     typeof disponibles === "number" && disponibles > (limiteTotal * 0.3) ?
-                                      "bg-yellow-500/25 text-yellow-200 border-2 border-yellow-500/40" :
-                                      "bg-red-500/25 text-red-200 border-2 border-red-500/40"
+                                      "bg-yellow-600/30 text-yellow-200 border-2 border-yellow-500/50" :
+                                      "bg-red-600/30 text-red-200 border-2 border-red-500/50"
                                     }`}
                                 >
                                   {disponibles}/{limiteTotal} libres
@@ -374,7 +384,7 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                               </div>
 
                               {/* Barra de ocupación */}
-                              <div className="w-full bg-black/60 rounded-full h-3 mb-4 overflow-hidden border-2 border-orange-500/30 shadow-inner">
+                              <div className="w-full bg-amber-950/60 rounded-full h-3 mb-4 overflow-hidden border-2 border-amber-600/40 shadow-inner">
                                 <div
                                   className={`h-full transition-all duration-700 shadow-lg ${ocupacion > 70 ? "bg-gradient-to-r from-red-500 to-red-600" :
                                     ocupacion > 40 ? "bg-gradient-to-r from-yellow-500 to-yellow-600" :
@@ -387,14 +397,14 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                               {reservasEnHorario.length > 0 ? (
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-3 text-base">
-                                    <div className="p-1.5 bg-orange-500/20 rounded-lg border border-orange-400/30">
-                                      <Users className="w-5 h-5 text-orange-300" />
+                                    <div className="p-1.5 bg-amber-600/30 rounded-lg border border-amber-500/40">
+                                      <Users className="w-5 h-5 text-amber-300" />
                                     </div>
-                                    <span className="text-orange-200 font-semibold">
+                                    <span className="text-amber-200 font-semibold">
                                       {reservasEnHorario.length} reserva{reservasEnHorario.length !== 1 ? "s" : ""}
                                     </span>
                                   </div>
-                                  <div className="text-base text-white/90 bg-white/5 rounded-lg px-3 py-2 border border-white/10">
+                                  <div className="text-base text-amber-100 bg-amber-900/30 rounded-lg px-3 py-2 border border-amber-600/30">
                                     <strong>{personasEnHorario}</strong> personas total
                                   </div>
                                 </div>
@@ -404,7 +414,7 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                                   Sin reservas
                                 </div>
                               )}
-                            </div>
+                            </button>
                           )
                         })}
                       </div>

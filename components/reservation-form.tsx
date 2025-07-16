@@ -7,53 +7,21 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { saveReserva } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
-import { AnimatePresence, motion } from "framer-motion"
-import { AlertCircle, Calendar, Clock, Info, Loader2, MessageSquare, Phone, User } from "lucide-react"
+import { motion } from "framer-motion"
+import { AlertCircle, Calendar, Clock, Info, Loader2, MessageSquare, Phone, User, Users } from "lucide-react"
 import Image from "next/image"
-import type React from "react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
 
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 
-// Cache en memoria para disponibilidad
+// Cache optimizado
 const disponibilidadCache = new Map<string, { data: Record<string, number>, timestamp: number }>()
-const CACHE_TTL = 30 * 1000 // 30 segundos (aumentado de 5 minutos)
+const CACHE_TTL = 30 * 1000 // 30 segundos
 
-// Función para determinar el turno de un horario
-const getTurno = (horario: string): 'primer' | 'segundo' => {
-  const hora = parseInt(horario.split(':')[0])
-  const minuto = parseInt(horario.split(':')[1])
-
-  // Primer turno: 20:00 a 21:59
-  if (hora >= 20 && hora < 22) {
-    return 'primer'
-  }
-  // Segundo turno: 22:00 a 00:00
-  if (hora >= 22 || hora === 0) {
-    return 'segundo'
-  }
-
-  return 'primer' // fallback
-}
-
-// Función optimizada para calcular disponibilidad por turnos
-const calcularDisponibilidadLocal = (reservas: any[], horarios: string[]) => {
-  const LIMITE_POR_TURNO = 30
-  const disponibilidad: Record<string, number> = {}
-
-  horarios.forEach(horario => {
-    const reservasEnHorario = reservas.filter(r => r.horario === horario)
-    const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
-    disponibilidad[horario] = Math.max(0, LIMITE_POR_TURNO - personasEnHorario)
-  })
-
-  return disponibilidad
-}
-
-// Hook personalizado para debounce
-const useDebounce = (value: any, delay: number) => {
-  const [debouncedValue, setDebouncedValue] = useState(value)
+// Hook de debounce
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -68,44 +36,78 @@ const useDebounce = (value: any, delay: number) => {
   return debouncedValue
 }
 
-// Hook personalizado para throttle
-const useThrottle = (callback: Function, delay: number) => {
-  const lastRun = useRef(Date.now())
+// Función para calcular disponibilidad
+const calcularDisponibilidadLocal = (reservas: any[], horarios: string[]) => {
+  const LIMITE_POR_TURNO = 30
+  const disponibilidad: Record<string, number> = {}
 
-  return useCallback((...args: any[]) => {
-    if (Date.now() - lastRun.current >= delay) {
-      callback(...args)
-      lastRun.current = Date.now()
-    }
-  }, [callback, delay])
+  horarios.forEach(horario => {
+    const reservasEnHorario = reservas.filter(r => r.horario === horario)
+    const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
+    disponibilidad[horario] = Math.max(0, LIMITE_POR_TURNO - personasEnHorario)
+  })
+
+  return disponibilidad
 }
 
-export default function ReservationFormOptimized() {
+// Función para verificar días cerrados
+const isClosedDay = (dateStr: string) => {
+  const date = new Date(dateStr + 'T12:00:00')
+  const day = date.getDay()
+  return day === 0 // Cerrado domingos
+}
+
+interface ReservationFormProps {
+  selectedDate?: string
+  selectedTime?: string
+  onDateChange?: (date: string) => void
+  onTimeChange?: (time: string) => void
+}
+
+export default function ReservationForm({
+  selectedDate: externalSelectedDate,
+  selectedTime: externalSelectedTime,
+  onDateChange,
+  onTimeChange
+}: ReservationFormProps = {}) {
   const [formData, setFormData] = useState({
     nombre: "",
     contacto: "",
-    fecha: new Date().toISOString().split("T")[0],
-    horario: "",
+    fecha: externalSelectedDate || new Date().toISOString().split("T")[0],
+    horario: externalSelectedTime || "",
     cantidad_personas: 1,
     notas: "",
   })
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [disponibilidad, setDisponibilidad] = useState<Record<string, number>>({})
   const [loadingDisponibilidad, setLoadingDisponibilidad] = useState(false)
   const [triedSubmit, setTriedSubmit] = useState(false)
-  const [showPrivacy, setShowPrivacy] = useState(false)
-  const [privacyPosition, setPrivacyPosition] = useState({ top: 0, left: 0, width: 0 })
-  const privacyButtonRef = useRef<HTMLButtonElement>(null)
-  const privacyPopoverRef = useRef<HTMLDivElement>(null)
+  const [showCapacityInfo, setShowCapacityInfo] = useState(false)
   const [totalPersonasReservadas, setTotalPersonasReservadas] = useState(0)
   const [quiereNovedades, setQuiereNovedades] = useState(false)
 
-    // Memoizar horarios para evitar recreación - Nuevo sistema de turnos
-  const horarios = useMemo(() => ["20:15", "22:30"], [])
+  // Horarios disponibles - Solo dos turnos
+  const horarios = useMemo(() => [
+    "20:15", "22:30"
+  ], [])
 
-  // Debounce para cambios de fecha (aumentado a 500ms para reducir llamadas)
+  // Sincronizar con props externas
+  useEffect(() => {
+    if (externalSelectedDate && externalSelectedDate !== formData.fecha) {
+      setFormData(prev => ({ ...prev, fecha: externalSelectedDate }))
+    }
+  }, [externalSelectedDate])
+
+  useEffect(() => {
+    if (externalSelectedTime && externalSelectedTime !== formData.horario) {
+      setFormData(prev => ({ ...prev, horario: externalSelectedTime }))
+    }
+  }, [externalSelectedTime])
+
+  // Debounce para la fecha
   const debouncedFecha = useDebounce(formData.fecha, 500)
 
   // Cargar disponibilidad optimizada
@@ -123,7 +125,6 @@ export default function ReservationFormOptimized() {
 
       if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
         setDisponibilidad(cached.data)
-        // Sumar total de personas reservadas en el día
         let total = 0
         Object.values(cached.data).forEach(val => {
           total += (30 - val)
@@ -135,7 +136,6 @@ export default function ReservationFormOptimized() {
       setLoadingDisponibilidad(true)
 
       try {
-        // Una sola llamada para obtener todas las reservas del día
         const { data: reservasDelDia, error } = await supabase
           .from("reservas")
           .select("cantidad_personas, horario")
@@ -143,16 +143,14 @@ export default function ReservationFormOptimized() {
           .eq("fecha", debouncedFecha)
 
         if (error) {
-          console.error("Error al obtener reservas del día:", error)
+          console.error("Error al obtener reservas:", error)
           setTotalPersonasReservadas(0)
           return
         }
 
-        // Calcular disponibilidad localmente
         const nuevaDisponibilidad = calcularDisponibilidadLocal(reservasDelDia || [], horarios)
         setDisponibilidad(nuevaDisponibilidad)
 
-        // Calcular total de personas reservadas en el día
         const totalPersonas = (reservasDelDia || []).reduce((acc, r) => acc + (r.cantidad_personas || 0), 0)
         setTotalPersonasReservadas(totalPersonas)
 
@@ -162,7 +160,7 @@ export default function ReservationFormOptimized() {
           timestamp: Date.now()
         })
 
-        // Limpiar cache viejo (reducido a 20 entradas)
+        // Limpiar cache viejo
         if (disponibilidadCache.size > 20) {
           const cutoff = Date.now() - CACHE_TTL
           for (const [key, value] of disponibilidadCache.entries()) {
@@ -174,7 +172,6 @@ export default function ReservationFormOptimized() {
       } catch (error) {
         console.error("Error al cargar disponibilidad:", error)
         setTotalPersonasReservadas(0)
-        // En caso de error, asignar disponibilidad por defecto
         const defaultDisponibilidad: Record<string, number> = {}
         horarios.forEach(horario => {
           defaultDisponibilidad[horario] = 30
@@ -188,25 +185,22 @@ export default function ReservationFormOptimized() {
     cargarDisponibilidad()
   }, [debouncedFecha, horarios])
 
-  // Memoizar validación del formulario
+  // Validación del formulario
   const validateForm = useCallback(async () => {
     const newErrors: Record<string, string> = {}
 
-    // Validar nombre
     if (!formData.nombre.trim()) {
       newErrors.nombre = "El nombre es requerido"
     } else if (formData.nombre.trim().length < 2) {
       newErrors.nombre = "El nombre debe tener al menos 2 caracteres"
     }
 
-    // Validar contacto
     if (!formData.contacto.trim()) {
       newErrors.contacto = "El contacto es requerido"
     } else if (formData.contacto.trim().length < 8) {
       newErrors.contacto = "Ingresa un contacto válido (teléfono o email)"
     }
 
-    // Validar fecha
     if (!formData.fecha) {
       newErrors.fecha = "La fecha es requerida"
     } else {
@@ -218,43 +212,38 @@ export default function ReservationFormOptimized() {
       if (formData.fecha < todayStr) {
         newErrors.fecha = "La fecha no puede ser en el pasado"
       }
+
+      if (isClosedDay(formData.fecha)) {
+        newErrors.fecha = "El restaurante está cerrado los domingos"
+      }
     }
 
-    // Validar horario
     if (!formData.horario) {
       newErrors.horario = "El horario es requerido"
     }
 
-    // Validar cantidad de personas
     if (!formData.cantidad_personas || formData.cantidad_personas < 1) {
       newErrors.cantidad_personas = "La cantidad de personas es requerida"
     } else if (formData.cantidad_personas > 20) {
       newErrors.cantidad_personas = "El máximo de personas por reserva es 20"
     }
 
-    // Validar disponibilidad por turno
     if (formData.fecha && formData.horario && !newErrors.horario && !newErrors.cantidad_personas) {
       const disponibles = disponibilidad[formData.horario] || 0
       if (disponibles < formData.cantidad_personas) {
-        newErrors.horario = `No hay suficientes plazas disponibles en el horario ${formData.horario}. Disponibles: ${disponibles}`
+        newErrors.horario = `No hay suficientes plazas disponibles. Disponibles: ${disponibles}`
       }
     }
 
-    // Validar longitud de notas
     if (formData.notas && formData.notas.length > 500) {
       newErrors.notas = "Las notas no pueden exceder los 500 caracteres"
-    }
-
-    // Validar si el día es cerrado
-    if (formData.fecha && isClosedDay(formData.fecha)) {
-      newErrors.fecha = "El restaurante está cerrado los domingos"
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }, [formData, disponibilidad])
 
-  // Memoizar handleSubmit
+  // Manejar envío del formulario
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setTriedSubmit(true)
@@ -283,10 +272,10 @@ export default function ReservationFormOptimized() {
         notas: formData.notas.trim() || null,
       })
 
-      // Mostrar en consola si quiere novedades
-      console.log('¿Quiere novedades sobre Eleven Club?', quiereNovedades)
+      if (quiereNovedades) {
+        console.log('Usuario quiere recibir novedades:', formData.contacto)
+      }
 
-      // Limpiar cache después de guardar
       disponibilidadCache.clear()
 
       setShowSuccess(true)
@@ -309,31 +298,35 @@ export default function ReservationFormOptimized() {
     }
   }, [formData, errors, validateForm, quiereNovedades])
 
-  // Memoizar handleInputChange
-  const handleInputChange = useCallback((field: string, value: string) => {
+  // Manejar cambios en inputs
+  const handleInputChange = useCallback((field: string, value: string | number) => {
     if (field === "cantidad_personas") {
-      if (value === "") {
-        setFormData((prev) => ({ ...prev, [field]: 1 }))
+      const numValue = typeof value === 'string' ? parseInt(value) : value
+      if (numValue > 20) {
+        setFormData(prev => ({ ...prev, [field]: 20 }))
+      } else if (numValue < 1 || isNaN(numValue)) {
+        setFormData(prev => ({ ...prev, [field]: 1 }))
       } else {
-        const numValue = Number.parseInt(value)
-        if (numValue > 20) {
-          setFormData((prev) => ({ ...prev, [field]: 20 }))
-        } else if (numValue < 1) {
-          setFormData((prev) => ({ ...prev, [field]: 1 }))
-        } else {
-          setFormData((prev) => ({ ...prev, [field]: numValue }))
-        }
+        setFormData(prev => ({ ...prev, [field]: numValue }))
       }
     } else {
-      setFormData((prev) => ({ ...prev, [field]: value }))
+      setFormData(prev => ({ ...prev, [field]: value }))
     }
 
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors(prev => ({ ...prev, [field]: "" }))
     }
-  }, [errors])
 
-  // Memoizar si el formulario está completo
+    // Notificar cambios al componente padre
+    if (field === 'fecha' && onDateChange) {
+      onDateChange(value as string)
+    }
+    if (field === 'horario' && onTimeChange) {
+      onTimeChange(value as string)
+    }
+  }, [errors, onDateChange, onTimeChange])
+
+  // Verificar si el formulario está completo
   const isFormComplete = useMemo(() => {
     return formData.nombre.trim() &&
       formData.contacto.trim() &&
@@ -342,268 +335,59 @@ export default function ReservationFormOptimized() {
       formData.cantidad_personas > 0
   }, [formData])
 
-  // Throttle para actualizar posición del popover
-  const throttledUpdatePosition = useThrottle(() => {
-    if (privacyButtonRef.current) {
-      const rect = privacyButtonRef.current.getBoundingClientRect()
-      setPrivacyPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + rect.width / 2 + window.scrollX,
-        width: rect.width
-      })
-    }
-  }, 100)
-
-  // Actualizar posición cuando se muestra el popover
-  useEffect(() => {
-    if (showPrivacy) {
-      throttledUpdatePosition()
-      const handleResize = () => throttledUpdatePosition()
-      window.addEventListener('resize', handleResize)
-      window.addEventListener('scroll', handleResize)
-      return () => {
-        window.removeEventListener('resize', handleResize)
-        window.removeEventListener('scroll', handleResize)
-      }
-    }
-  }, [showPrivacy, throttledUpdatePosition])
-
-// Componente del popover que se renderiza en el portal
-const PrivacyPopover = () => {
-  if (!showPrivacy) return null
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 600
-  return createPortal(
-    <motion.div
-      ref={privacyPopoverRef}
-      initial={{ opacity: 0, scale: 0.8, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.8, y: 10 }}
-      transition={{ duration: 0.2 }}
-      className={
-        `fixed font-source-sans z-[9999] pointer-events-none ${isMobile ? 'w-[95vw] max-w-xs font-source-sans' : ''}`
-      }
-      style={{
-        top: privacyPosition.top,
-        left: isMobile ? undefined : privacyPosition.left,
-        transform: isMobile ? undefined : 'translateX(-50%)',
-      }}
-    >
-      <div className="bg-black/95 backdrop-blur-md text-white border border-orange-400/40 max-w-xs w-full text-sm p-4 rounded-lg shadow-2xl pointer-events-auto relative">
-        {/* Flecha hacia arriba */}
-        {!isMobile && (
-          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-black/95"></div>
-        )}
-        <div className="flex items-start gap-3">
-          <div className="p-1.5 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 flex-shrink-0">
-            <Info className="w-4 h-4 text-orange-200" />
-          </div>
-          <div>
-            <h3 className="font-bold text-orange-400 mb-2 text-base">Política de Reservas</h3>
-            <p className="text-white/90 text-sm leading-relaxed">
-              El <span className="text-orange-300 font-semibold">100% de nuestra capacidad (30 plazas)</span> está disponible para miembros que reserven con anticipación.
-            </p>
-            <p className="text-white/90 text-sm leading-relaxed mt-2">
-              No se permiten reservas si se completan las 30 plazas.
-            </p>
-          </div>
-        </div>
-      </div>
-    </motion.div>,
-    document.body
-  )
-}
-
-if (showSuccess) {
   return (
+    <>
     <motion.div
-      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative font-source-sans"
-    >
-      {/* Fondo con imagen */}
-      <div className="absolute inset-0 rounded-xl overflow-hidden">
-        <Image
-          src="/FONDOS-01.webp"
-          alt="Eleven Club background"
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/80 to-orange-900/50"></div>
-      </div>
-
-      <Card className="relative overflow-hidden w-full max-w-md mx-auto border-orange-500/30 backdrop-blur-xl shadow-2xl bg-transparent">
-        <CardContent className="pt-6 relative z-10">
-          <div className="text-center space-y-6">
-            {/* Logo */}
-            <motion.div
-              initial={{ scale: 0, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.6, delay: 0.2, type: "spring", stiffness: 200 }}
-            >
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full max-w-lg mx-auto"
+      >
+        <Card className="bg-gradient-to-br from-amber-950/90 to-orange-950/90 border-2 border-amber-600/50 shadow-2xl">
+          <CardHeader className="border-b border-amber-600/30 pb-4 sm:pb-6 bg-gradient-to-r from-amber-900/30 to-orange-900/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                                  <div className="p-2 sm:p-3 bg-amber-800/40 rounded-full border-2 border-amber-600/70">
               <Image
                 src="/logo-eleven.webp"
                 alt="Eleven Club"
-                width={80}
-                height={80}
-                className="mx-auto"
-              />
-            </motion.div>
-
-            <motion.div
-              className="relative"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.4, type: "spring", stiffness: 200 }}
-            >
-              <div className="w-20 h-20 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full flex items-center justify-center mx-auto border border-orange-500/30">
-                <motion.div
-                  className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.4, delay: 0.6, type: "spring", stiffness: 300 }}
-                >
-                  <motion.span
-                    className="text-white text-2xl font-bold"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.8 }}
-                  >
-                    ✓
-                  </motion.span>
-                </motion.div>
+                    width={32}
+                    height={32}
+                    className="opacity-90 sm:w-10 sm:h-10"
+                  />
+                </div>
+                <div>
+                  <h2 className="font-legquinne text-xl sm:text-2xl lg:text-3xl text-amber-100 mb-1">
+                    Reserva tu lugar
+                  </h2>
+                  <p className="text-amber-200 text-xs sm:text-sm">
+                    Asegura tu espacio en Eleven Club
+                  </p>
+                </div>
               </div>
-            </motion.div>
-
-            <motion.h3
-              className="font-legquinne text-3xl font-normal text-white"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-            >
-              ¡Reserva Confirmada!
-            </motion.h3>
-
-            <motion.p
-              className="text-white/90 leading-relaxed"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-            >
-              Tu reserva ha sido registrada exitosamente en <span className="text-orange-400 font-legquinne font-medium">Eleven Club</span>. Te contactaremos pronto para confirmar los detalles.
-            </motion.p>
-
-            {/* Elemento decorativo */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.7 }}
-              className="flex justify-center"
-            >
-              <Image
-                src="/detalle-texto-eleven.webp"
-                alt="Eleven Club detail"
-                width={150}
-                height={50}
-                className="opacity-60"
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-            >
-              <Button
-                onClick={() => setShowSuccess(false)}
-                className="group relative overflow-hidden px-8 py-3 bg-gradient-to-r from-orange-500/80 to-red-500/80 backdrop-blur-md border border-orange-400/30 rounded-full text-white font-medium transition-all duration-500 hover:from-orange-600/90 hover:to-red-600/90 shadow-xl hover:shadow-2xl hover:border-orange-300/50 hover:scale-105"
-                style={{
-                  background: "linear-gradient(135deg, rgba(249, 115, 22, 0.8) 0%, rgba(234, 88, 12, 0.7) 50%, rgba(239, 68, 68, 0.8) 100%)",
-                  backdropFilter: "blur(20px)",
-                  boxShadow: "0 8px 32px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-                }}
+              <button
+                type="button"
+                onClick={() => setShowCapacityInfo(true)}
+                className="bg-amber-800/40 px-3 py-1 rounded-full border border-amber-600/60 self-start sm:self-auto hover:bg-amber-700/50 transition-colors duration-200 flex items-center gap-2"
               >
-                <span className="relative z-10">Hacer otra reserva</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-300/20 via-orange-400/15 to-red-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              </Button>
-            </motion.div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  )
-}
-
-return (
-  <>
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative w-full max-w-lg mx-auto px-1 md:px-4"
-    >
-      {/* Fondo con imagen */}
-      <div className="absolute inset-0 rounded-xl overflow-hidden">
-        <Image
-          src="/FONDOS-01.webp"
-          alt="Eleven Club background"
-          fill
-          className="object-cover smooth-rendering gpu-accelerated"
-          quality={90}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-orange-900/50 gradient-quality"></div>
-      </div>
-
-      {/* Efectos de brillo mejorados */}
-      <div className="absolute inset-0 rounded-xl shadow-premium"></div>
-      <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/20 via-red-600/15 to-orange-600/20 rounded-xl blur-lg opacity-40"></div>
-
-      <Card className="relative overflow-hidden bg-transparent border border-orange-500/20 backdrop-blur-xl shadow-xl">
-        <CardHeader className="relative z-10 glass-effect-dark border-b border-orange-500/20 pb-4 sm:pb-8 px-2 sm:px-8">
-          <div className="mb-2 sm:mb-4 flex items-center justify-between gap-2 w-full">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/logo-eleven.webp"
-                alt="Eleven Club"
-                width={80}
-                height={80}
-                className="opacity-90"
-                priority
-              />
+                <span className="font-source-sans text-amber-200 text-xs font-medium">Capacidad</span>
+                <Info className="w-3 h-3 text-amber-300" />
+              </button>
             </div>
-            <div className="relative">
-              <Button
-                ref={privacyButtonRef}
-                size="sm"
-                className="bg-gradient-to-r from-orange-500/80 to-red-500/80 text-white px-3 py-1 rounded font-bold text-xs flex items-center gap-1 border border-orange-400/30 hover:from-orange-600/90 hover:to-red-600/90 transition-all duration-300"
-                style={{ minWidth: 0 }}
-                onClick={() => setShowPrivacy(!showPrivacy)}
-              >
-                <Info className="w-4 h-4 text-orange-200" />
-                Capacidad
-              </Button>
+            <div className="bg-amber-950/70 border-2 border-amber-700/50 rounded-lg p-3">
+              <p className="font-source-sans text-amber-100 text-xs sm:text-sm text-center">
+                <span className="font-medium text-amber-200">20:15 - 22:30</span> <span className="hidden sm:inline">(2 turnos) • </span><span className="font-medium text-amber-200">30 plazas por turno</span><span className="hidden sm:inline"> • Barra libre</span>
+              </p>
             </div>
-          </div>
-          <h2 className="font-legquinne text-2xl sm:text-4xl font-normal text-white mb-1 sm:mb-3 bg-gradient-to-r from-orange-200 via-orange-100 to-yellow-200 bg-clip-text text-transparent leading-tight">
-            Reserva tu lugar
-          </h2>
-          <p className="text-white/80 text-sm sm:text-lg font-medium tracking-wide">
-            Asegura tu espacio en Eleven Club
-          </p>
-          <span className="font-medium leading-tight">Info: Abierto lunes a sábado. Turnos: 20:15 y 22:30 (30 cupos cada uno, tolerancia 15 min). Barra por orden de llegada.</span>
         </CardHeader>
 
-        <CardContent className="relative z-10 p-2 sm:p-8 glass-effect-dark">
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-8"
-          >
+          <CardContent className="p-4 sm:p-6">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             {/* Nombre */}
-            <motion.div className="space-y-2 sm:space-y-4">
-              <Label htmlFor="nombre" className="text-white font-bold flex items-center gap-2 sm:gap-4 text-base sm:text-xl">
-                <div className="p-1 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 shadow flex-shrink-0">
-                  <User className="w-4 h-4 text-orange-200" />
-                </div>
-                <span className="min-w-0">Nombre completo <span className="text-orange-400">*</span></span>
+              <div className="space-y-2">
+                <Label htmlFor="nombre" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <User className="w-4 h-4 text-amber-400" />
+                  Nombre completo <span className="text-amber-400">*</span>
               </Label>
               <Input
                 id="nombre"
@@ -611,28 +395,26 @@ return (
                 placeholder="Tu nombre completo"
                 value={formData.nombre}
                 onChange={(e) => handleInputChange("nombre", e.target.value)}
-                onBlur={() => validateForm()}
-                className="glass-effect border border-orange-400/20 text-white placeholder-white/60 text-sm sm:text-lg py-2 sm:py-4 px-5 sm:px-6 transition-all duration-300 rounded font-medium bg-black/60 focus:border-orange-400/60 focus:shadow-glow hover:border-orange-300/50"
+                  onBlur={validateForm}
+                  className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
               />
               {triedSubmit && errors.nombre && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-300 text-xs sm:text-base flex items-center gap-2 sm:gap-3 font-semibold bg-red-500/10 border border-red-400/20 rounded px-2 sm:px-4 py-1 sm:py-3 backdrop-blur-md"
+                    className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
                 >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="min-w-0">{errors.nombre}</span>
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.nombre}
                 </motion.p>
               )}
-            </motion.div>
+              </div>
 
             {/* Contacto */}
-            <motion.div className="space-y-2 sm:space-y-4">
-              <Label htmlFor="contacto" className="text-white font-bold flex items-center gap-2 sm:gap-4 text-base sm:text-xl">
-                <div className="p-1 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 shadow flex-shrink-0">
-                  <Phone className="w-4 h-4 text-orange-200" />
-                </div>
-                <span className="min-w-0">Contacto <span className="text-orange-400">*</span></span>
+              <div className="space-y-2">
+                <Label htmlFor="contacto" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-amber-400" />
+                  Contacto <span className="text-amber-400">*</span>
               </Label>
               <Input
                 id="contacto"
@@ -640,100 +422,111 @@ return (
                 placeholder="Teléfono o email"
                 value={formData.contacto}
                 onChange={(e) => handleInputChange("contacto", e.target.value)}
-                onBlur={() => validateForm()}
-                className="glass-effect border border-orange-400/20 text-white placeholder-white/60 text-sm sm:text-lg py-2 sm:py-4 px-5 sm:px-6 transition-all duration-300 rounded font-medium bg-black/60 focus:border-orange-400/60 focus:shadow-glow hover:border-orange-300/50"
+                  onBlur={validateForm}
+                  className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
               />
               {triedSubmit && errors.contacto && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-300 text-xs sm:text-base flex items-center gap-2 sm:gap-3 font-semibold bg-red-500/10 border border-red-400/20 rounded px-2 sm:px-4 py-1 sm:py-3 backdrop-blur-md"
+                    className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
                 >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="min-w-0">{errors.contacto}</span>
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.contacto}
                 </motion.p>
               )}
-            </motion.div>
+              </div>
 
             {/* Fecha */}
-            <motion.div className="space-y-2 sm:space-y-4">
-              <Label htmlFor="fecha" className="text-white font-bold flex items-center gap-2 sm:gap-4 text-base sm:text-xl">
-                <div className="p-1 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 shadow flex-shrink-0">
-                  <Calendar className="w-4 h-4 text-orange-200" />
-                </div>
-                <span className="min-w-0">Fecha <span className="text-orange-400">*</span></span>
+              <div className="space-y-2">
+                <Label htmlFor="fecha" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-amber-400" />
+                  Fecha <span className="text-amber-400">*</span>
               </Label>
               <Input
                 id="fecha"
                 type="date"
                 value={formData.fecha}
                 onChange={(e) => handleInputChange("fecha", e.target.value)}
-                onBlur={() => validateForm()}
-                className="glass-effect border border-orange-400/20 text-white text-sm sm:text-lg py-2 sm:py-4 px-5 sm:px-6 transition-all duration-300 rounded font-medium bg-black/60 focus:border-orange-400/60 focus:shadow-glow hover:border-orange-300/50"
+                  onBlur={validateForm}
+                  className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
                 min={new Date().toISOString().split("T")[0]}
               />
               {triedSubmit && errors.fecha && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-300 text-xs sm:text-base flex items-center gap-2 sm:gap-3 font-semibold bg-red-500/10 border border-red-400/20 rounded px-2 sm:px-4 py-1 sm:py-3 backdrop-blur-md"
+                    className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
                 >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="min-w-0">{errors.fecha}</span>
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.fecha}
                 </motion.p>
               )}
-            </motion.div>
+              </div>
 
             {/* Horario */}
-            <motion.div className="space-y-2 sm:space-y-4">
-              <Label htmlFor="horario" className="text-white font-bold flex items-center gap-2 sm:gap-4 text-base sm:text-xl">
-                <div className="p-1 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 shadow flex-shrink-0">
-                  <Clock className="w-4 h-4 text-orange-200" />
-                </div>
-                <span className="min-w-0">Horario <span className="text-orange-400">*</span></span>
+                            <div className="space-y-3">
+                <Label className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  Horario <span className="text-amber-400">*</span>
               </Label>
-              <select
-                id="horario"
-                value={formData.horario}
-                onChange={e => handleInputChange("horario", e.target.value)}
-                className="glass-effect border border-orange-400/10 text-white focus:border-orange-400/30 focus:shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-orange-300/20 text-sm sm:text-lg py-2 sm:py-4 px-5 sm:px-6 rounded font-medium bg-[#2d1a0b] w-full placeholder:text-orange-100/40"
-                style={{ colorScheme: 'dark' }}
-              >
-                <option value="" disabled className="bg-[#2d1a0b] text-orange-100/60">Selecciona un horario</option>
+                                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {horarios.map((horario) => {
                   const disponibles = disponibilidad[horario] || 0
                   const isNoAvailability = disponibles === 0
+                    const isSelected = formData.horario === horario
                   return (
-                    <option
+                      <button
                       key={horario}
-                      value={horario}
+                        type="button"
+                        onClick={() => handleInputChange("horario", horario)}
                       disabled={isNoAvailability}
-                      className="bg-[#2d1a0b] text-orange-100 hover:bg-orange-200 hover:text-orange-900 focus:bg-orange-200 focus:text-orange-900 transition-colors"
-                    >
-                      {horario} {isNoAvailability ? ' - Sin disponibilidad' : `- ${disponibles} cupo${disponibles === 1 ? '' : 's'} (tolerancia 15 min)`}
-                    </option>
-                  )
-                })}
-              </select>
+                                                  className={`
+                          relative p-3 sm:p-5 rounded-xl border-2 transition-all duration-300 font-medium
+                          ${isSelected
+                            ? 'border-amber-600 bg-gradient-to-br from-amber-700/40 to-orange-700/40 text-amber-100 shadow-lg shadow-amber-600/20'
+                            : isNoAvailability
+                              ? 'border-amber-900/60 bg-amber-950/40 text-amber-700 cursor-not-allowed'
+                              : 'border-amber-800/70 bg-gradient-to-br from-amber-950/80 to-amber-900/60 text-amber-200 hover:border-amber-600 hover:bg-gradient-to-br hover:from-amber-900/90 hover:to-amber-800/70 hover:shadow-md hover:shadow-amber-600/10'
+                          }
+                        `}
+                      >
+                        <div className="text-center">
+                          <div className="font-legquinne text-lg sm:text-xl font-bold mb-1">{horario}</div>
+                          <div className="font-source-sans text-xs">
+                            {isNoAvailability ? (
+                              <span className="text-red-400 font-medium">Sin cupos</span>
+                            ) : (
+                              <span className="text-amber-300 font-medium">
+                                {disponibles}/30 libres
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 w-2 h-2 sm:w-3 sm:h-3 bg-amber-400 rounded-full border-2 border-amber-200"></div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
               {triedSubmit && errors.horario && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-300 text-xs sm:text-base flex items-center gap-2 sm:gap-3 font-semibold bg-red-500/10 border border-red-400/20 rounded px-2 sm:px-4 py-1 sm:py-3 backdrop-blur-md"
+                    className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
                 >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="min-w-0">{errors.horario}</span>
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.horario}
                 </motion.p>
               )}
-            </motion.div>
+              </div>
 
             {/* Cantidad de personas */}
-            <motion.div className="space-y-2 sm:space-y-4">
-              <Label htmlFor="cantidad_personas" className="text-white font-bold flex items-center gap-2 sm:gap-4 text-base sm:text-xl">
-                <div className="p-1 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 shadow flex-shrink-0">
-                  <User className="w-4 h-4 text-orange-200" />
-                </div>
-                <span className="min-w-0">Cantidad de personas <span className="text-orange-400">*</span></span>
+              <div className="space-y-2">
+                <Label htmlFor="cantidad_personas" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <Users className="w-4 h-4 text-amber-400" />
+                  Cantidad de personas <span className="text-amber-400">*</span>
               </Label>
               <Input
                 id="cantidad_personas"
@@ -742,128 +535,150 @@ return (
                 max="20"
                 value={formData.cantidad_personas}
                 onChange={e => handleInputChange("cantidad_personas", e.target.value)}
-                className="glass-effect border border-orange-400/10 text-white placeholder:text-white/60 focus:border-orange-400/30 focus:shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-orange-300/20 text-sm sm:text-lg py-2 sm:py-4 px-5 sm:px-6 rounded font-medium bg-[#2d1a0b] w-full"
-                placeholder="Número de personas"
+                  className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
               />
               {triedSubmit && errors.cantidad_personas && (
                 <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-red-300 text-xs sm:text-base flex items-center gap-2 sm:gap-3 font-semibold bg-red-500/10 border border-red-400/20 rounded px-2 sm:px-4 py-1 sm:py-3 backdrop-blur-md"
+                    className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
                 >
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="min-w-0">{errors.cantidad_personas}</span>
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.cantidad_personas}
                 </motion.p>
               )}
-            </motion.div>
-
+              </div>
 
             {/* Notas */}
-            <motion.div className="space-y-2 sm:space-y-4">
-              <Label htmlFor="notas" className="text-white font-bold flex items-center gap-2 sm:gap-4 text-base sm:text-xl">
-                <div className="p-1 bg-gradient-to-br from-orange-500/20 to-red-500/15 rounded border border-orange-400/20 shadow flex-shrink-0">
-                  <MessageSquare className="w-4 h-4 text-orange-200" />
-                </div>
-                <div className="min-w-0">
-                  <span>Notas adicionales</span>
-                  <span className="text-white/70 text-xs sm:text-lg font-normal block sm:inline sm:ml-2">(opcional)</span>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="notas" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-amber-400" />
+                  Notas adicionales (opcional)
               </Label>
               <Textarea
                 id="notas"
                 value={formData.notas}
                 onChange={(e) => handleInputChange("notas", e.target.value)}
-                className="glass-effect border border-orange-400/20 text-white placeholder:text-white/60 resize-none focus:border-orange-400/60 focus:shadow-glow backdrop-blur-sm transition-all duration-300 hover:border-orange-300/50 text-xs sm:text-base py-2 sm:py-5 px-5 sm:px-6 rounded font-medium bg-black/60 w-full"
+                  className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 resize-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
                 placeholder="Solicitudes especiales, alergias, celebraciones, etc."
-                rows={4}
-                maxLength={500}
+                  rows={3}
               />
               <div className="flex justify-between items-center">
                 {triedSubmit && errors.notas && (
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-red-300 text-xs sm:text-base flex items-center gap-2 sm:gap-3 font-semibold bg-red-500/10 border border-red-400/20 rounded px-2 sm:px-4 py-1 sm:py-3 backdrop-blur-md"
+                      className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
                   >
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span className="min-w-0">{errors.notas}</span>
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.notas}
                   </motion.p>
                 )}
-                <p className="text-xs sm:text-base text-white/70 ml-auto font-semibold">
-                  {formData.notas.length}/500 caracteres
+                  <p className="text-xs text-gray-500 ml-auto">
+                    {formData.notas.length}/500
                 </p>
+                </div>
               </div>
-            </motion.div>
 
-                        {/* Checkbox para novedades */}
-            <motion.div className="flex items-center gap-3 mb-2">
+              {/* Checkbox novedades */}
+              <div className="flex items-center gap-3">
               <input
                 id="novedades"
                 type="checkbox"
                 checked={quiereNovedades}
                 onChange={e => setQuiereNovedades(e.target.checked)}
-                className="accent-orange-500 w-5 h-5 rounded border border-orange-400/40 focus:ring-2 focus:ring-orange-400/40"
+                  className="accent-amber-500 w-4 h-4"
               />
-              <Label htmlFor="novedades" className="text-white/90 text-base select-none cursor-pointer">
+                <Label htmlFor="novedades" className="font-source-sans text-amber-200 text-sm cursor-pointer">
                 Quiero recibir novedades sobre Eleven Club
               </Label>
-            </motion.div>
+              </div>
 
-            {/* Botón de enviar */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.7 }}>
+              {/* Botón enviar */}
               <Button
                 type="submit"
-                className={`w-full font-bold py-3 sm:py-7 text-base sm:text-xl transition-all duration-500 group relative overflow-hidden rounded bg-gradient-to-r from-orange-500/80 to-red-500/80 backdrop-blur-md border border-orange-400/40 text-white hover:from-orange-600/90 hover:to-red-600/90 shadow hover:shadow-2xl hover:border-orange-300/70 hover:scale-105 active:scale-95` + (!isFormComplete ? ' bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 cursor-not-allowed border-gray-600/30' : '')}
-                style={isFormComplete ? {
-                  background: "linear-gradient(135deg, rgba(249, 115, 22, 0.8) 0%, rgba(234, 88, 12, 0.7) 50%, rgba(239, 68, 68, 0.8) 100%)",
-                  backdropFilter: "blur(15px) saturate(1.1)",
-                  boxShadow: "0 4px 16px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                } : {}}
+                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold py-3 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl border-2 border-amber-500/50"
                 disabled={isSubmitting || loadingDisponibilidad || !isFormComplete}
               >
                 {isSubmitting ? (
-                  <div className="flex items-center gap-2 sm:gap-3 justify-center">
-                    <Loader2 className="w-4 h-4 sm:w-7 sm:h-7 animate-spin" />
-                    <span className="text-xs sm:text-lg">Procesando reserva...</span>
+                  <div className="flex items-center gap-2 justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Procesando...
                   </div>
                 ) : !isFormComplete ? (
-                  <span className="text-xs sm:text-lg">Completa todos los campos obligatorios</span>
+                  "Completa todos los campos"
                 ) : (
-                  <>
-                    <span className="relative z-10 flex items-center gap-2 sm:gap-4 justify-center">
-                      <MessageSquare className="w-4 h-4 sm:w-7 sm:h-7" />
-                      <span className="text-xs sm:text-lg">Confirmar Reserva</span>
-                    </span>
-                    {isFormComplete && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-300/20 via-orange-400/15 to-red-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    )}
-                  </>
+                  <div className="flex items-center gap-2 justify-center">
+                    <MessageSquare className="w-5 h-5" />
+                    Confirmar Reserva
+                  </div>
                 )}
               </Button>
-            </motion.div>
           </form>
         </CardContent>
       </Card>
     </motion.div>
 
-    {/* Popover renderizado en el portal */}
-    <AnimatePresence>
-      <PrivacyPopover />
-    </AnimatePresence>
+      {/* Modal de información de capacidad */}
+      {showCapacityInfo && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setShowCapacityInfo(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-900 border border-orange-500/30 rounded-lg p-6 max-w-md w-full shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Información de Capacidad</h3>
+            <div className="space-y-3 text-sm">
+              <p className="text-gray-300">
+                <strong>Total reservado hoy:</strong> {totalPersonasReservadas} personas
+              </p>
+              <div className="text-gray-300">
+                <strong>Sistema de turnos:</strong>
+                <ul className="mt-2 space-y-1 text-xs text-gray-400 ml-4">
+                  <li>• Primer turno (20:15-21:45): 30 plazas</li>
+                  <li>• Segundo turno (22:00-22:15): 30 plazas</li>
+                  <li>• Tolerancia: 15 minutos por reserva</li>
+                  <li>• Barra disponible por orden de llegada</li>
+                </ul>
+              </div>
+            </div>
+            <Button
+              onClick={() => setShowCapacityInfo(false)}
+              className="mt-4 w-full bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              Entendido
+            </Button>
+          </motion.div>
+        </div>,
+        document.body
+      )}
 
-    {/* Overlay para cerrar el popover al hacer clic fuera */}
-    {showPrivacy && (
-      <div
-        className="fixed inset-0 z-[9998]"
-        onClick={() => setShowPrivacy(false)}
-      />
+      {/* Modal de éxito */}
+      {showSuccess && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-green-900 border border-green-500/30 rounded-lg p-6 max-w-md w-full shadow-xl"
+          >
+            <h3 className="text-lg font-semibold text-white mb-2">¡Reserva Confirmada!</h3>
+            <p className="text-green-200 text-sm mb-4">
+              Tu reserva ha sido procesada exitosamente. Te contactaremos para confirmar los detalles.
+            </p>
+            <Button
+              onClick={() => setShowSuccess(false)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              Cerrar
+            </Button>
+          </motion.div>
+        </div>,
+        document.body
     )}
   </>
 )
-}
-
-const isClosedDay = (dateStr: string) => {
-  const date = new Date(dateStr + 'T12:00:00'); // Agregar hora para evitar problemas de zona horaria
-  const day = date.getDay();
-  return day === 0; // Cerrado domingos (0 = domingo)
 }

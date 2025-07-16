@@ -5,12 +5,22 @@ import LiveCounter from "@/components/live-counter"
 import ReservationForm from "@/components/reservation-form"
 import { motion } from "framer-motion"
 import Image from "next/image"
+import { useState } from "react"
 
 export default function HomePage() {
+  // Estado compartido para sincronizar formulario y calendario
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  })
+  const [selectedTime, setSelectedTime] = useState<string>("")
   return (
     <div className="bg-black">
       {/* Hero Section */}
-      <section className="relative flex items-start justify-center overflow-hidden pt-16 md:pt-20 lg:pt-24">
+      <section className="relative flex items-start justify-center overflow-hidden pt-16 md:pt-16 lg:pt-20">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -19,7 +29,6 @@ export default function HomePage() {
             fill
             className="object-cover smooth-rendering gpu-accelerated"
             priority
-            quality={95}
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 gradient-quality"></div>
@@ -45,14 +54,13 @@ export default function HomePage() {
               width={150}
               height={150}
               className="mx-auto logo-quality gpu-accelerated sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[250px] lg:h-[250px]"
-              quality={100}
               priority
             />
           </motion.div>
 
           {/* Main Title with integrated aureola */}
           <motion.div
-            className="relative mb-8 mt-10"
+            className="relative mb-8 mt-8"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
@@ -229,7 +237,12 @@ export default function HomePage() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               viewport={{ once: true }}
             >
-              <ReservationForm />
+              <ReservationForm
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                onDateChange={setSelectedDate}
+                onTimeChange={setSelectedTime}
+              />
             </motion.div>
 
             <motion.div
@@ -239,7 +252,12 @@ export default function HomePage() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               viewport={{ once: true }}
             >
-              <ReservationCalendarUser />
+              <ReservationCalendarUser
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                onDateSelect={setSelectedDate}
+                onTimeSelect={setSelectedTime}
+              />
             </motion.div>
           </motion.div>
         </div>

@@ -14,13 +14,25 @@ export async function GET(request: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       const sendData = (data: any) => {
-        const message = `data: ${JSON.stringify(data)}\n\n`
-        controller.enqueue(encoder.encode(message))
+        try {
+          if (!controller.desiredSize || controller.desiredSize > 0) {
+            const message = `data: ${JSON.stringify(data)}\n\n`
+            controller.enqueue(encoder.encode(message))
+          }
+        } catch (error) {
+          console.log('Controller already closed in sendData')
+        }
       }
 
       const sendError = (error: string) => {
-        const message = `data: ${JSON.stringify({ error })}\n\n`
-        controller.enqueue(encoder.encode(message))
+        try {
+          if (!controller.desiredSize || controller.desiredSize > 0) {
+            const message = `data: ${JSON.stringify({ error })}\n\n`
+            controller.enqueue(encoder.encode(message))
+          }
+        } catch (error) {
+          console.log('Controller already closed in sendError')
+        }
       }
 
       let isActive = true
