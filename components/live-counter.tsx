@@ -2,280 +2,66 @@
 
 import { motion } from "framer-motion"
 import { RefreshCw, WifiOff } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 const LOCAL_ID = process.env.NEXT_PUBLIC_LOCAL_ID!
 
-// Singleton para manejar una única conexión SSE global
-class OptimizedSSEManager {
-  private static instance: OptimizedSSEManager
-  private eventSource: EventSource | null = null
-  private listeners: Set<(data: any) => void> = new Set()
-  private reconnectTimeout: NodeJS.Timeout | null = null
-  private isConnecting = false
-  private reconnectAttempts = 0
-  private maxReconnectAttempts = 3 // CRÍTICO: Reducido de más intentos
-  private lastData: any = null
-  private connectionStartTime: number = 0
-  private isManuallyDisconnected = false
-
-  static getInstance(): OptimizedSSEManager {
-    if (!OptimizedSSEManager.instance) {
-      OptimizedSSEManager.instance = new OptimizedSSEManager()
-    }
-    return OptimizedSSEManager.instance
-  }
-
-  subscribe(callback: (data: any) => void): () => void {
-    this.listeners.add(callback)
-
-    // Enviar datos actuales si están disponibles
-    if (this.lastData) {
-      callback(this.lastData)
-    }
-
-    return () => {
-      this.listeners.delete(callback)
-      // Si no hay más listeners, cerrar la conexión después de un delay
-      if (this.listeners.size === 0) {
-        setTimeout(() => {
-          if (this.listeners.size === 0) {
-            this.disconnect()
-          }
-        }, 5000) // 5 segundos de gracia antes de desconectar
-      }
-    }
-  }
-
-  private notifyListeners(data: any) {
-    this.lastData = data
-    this.listeners.forEach(callback => {
-      try {
-        callback(data)
-      } catch (error) {
-        console.error('Error en callback SSE:', error)
-      }
-    })
-  }
-
-  isConnected(): boolean {
-    return this.eventSource?.readyState === EventSource.OPEN
-  }
-
-  connect() {
-    // CRÍTICO: No conectar si fue desconectado manualmente
-    if (this.isManuallyDisconnected) return
-
-    if (this.isConnecting || this.eventSource?.readyState === EventSource.OPEN) {
-      return
-    }
-
-    if (!LOCAL_ID) {
-      this.notifyListeners({ error: "Variables de entorno no configuradas" })
-      return
-    }
-
-    // CRÍTICO: Verificar conectividad antes de intentar
-    if (!navigator.onLine) {
-      this.notifyListeners({ error: "Sin conexión a internet" })
-      return
-    }
-
-    this.isConnecting = true
-    this.connectionStartTime = Date.now()
-
-    try {
-      // Cerrar conexión existente si hay una
-      if (this.eventSource) {
-        this.eventSource.close()
-      }
-
-      const url = `/api/contador/sse?local_id=${encodeURIComponent(LOCAL_ID)}`
-      this.eventSource = new EventSource(url)
-
-      this.eventSource.onopen = () => {
-        console.log("🔗 SSE conectado (optimizado)")
-        this.isConnecting = false
-        this.reconnectAttempts = 0
-        this.isManuallyDisconnected = false
-        this.notifyListeners({ connected: true, error: null })
-      }
-
-      this.eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-          this.notifyListeners(data)
-        } catch (error) {
-          console.error("Error al parsear datos SSE:", error)
-        }
-      }
-
-      this.eventSource.onerror = (error) => {
-        console.error("Error en SSE:", error)
-        this.isConnecting = false
-
-        // CRÍTICO: Solo reconectar si:
-        // 1. Hay listeners activos
-        // 2. No se excedió el límite de intentos
-        // 3. No fue desconectado manualmente
-        // 4. La conexión duró más de 5 segundos (evitar loops)
-        const connectionDuration = Date.now() - this.connectionStartTime
-        const shouldReconnect = this.listeners.size > 0 &&
-                               this.reconnectAttempts < this.maxReconnectAttempts &&
-                               !this.isManuallyDisconnected &&
-                               connectionDuration > 5000
-
-        if (shouldReconnect) {
-          this.reconnectAttempts++
-          // OPTIMIZACIÓN: Backoff exponencial con jitter
-          const baseDelay = Math.min(5000 * Math.pow(2, this.reconnectAttempts), 30000)
-          const jitter = Math.random() * 1000
-          const delay = baseDelay + jitter
-
-          this.reconnectTimeout = setTimeout(() => {
-            this.connect()
-          }, delay)
-        } else {
-          this.notifyListeners({
-            error: this.reconnectAttempts >= this.maxReconnectAttempts ?
-              "Error de conexión persistente" :
-              "Conexión perdida"
-          })
-        }
-      }
-
-    } catch (error) {
-      console.error("Error al conectar SSE:", error)
-      this.isConnecting = false
-      this.notifyListeners({ error: "Error al establecer conexión" })
-    }
-  }
-
-  disconnect() {
-    this.isManuallyDisconnected = true
-
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout)
-      this.reconnectTimeout = null
-    }
-
-    if (this.eventSource) {
-      this.eventSource.close()
-      this.eventSource = null
-    }
-
-    this.isConnecting = false
-    this.lastData = null
-  }
-
-  // CRÍTICO: Método para reconectar manualmente
-  reconnect() {
-    this.isManuallyDisconnected = false
-    this.reconnectAttempts = 0
-    this.disconnect()
-    setTimeout(() => this.connect(), 1000)
-  }
-}
-
-export default function LiveCounterOptimized() {
+export default function SimpleCounter() {
   const [loading, setLoading] = useState(true)
   const [contador, setContador] = useState<number>(0)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-  const [isConnected, setIsConnected] = useState(false)
 
-  const unsubscribeRef = useRef<(() => void) | null>(null)
-  const sseManager = OptimizedSSEManager.getInstance()
-
-  useEffect(() => {
-    setIsMounted(true)
-    setIsHydrated(true)
-
+  // Función simple para obtener el contador
+  const fetchContador = async () => {
     if (!LOCAL_ID) {
       setError("Variables de entorno no configuradas")
       setLoading(false)
       return
     }
 
-    // Suscribirse al SSE manager optimizado
-    unsubscribeRef.current = sseManager.subscribe((data) => {
-      if (data.error) {
-        setError(data.error)
-        setIsConnected(false)
-      } else if (data.connected) {
-        setIsConnected(true)
-        setError(null)
-        setLoading(false)
-      } else if (data.contador !== undefined) {
-        setContador(data.contador)
-        setLastUpdate(new Date(data.timestamp))
-        setError(null)
-        setLoading(false)
-        setIsConnected(true)
-      }
-    })
-
-    // Conectar SSE
-    sseManager.connect()
-
-    // OPTIMIZACIÓN: Manejo más eficiente de visibilidad
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Solo marcar como inactivo visualmente, no desconectar
-        setIsConnected(false)
-      } else {
-        // Verificar estado real y reconectar si es necesario
-        if (!sseManager.isConnected()) {
-          sseManager.reconnect()
-        } else {
-          setIsConnected(true)
+    try {
+      const response = await fetch(`/api/contador/sse?local_id=${encodeURIComponent(LOCAL_ID)}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache'
         }
-      }
-    }
+      })
 
-    const handleOnline = () => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      if (data.error) {
+        throw new Error(data.error)
+      }
+
+      setContador(data.contador || 0)
+      setLastUpdate(new Date(data.timestamp))
       setError(null)
-      if (!sseManager.isConnected()) {
-        sseManager.reconnect()
-      }
+    } catch (err: any) {
+      console.error('Error fetching contador:', err)
+      setError('Error de conexión')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    const handleOffline = () => {
-      setError("Sin conexión a internet")
-      setIsConnected(false)
-    }
-
-    // CRÍTICO: Throttle de event listeners
-    let visibilityTimeout: NodeJS.Timeout
-    const throttledVisibilityChange = () => {
-      clearTimeout(visibilityTimeout)
-      visibilityTimeout = setTimeout(handleVisibilityChange, 500)
-    }
-
-    document.addEventListener("visibilitychange", throttledVisibilityChange)
-    window.addEventListener("online", handleOnline)
-    window.addEventListener("offline", handleOffline)
-
-    return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current()
-      }
-      clearTimeout(visibilityTimeout)
-      document.removeEventListener("visibilitychange", throttledVisibilityChange)
-      window.removeEventListener("online", handleOnline)
-      window.removeEventListener("offline", handleOffline)
-    }
+  // Cargar una sola vez al montar
+  useEffect(() => {
+    setIsHydrated(true)
+    fetchContador()
   }, [])
 
   const handleManualRefresh = () => {
-    setError(null)
     setLoading(true)
-    sseManager.reconnect()
+    fetchContador()
   }
 
-  if (!isMounted || !isHydrated) return null
+  if (!isHydrated) return null
 
   if (!LOCAL_ID || error) {
     return (
@@ -297,7 +83,7 @@ export default function LiveCounterOptimized() {
                 className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 rounded-lg text-white text-sm transition-colors"
               >
                 <RefreshCw className={`w-4 h-4 inline mr-2 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? 'Conectando...' : 'Reintentar'}
+                {loading ? 'Cargando...' : 'Reintentar'}
               </button>
             )}
           </div>
@@ -331,9 +117,7 @@ export default function LiveCounterOptimized() {
       >
         <div className="flex items-center justify-center gap-3">
           <motion.div
-            className={`w-3 h-3 rounded-full shadow-glow ${
-              isConnected ? 'bg-emerald-400 shadow-emerald-400/50' : 'bg-yellow-400 shadow-yellow-400/50'
-            }`}
+            className="w-3 h-3 rounded-full shadow-glow bg-blue-400 shadow-blue-400/50"
             animate={{
               opacity: [0.5, 1, 0.5],
               scale: [1, 1.2, 1]
@@ -344,11 +128,17 @@ export default function LiveCounterOptimized() {
               ease: "easeInOut"
             }}
           />
-          <span className={`text-sm font-medium font-source-sans ${
-            isConnected ? 'text-emerald-300' : 'text-yellow-300'
-          }`}>
-            {loading ? 'Conectando...' : isConnected ? 'Live' : 'Reconectando...'}
+          <span className="text-sm font-medium font-source-sans text-blue-300">
+            {loading ? 'Cargando...' : 'Actualizado'}
           </span>
+          <button
+            onClick={handleManualRefresh}
+            disabled={loading}
+            className="ml-2 p-1 hover:bg-white/10 rounded transition-colors disabled:opacity-50"
+            title="Actualizar contador"
+          >
+            <RefreshCw className={`w-4 h-4 text-white/70 ${loading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
 
         <motion.div className="mb-8">

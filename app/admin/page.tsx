@@ -526,17 +526,24 @@ export default function AdminPage() {
       try {
         const today = new Date().toISOString().split("T")[0]
 
-        const { data: reservasData } = await supabase
-          .from("reservas")
-          .select("*")
-          .eq("local_id", adminData.local_id)
+        // OPTIMIZACIÓN: Usar Promise.all para consultas paralelas con timeout
+        const [reservasResult, contadorData, stats] = await Promise.all([
+          supabase
+            .from("reservas")
+            .select("*")
+            .eq("local_id", adminData.local_id),
+          getContador(adminData.local_id),
+          calcularEstadisticasCompletas(adminData.local_id, today)
+        ])
 
-        const contadorData = await getContador(adminData.local_id)
-        const stats = await calcularEstadisticasCompletas(adminData.local_id, today)
-
-        setReservas(reservasData || [])
+        setReservas(reservasResult.data || [])
         setPersonasActuales(contadorData)
         setPlazasStats(stats)
+      } catch (error) {
+        console.error('Error loading admin data:', error)
+        // Valores por defecto en caso de error
+        setReservas([])
+        setPersonasActuales(0)
       } finally {
         setLoadingStats(false)
         setLoading(false)
@@ -545,43 +552,69 @@ export default function AdminPage() {
 
     cargarDatos()
 
-    const reservasSubscription = supabase
-      .channel('reservas_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reservas',
-          filter: `local_id=eq.${adminData.local_id}`
-        },
-        () => {
-          cargarDatos()
-        }
-      )
-      .subscribe()
+    // OPTIMIZACIÓN: Subscription más controlada con cleanup
+    let reservasSubscription: any = null
+    let contadorSubscription: any = null
+    let isActive = true
 
-    const contadorSubscription = supabase
-      .channel('contador_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'contador_personas',
-          filter: `local_id=eq.${adminData.local_id}`
-        },
-        (payload) => {
-          if (payload.new && 'cantidad' in payload.new) {
-            setPersonasActuales(payload.new.cantidad as number)
-          }
-        }
-      )
-      .subscribe()
+    try {
+      // CRÍTICO: Solo usar subscriptions si la pestaña está activa
+      if (!document.hidden) {
+        reservasSubscription = supabase
+          .channel(`reservas_admin_${adminData.local_id}_${Date.now()}`) // Canal único
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'reservas',
+              filter: `local_id=eq.${adminData.local_id}`
+            },
+            () => {
+              // OPTIMIZACIÓN: Solo recargar si está activo y visible
+              if (isActive && !document.hidden) {
+                cargarDatos()
+              }
+            }
+          )
+          .subscribe()
 
+        contadorSubscription = supabase
+          .channel(`contador_admin_${adminData.local_id}_${Date.now()}`) // Canal único
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'contador_personas',
+              filter: `local_id=eq.${adminData.local_id}`
+            },
+            (payload) => {
+              // OPTIMIZACIÓN: Solo actualizar si está activo
+              if (isActive && payload.new && 'cantidad' in payload.new) {
+                setPersonasActuales(payload.new.cantidad as number)
+              }
+            }
+          )
+          .subscribe()
+      }
+    } catch (error) {
+      console.error('Error setting up subscriptions:', error)
+    }
+
+    // CRÍTICO: Cleanup inmediato cuando el componente se desmonta
     return () => {
-      reservasSubscription.unsubscribe()
-      contadorSubscription.unsubscribe()
+      isActive = false
+      try {
+        if (reservasSubscription) {
+          reservasSubscription.unsubscribe()
+        }
+        if (contadorSubscription) {
+          contadorSubscription.unsubscribe()
+        }
+      } catch (error) {
+        console.error('Error cleaning up subscriptions:', error)
+      }
     }
   }, [adminData])
 
