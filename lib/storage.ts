@@ -81,30 +81,26 @@ export const deleteReserva = async (id: string): Promise<boolean> => {
   }
 }
 
-// OPTIMIZACIÓN: Cache con límites más estrictos
-const memoryCache = new Map<string, { data: number, timestamp: number }>()
-const CACHE_TTL = 45000 // 45 segundos
-const MAX_CACHE_SIZE = 25 // Máximo 25 entradas
+// OPTIMIZACIÓN: Aumentar TTL para reducir requests
+const CACHE_TTL = 60 * 1000 // Aumentado a 1 minuto
+const memoryCache = new Map<string, { data: any, timestamp: number }>()
 
-// OPTIMIZACIÓN: Limpiar cache automáticamente
+// OPTIMIZACIÓN: Auto-cleanup más eficiente del cache
 const cleanCache = () => {
   const now = Date.now()
-  const cutoff = now - CACHE_TTL
+  const cutoff = now - CACHE_TTL * 2 // Eliminar cache más viejo que 2x TTL
 
   for (const [key, value] of memoryCache.entries()) {
     if (value.timestamp < cutoff) {
       memoryCache.delete(key)
     }
   }
+}
 
-  // Si aún excede el límite, eliminar las más antiguas
-  if (memoryCache.size > MAX_CACHE_SIZE) {
-    const sorted = Array.from(memoryCache.entries())
-      .sort((a, b) => a[1].timestamp - b[1].timestamp)
-
-    const toDelete = sorted.slice(0, memoryCache.size - MAX_CACHE_SIZE)
-    toDelete.forEach(([key]) => memoryCache.delete(key))
-  }
+// OPTIMIZACIÓN: Cleanup automático cada 5 minutos
+let cleanupInterval: NodeJS.Timeout | null = null
+if (typeof window === 'undefined') { // Solo en servidor
+  cleanupInterval = setInterval(cleanCache, 300000)
 }
 
 export const getContador = async (local_id: string): Promise<number> => {
@@ -145,8 +141,8 @@ export const getContador = async (local_id: string): Promise<number> => {
     // OPTIMIZACIÓN: Guardar en cache y limpiar automáticamente
     memoryCache.set(cacheKey, { data: result, timestamp: now })
 
-    // Limpiar cache cada 10 llamadas
-    if (memoryCache.size % 10 === 0) {
+    // OPTIMIZACIÓN: Cleanup menos frecuente - cada 20 llamadas
+    if (memoryCache.size % 20 === 0) {
       cleanCache()
     }
 

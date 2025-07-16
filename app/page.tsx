@@ -29,6 +29,7 @@ export default function HomePage() {
             fill
             className="object-cover smooth-rendering gpu-accelerated"
             priority
+            quality={85}
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 gradient-quality"></div>
@@ -299,8 +300,26 @@ export default function HomePage() {
         <div className="relative z-10 mt-10 md:mr-20 text-center flex flex-col items-end gap-4">
           <div className="flex gap-4 items-center justify-end">
             <p className="text-sm text-white/50">Partners</p>
-            <Image src="/campari_logo.png" alt="Campari" width={240} height={240} className="opacity-90 drop-shadow-lg w-32 h-32 md:w-60 md:h-60" />
-            <Image src="/bulldog_logo.png" alt="Bulldog" width={240} height={240} className="opacity-90 drop-shadow-lg w-32 h-32 md:w-60 md:h-60" />
+            <Image
+              src="/campari_logo.png"
+              alt="Campari"
+              width={120}
+              height={120}
+              className="opacity-90 drop-shadow-lg w-16 h-16 md:w-24 md:h-24"
+              loading="lazy"
+              quality={75}
+              sizes="(max-width: 768px) 64px, 96px"
+            />
+            <Image
+              src="/bulldog_logo.png"
+              alt="Bulldog"
+              width={120}
+              height={120}
+              className="opacity-90 drop-shadow-lg w-16 h-16 md:w-24 md:h-24"
+              loading="lazy"
+              quality={75}
+              sizes="(max-width: 768px) 64px, 96px"
+            />
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
-// OPTIMIZACIÓN: Usar edge runtime
-export const runtime = 'edge'
+// OPTIMIZACIÓN: Usar nodejs runtime para respetar vercel.json
+export const runtime = 'nodejs'
 export const maxDuration = 5
 
 export async function GET() {
@@ -10,7 +10,10 @@ export async function GET() {
     if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
       return NextResponse.json(
         { error: 'Debug endpoint disabled in production' },
-        { status: 403 }
+        {
+          status: 403,
+          headers: { 'Connection': 'close' }
+        }
       )
     }
 
@@ -28,7 +31,8 @@ export async function GET() {
     return NextResponse.json(envInfo, {
       headers: {
         'Cache-Control': 'no-cache, max-age=0',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Connection': 'close' // CRÍTICO: Cerrar conexión inmediatamente
       }
     })
   } catch (error) {
@@ -37,7 +41,8 @@ export async function GET() {
       {
         status: 500,
         headers: {
-          'Cache-Control': 'no-cache, max-age=0'
+          'Cache-Control': 'no-cache, max-age=0',
+          'Connection': 'close'
         }
       }
     )
