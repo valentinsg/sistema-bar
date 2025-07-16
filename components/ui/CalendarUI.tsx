@@ -27,7 +27,7 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
     return `${year}-${month}-${day}`
   })
 
-  const horarios = useMemo(() => ["20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30", "00:00"], [])
+  const horarios = useMemo(() => ["20:15", "22:30"], [])
 
   // Función para copiar al portapapeles
   const copyToClipboard = async (text: string) => {
@@ -127,46 +127,26 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
     return allReservas.filter((r) => r.fecha === selectedDate)
   }, [allReservas, selectedDate])
 
+  const isClosedDay = (dateStr: string) => {
+    const date = new Date(dateStr + 'T12:00:00'); // Agregar hora para evitar problemas de zona horaria
+    const day = date.getDay();
+    console.log(`Fecha: ${dateStr}, Día de semana: ${day}, ¿Es domingo? ${day === 0}`);
+    return day === 0; // Cerrado domingos (0 = domingo)
+  }
+
   const disponibilidadPorHorario = useMemo(() => {
-    const LIMITE_PRIMER_TURNO = 40
-    const LIMITE_SEGUNDO_TURNO = 50
-
-    // Separar reservas por turno con validaciones
-    const reservasPrimerTurno = (reservasDelDia || []).filter(r => {
-      try {
-        return r && r.horario && getTurno(r.horario) === 'primer'
-      } catch {
-        return false
-      }
-    })
-    const reservasSegundoTurno = (reservasDelDia || []).filter(r => {
-      try {
-        return r && r.horario && getTurno(r.horario) === 'segundo'
-      } catch {
-        return false
-      }
-    })
-
-    // Calcular personas ocupadas por turno
-    const personasPrimerTurno = reservasPrimerTurno.reduce((acc, r) => acc + (r.cantidad_personas || 0), 0)
-    const personasSegundoTurno = reservasSegundoTurno.reduce((acc, r) => acc + (r.cantidad_personas || 0), 0)
+    const LIMITE_POR_TURNO = 30
 
     const nuevaDisponibilidad: Record<string, number> = {}
     horarios.forEach(horario => {
-      try {
-        const turno = getTurno(horario)
-        if (turno === 'primer') {
-          nuevaDisponibilidad[horario] = Math.max(0, LIMITE_PRIMER_TURNO - personasPrimerTurno)
-        } else {
-          nuevaDisponibilidad[horario] = Math.max(0, LIMITE_SEGUNDO_TURNO - personasSegundoTurno)
-        }
-      } catch (error) {
-        console.error('Error al calcular disponibilidad para horario:', horario, error)
-        nuevaDisponibilidad[horario] = 0
-      }
+      const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
+      const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + (r.cantidad_personas || 0), 0)
+      nuevaDisponibilidad[horario] = Math.max(0, LIMITE_POR_TURNO - personasEnHorario)
     })
     return nuevaDisponibilidad
   }, [reservasDelDia, horarios])
+
+  const diaSinPlazas = horarios.every(horario => disponibilidadPorHorario[horario] <= 0)
 
   const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
   const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
@@ -248,23 +228,14 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
 
                   // Calcular si el día está lleno usando la nueva lógica de turnos
                   const reservasDelDiaSeleccionada = allReservas.filter(r => r.fecha === dateStr) || []
-                  const reservasPrimerTurno = reservasDelDiaSeleccionada.filter(r => {
-                    try {
-                      return getTurno(r.horario) === 'primer'
-                    } catch {
-                      return false
-                    }
+                  const disponibilidadDelDia: Record<string, number> = {}
+                  horarios.forEach(horario => {
+                    const reservasEnHorario = reservasDelDiaSeleccionada.filter(r => r.horario === horario)
+                    const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + (r.cantidad_personas || 0), 0)
+                    disponibilidadDelDia[horario] = Math.max(0, 30 - personasEnHorario)
                   })
-                  const reservasSegundoTurno = reservasDelDiaSeleccionada.filter(r => {
-                    try {
-                      return getTurno(r.horario) === 'segundo'
-                    } catch {
-                      return false
-                    }
-                  })
-                  const personasPrimerTurno = reservasPrimerTurno.reduce((acc, r) => acc + (r.cantidad_personas || 0), 0)
-                  const personasSegundoTurno = reservasSegundoTurno.reduce((acc, r) => acc + (r.cantidad_personas || 0), 0)
-                  const diaSinPlazas = personasPrimerTurno >= 40 && personasSegundoTurno >= 50
+                  const diaSinPlazas = horarios.every(horario => disponibilidadDelDia[horario] <= 0)
+                  const isDayClosed = isClosedDay(dateStr)
 
                   return (
                     <button
@@ -276,11 +247,11 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                           console.error('Error al seleccionar fecha:', error)
                         }
                       }}
-                      disabled={pastDate || loading || diaSinPlazas}
+                      disabled={pastDate || loading || diaSinPlazas || isDayClosed}
                       className={`h-10 sm:h-16 rounded-xl text-xs sm:text-base font-bold transition-all duration-300 relative overflow-hidden group backdrop-blur-md shadow-lg
                         ${isSelected ?
                           "bg-gradient-to-br from-orange-600/90 to-red-600/80 text-white shadow-xl shadow-orange-500/40 scale-110 border-2 border-orange-300/60 backdrop-blur-md" :
-                          pastDate ?
+                          pastDate || isDayClosed ?
                             "text-gray-500 cursor-not-allowed bg-black/30 border border-gray-600/30" :
                             diaSinPlazas ?
                               "text-gray-500 cursor-not-allowed bg-black/30 border border-red-600/40 opacity-60" :
@@ -291,16 +262,23 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                       <span className="relative z-10">{day}</span>
 
                       {/* Indicador de reservas */}
-                      {reservasCount > 0 && !pastDate && (
+                      {reservasCount > 0 && !pastDate && !isDayClosed && (
                         <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-7 sm:h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-[10px] sm:text-sm flex items-center justify-center text-white font-bold shadow-xl animate-pulse z-20 border-2 border-red-300/50">
                           {reservasCount}
                         </div>
                       )}
 
                       {/* Indicador de sin plazas */}
-                      {diaSinPlazas && !pastDate && (
+                      {diaSinPlazas && !pastDate && !isDayClosed && (
                         <div className="absolute inset-0 flex items-center justify-center z-20">
                           <span className="text-xs sm:text-sm font-bold text-red-400 bg-black/80 rounded px-1">Sin plazas</span>
+                        </div>
+                      )}
+
+                      {/* Indicador de cerrado */}
+                      {isDayClosed && !pastDate && (
+                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                          <span className="text-xs sm:text-sm font-bold text-gray-400 bg-black/80 rounded px-1">Cerrado</span>
                         </div>
                       )}
                     </button>
@@ -360,7 +338,7 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                           style={{ minWidth: 0 }}
                         >
                           <Info className="w-4 h-4 text-orange-200" />
-                          Turnos: 20-22h (40p), 22-00h (50p)
+                          Turnos: 20:15 y 22:30 (30p c/u). Barra libre
                         </Button>
                       </div>
                     )}
@@ -376,8 +354,7 @@ export function CalendarUI({ isAdmin, allReservas, loading, onDeleteReserva }: C
                           const disponibles = disponibilidadPorHorario[horario] ?? "-"
                           const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
                           const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
-                          const turno = getTurno(horario)
-                          const limiteTotal = turno === 'primer' ? 40 : 50
+                          const limiteTotal = 30
                           const ocupacion = typeof disponibles === "number" ? ((limiteTotal - disponibles) / limiteTotal) * 100 : 0
 
                           return (

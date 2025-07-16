@@ -166,63 +166,35 @@ export const updateContador = async (local_id: string, cantidad: number): Promis
   }
 }
 
-// Función para determinar el turno de un horario
-const getTurno = (horario: string): 'primer' | 'segundo' => {
-  const hora = parseInt(horario.split(':')[0])
-
-  // Primer turno: 20:00 a 21:59
-  if (hora >= 20 && hora < 22) {
-    return 'primer'
-  }
-  // Segundo turno: 22:00 a 00:00
-  if (hora >= 22 || hora === 0) {
-    return 'segundo'
-  }
-
-  return 'primer' // fallback
-}
-
 export const getDisponibilidad = async (local_id: string, fecha: string, horario: string): Promise<number> => {
-  const LIMITE_PRIMER_TURNO = 40
-  const LIMITE_SEGUNDO_TURNO = 50
+  const LIMITE_POR_TURNO = 30
 
   try {
-    // Obtener todas las reservas del día con horario
-    const { data: reservasDelDia, error } = await supabase
+    const { data: reservasEnHorario, error } = await supabase
       .from("reservas")
-      .select("cantidad_personas, horario")
+      .select("cantidad_personas")
       .eq("local_id", local_id)
       .eq("fecha", fecha)
+      .eq("horario", horario)
 
     if (error) {
       console.error("Error al obtener reservas:", error)
-      const turno = getTurno(horario)
-      return turno === 'primer' ? LIMITE_PRIMER_TURNO : LIMITE_SEGUNDO_TURNO
+      return LIMITE_POR_TURNO
     }
 
-    if (!reservasDelDia || reservasDelDia.length === 0) {
-      const turno = getTurno(horario)
-      return turno === 'primer' ? LIMITE_PRIMER_TURNO : LIMITE_SEGUNDO_TURNO
+    if (!reservasEnHorario || reservasEnHorario.length === 0) {
+      return LIMITE_POR_TURNO
     }
 
-    // Separar reservas por turno
-    const turnoConsultado = getTurno(horario)
-    const reservasDelTurno = reservasDelDia.filter(r => getTurno(r.horario) === turnoConsultado)
-
-    // Calcular personas ocupadas en el turno
-    const personasOcupadas = reservasDelTurno.reduce((acc: number, r: { cantidad_personas: number }) => {
+    const personasOcupadas = reservasEnHorario.reduce((acc: number, r: { cantidad_personas: number }) => {
       return acc + r.cantidad_personas
     }, 0)
 
-    const limite = turnoConsultado === 'primer' ? LIMITE_PRIMER_TURNO : LIMITE_SEGUNDO_TURNO
-    const disponibles = Math.max(0, limite - personasOcupadas)
-
-    return disponibles
+    return Math.max(0, LIMITE_POR_TURNO - personasOcupadas)
 
   } catch (error) {
     console.error("Error en getDisponibilidad:", error)
-    const turno = getTurno(horario)
-    return turno === 'primer' ? LIMITE_PRIMER_TURNO : LIMITE_SEGUNDO_TURNO
+    return LIMITE_POR_TURNO
   }
 }
 
@@ -231,24 +203,14 @@ export const getPlazasEstadisticas = async (local_id: string, fecha: string): Pr
   plazasOcupadas: number
   plazasDisponibles: number
   personasTotales: number
-  primerTurno: {
-    limite: number
-    ocupadas: number
-    disponibles: number
-  }
-  segundoTurno: {
-    limite: number
-    ocupadas: number
-    disponibles: number
-  }
 }> => {
-  const LIMITE_PRIMER_TURNO = 40
-  const LIMITE_SEGUNDO_TURNO = 50
-  const PLAZAS_TOTALES = 90
+  const LIMITE_POR_TURNO = 30
+  const NUM_TURNOS = 2
+  const PLAZAS_TOTALES = LIMITE_POR_TURNO * NUM_TURNOS
 
   const { data, error } = await supabase
     .from("reservas")
-    .select("cantidad_personas, horario")
+    .select("cantidad_personas")
     .eq("local_id", local_id)
     .eq("fecha", fecha)
 
@@ -257,45 +219,17 @@ export const getPlazasEstadisticas = async (local_id: string, fecha: string): Pr
       plazasTotales: PLAZAS_TOTALES,
       plazasOcupadas: 0,
       plazasDisponibles: PLAZAS_TOTALES,
-      personasTotales: 0,
-      primerTurno: {
-        limite: LIMITE_PRIMER_TURNO,
-        ocupadas: 0,
-        disponibles: LIMITE_PRIMER_TURNO
-      },
-      segundoTurno: {
-        limite: LIMITE_SEGUNDO_TURNO,
-        ocupadas: 0,
-        disponibles: LIMITE_SEGUNDO_TURNO
-      }
+      personasTotales: 0
     }
   }
 
-  // Separar reservas por turno
-  const reservasPrimerTurno = data.filter(r => getTurno(r.horario) === 'primer')
-  const reservasSegundoTurno = data.filter(r => getTurno(r.horario) === 'segundo')
-
-  // Calcular personas por turno
-  const personasPrimerTurno = reservasPrimerTurno.reduce((acc: number, r: { cantidad_personas: number }) => acc + r.cantidad_personas, 0)
-  const personasSegundoTurno = reservasSegundoTurno.reduce((acc: number, r: { cantidad_personas: number }) => acc + r.cantidad_personas, 0)
-
-  const personasTotales = personasPrimerTurno + personasSegundoTurno
+  const personasTotales = data.reduce((acc: number, r: { cantidad_personas: number }) => acc + r.cantidad_personas, 0)
   const plazasOcupadas = personasTotales
 
   return {
     plazasTotales: PLAZAS_TOTALES,
     plazasOcupadas,
     plazasDisponibles: Math.max(0, PLAZAS_TOTALES - plazasOcupadas),
-    personasTotales,
-    primerTurno: {
-      limite: LIMITE_PRIMER_TURNO,
-      ocupadas: personasPrimerTurno,
-      disponibles: Math.max(0, LIMITE_PRIMER_TURNO - personasPrimerTurno)
-    },
-    segundoTurno: {
-      limite: LIMITE_SEGUNDO_TURNO,
-      ocupadas: personasSegundoTurno,
-      disponibles: Math.max(0, LIMITE_SEGUNDO_TURNO - personasSegundoTurno)
-    }
+    personasTotales
   }
 }

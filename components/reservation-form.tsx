@@ -39,26 +39,13 @@ const getTurno = (horario: string): 'primer' | 'segundo' => {
 
 // Función optimizada para calcular disponibilidad por turnos
 const calcularDisponibilidadLocal = (reservas: any[], horarios: string[]) => {
-  const LIMITE_PRIMER_TURNO = 40
-  const LIMITE_SEGUNDO_TURNO = 50
+  const LIMITE_POR_TURNO = 30
   const disponibilidad: Record<string, number> = {}
 
-  // Separar reservas por turno
-  const reservasPrimerTurno = reservas.filter(r => getTurno(r.horario) === 'primer')
-  const reservasSegundoTurno = reservas.filter(r => getTurno(r.horario) === 'segundo')
-
-  // Calcular personas ocupadas por turno
-  const personasPrimerTurno = reservasPrimerTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
-  const personasSegundoTurno = reservasSegundoTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
-
-  // Calcular disponibilidad por horario
   horarios.forEach(horario => {
-    const turno = getTurno(horario)
-    if (turno === 'primer') {
-      disponibilidad[horario] = Math.max(0, LIMITE_PRIMER_TURNO - personasPrimerTurno)
-    } else {
-      disponibilidad[horario] = Math.max(0, LIMITE_SEGUNDO_TURNO - personasSegundoTurno)
-    }
+    const reservasEnHorario = reservas.filter(r => r.horario === horario)
+    const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
+    disponibilidad[horario] = Math.max(0, LIMITE_POR_TURNO - personasEnHorario)
   })
 
   return disponibilidad
@@ -116,10 +103,7 @@ export default function ReservationFormOptimized() {
   const [quiereNovedades, setQuiereNovedades] = useState(false)
 
     // Memoizar horarios para evitar recreación - Nuevo sistema de turnos
-  const horarios = useMemo(() => [
-    "20:00", "20:30", "21:00", "21:30",
-    "22:00", "22:30", "23:00", "23:30", "00:00"
-  ], [])
+  const horarios = useMemo(() => ["20:15", "22:30"], [])
 
   // Debounce para cambios de fecha (aumentado a 500ms para reducir llamadas)
   const debouncedFecha = useDebounce(formData.fecha, 500)
@@ -252,12 +236,7 @@ export default function ReservationFormOptimized() {
     if (formData.fecha && formData.horario && !newErrors.horario && !newErrors.cantidad_personas) {
       const disponibles = disponibilidad[formData.horario] || 0
       if (disponibles < formData.cantidad_personas) {
-        const turno = getTurno(formData.horario)
-        const turnoTexto = turno === 'primer' ? 'primer turno (20:00-22:00)' : 'segundo turno (22:00-00:00)'
-        newErrors.horario = `No hay suficientes plazas disponibles en el ${turnoTexto}. Disponibles: ${disponibles}`
-      }
-      if (totalPersonasReservadas >= 90) {
-        newErrors.horario = `No se pueden reservar más de 90 plazas en total por día.`
+        newErrors.horario = `No hay suficientes plazas disponibles en el horario ${formData.horario}. Disponibles: ${disponibles}`
       }
     }
 
@@ -266,9 +245,14 @@ export default function ReservationFormOptimized() {
       newErrors.notas = "Las notas no pueden exceder los 500 caracteres"
     }
 
+    // Validar si el día es cerrado
+    if (formData.fecha && isClosedDay(formData.fecha)) {
+      newErrors.fecha = "El restaurante está cerrado los domingos"
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }, [formData, disponibilidad, totalPersonasReservadas])
+  }, [formData, disponibilidad])
 
   // Memoizar handleSubmit
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -607,6 +591,7 @@ return (
           <p className="text-white/80 text-sm sm:text-lg font-medium tracking-wide">
             Asegura tu espacio en Eleven Club
           </p>
+          <span className="font-medium leading-tight">Info: Abierto lunes a sábado. Turnos: 20:15 y 22:30 (30 cupos cada uno, tolerancia 15 min). Barra por orden de llegada.</span>
         </CardHeader>
 
         <CardContent className="relative z-10 p-2 sm:p-8 glass-effect-dark">
@@ -725,7 +710,7 @@ return (
                       disabled={isNoAvailability}
                       className="bg-[#2d1a0b] text-orange-100 hover:bg-orange-200 hover:text-orange-900 focus:bg-orange-200 focus:text-orange-900 transition-colors"
                     >
-                      {horario} {isNoAvailability ? ' - Sin disponibilidad' : `- ${disponibles} plaza${disponibles === 1 ? '' : 's'}`}
+                      {horario} {isNoAvailability ? ' - Sin disponibilidad' : `- ${disponibles} cupo${disponibles === 1 ? '' : 's'} (tolerancia 15 min)`}
                     </option>
                   )
                 })}
@@ -875,4 +860,10 @@ return (
     )}
   </>
 )
+}
+
+const isClosedDay = (dateStr: string) => {
+  const date = new Date(dateStr + 'T12:00:00'); // Agregar hora para evitar problemas de zona horaria
+  const day = date.getDay();
+  return day === 0; // Cerrado domingos (0 = domingo)
 }

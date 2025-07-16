@@ -33,7 +33,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
   const [allReservas, setAllReservas] = useState<Reserva[]>([])
   const [loading, setLoading] = useState(false)
 
-  const horarios = useMemo(() => ["20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30", "00:00"], [])
+  const horarios = useMemo(() => ["20:15", "22:30"], [])
 
   // Funciones auxiliares movidas al principio
   const getDaysInMonth = (date: Date) => {
@@ -94,42 +94,20 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
     return allReservas.filter((r) => r.fecha === selectedDate)
   }, [allReservas, selectedDate])
 
-  // Función para determinar el turno de un horario
-  const getTurno = (horario: string): 'primer' | 'segundo' => {
-    const hora = parseInt(horario.split(':')[0])
-
-    // Primer turno: 20:00 a 21:59
-    if (hora >= 20 && hora < 22) {
-      return 'primer'
-    }
-    // Segundo turno: 22:00 a 00:00
-    if (hora >= 22 || hora === 0) {
-      return 'segundo'
-    }
-
-    return 'primer' // fallback
+  const isClosedDay = (dateStr: string) => {
+    const date = new Date(dateStr + 'T12:00:00'); // Agregar hora para evitar problemas de zona horaria
+    const day = date.getDay();
+    return day === 0; // Cerrado domingos (0 = domingo)
   }
 
   const disponibilidadPorHorario = useMemo(() => {
-    const LIMITE_PRIMER_TURNO = 40
-    const LIMITE_SEGUNDO_TURNO = 50
-
-    // Separar reservas por turno
-    const reservasPrimerTurno = reservasDelDia.filter(r => getTurno(r.horario) === 'primer')
-    const reservasSegundoTurno = reservasDelDia.filter(r => getTurno(r.horario) === 'segundo')
-
-    // Calcular personas ocupadas por turno
-    const personasPrimerTurno = reservasPrimerTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
-    const personasSegundoTurno = reservasSegundoTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
+    const LIMITE_POR_TURNO = 30
 
     const nuevaDisponibilidad: Record<string, number> = {}
     horarios.forEach(horario => {
-      const turno = getTurno(horario)
-      if (turno === 'primer') {
-        nuevaDisponibilidad[horario] = Math.max(0, LIMITE_PRIMER_TURNO - personasPrimerTurno)
-      } else {
-        nuevaDisponibilidad[horario] = Math.max(0, LIMITE_SEGUNDO_TURNO - personasSegundoTurno)
-      }
+      const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
+      const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
+      nuevaDisponibilidad[horario] = Math.max(0, LIMITE_POR_TURNO - personasEnHorario)
     })
     return nuevaDisponibilidad
   }, [reservasDelDia, horarios])
@@ -305,11 +283,11 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                   <button
                     key={`${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`}
                     onClick={() => setSelectedDate(dateStr)}
-                    disabled={pastDate || loading}
+                    disabled={pastDate || loading || isClosedDay(dateStr)}
                     className={`h-10 sm:h-16 rounded-xl text-xs sm:text-base font-bold transition-all duration-300 relative overflow-hidden group backdrop-blur-md shadow-lg
                       ${isSelected ?
                         "bg-gradient-to-br from-orange-600/90 to-red-600/80 text-white shadow-xl shadow-orange-500/40 scale-110 border-2 border-orange-300/60 backdrop-blur-md" :
-                        pastDate ?
+                        pastDate || isClosedDay(dateStr) ?
                           "text-gray-500 cursor-not-allowed bg-black/30 border border-gray-600/30" :
                           todayClass ?
                             "bg-gradient-to-br from-orange-500/50 to-red-500/40 text-orange-100 border-2 border-orange-400/60 shadow-lg shadow-orange-500/30 hover:scale-110" :
@@ -318,7 +296,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                     <span className="relative z-10">{day}</span>
 
                     {/* Indicador de reservas */}
-                    {reservasCount > 0 && !pastDate && (
+                    {reservasCount > 0 && !pastDate && !isClosedDay(dateStr) && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-7 sm:h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-full text-[10px] sm:text-sm flex items-center justify-center text-white font-bold shadow-xl animate-pulse z-20 border-2 border-red-300/50">
                         {reservasCount}
                       </div>
@@ -401,7 +379,7 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                     <div className="bg-gradient-to-r from-orange-900/40 to-red-900/35 border-2 border-orange-500/40 rounded-xl p-3 sm:p-6 backdrop-blur-md shadow-lg max-w-xs mx-auto text-center">
                       <div className="text-orange-100 flex flex-col items-center gap-2 text-sm sm:text-lg">
                         <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-lg mb-1"></div>
-                        <span className="font-medium leading-tight">Info: Primer turno (20:00-22:00): 40 personas<br className="sm:hidden"/>Segundo turno (22:00-00:00): 50 personas</span>
+                        <span className="font-medium leading-tight">Info: Abierto lunes a sábado. Turnos: 20:15 y 22:30 (30 cupos cada uno, tolerancia 15 min). Barra por orden de llegada.</span>
                       </div>
                     </div>
                   )}
@@ -417,8 +395,8 @@ export default function ReservationCalendar({ isAdmin = false }: ReservationCale
                         const disponibles = disponibilidadPorHorario[horario] ?? "-"
                         const reservasEnHorario = reservasDelDia.filter(r => r.horario === horario)
                         const personasEnHorario = reservasEnHorario.reduce((acc, r) => acc + r.cantidad_personas, 0)
-                        const turno = getTurno(horario)
-                        const limiteTotal = turno === 'primer' ? 40 : 50
+                        const turno = horario // No más turnos, cada horario es independiente
+                        const limiteTotal = 30
                         const ocupacion = typeof disponibles === "number" ? ((limiteTotal - disponibles) / limiteTotal) * 100 : 0
 
                         return (
