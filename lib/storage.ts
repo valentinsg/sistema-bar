@@ -15,18 +15,30 @@ export interface Reserva {
 }
 
 export const saveReserva = async (reserva: Omit<Reserva, "id" | "created_at">): Promise<Reserva> => {
-  const { data, error } = await supabase
-    .from("reservas")
-    .insert([reserva])
-    .select()
-    .single()
+  try {
+    // CRÍTICO: Timeout para queries de escritura
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 8000)
+    )
 
-  if (error) throw error
+    const queryPromise = supabase
+      .from("reservas")
+      .insert([reserva])
+      .select()
+      .single()
 
-  return {
-    id: data.id,
-    ...reserva,
-    created_at: data.created_at,
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
+
+    if (error) throw error
+
+    return {
+      id: data.id,
+      ...reserva,
+      created_at: data.created_at,
+    }
+  } catch (error) {
+    console.error("Error al guardar reserva:", error)
+    throw error
   }
 }
 
@@ -51,23 +63,49 @@ export const getReservas = async (local_id: string): Promise<Reserva[]> => {
 }
 
 export const deleteReserva = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from("reservas")
-    .delete()
-    .eq("id", id)
+  try {
+    const { error } = await supabase
+      .from("reservas")
+      .delete()
+      .eq("id", id)
 
-  if (error) {
-    console.error("Error al eliminar reserva:", error.message)
+    if (error) {
+      console.error("Error al eliminar reserva:", error.message)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error("Error al eliminar reserva:", error)
     return false
   }
-
-  return true
 }
 
-// Cache en memoria para evitar llamadas excesivas
+// OPTIMIZACIÓN: Cache con límites más estrictos
 const memoryCache = new Map<string, { data: number, timestamp: number }>()
-// OPTIMIZACIÓN: Aumentar TTL de 10 segundos a 30 segundos para reducir llamadas significativamente
-const CACHE_TTL = 30000 // 30 segundos de cache para reducir llamadas significativamente
+const CACHE_TTL = 45000 // 45 segundos
+const MAX_CACHE_SIZE = 25 // Máximo 25 entradas
+
+// OPTIMIZACIÓN: Limpiar cache automáticamente
+const cleanCache = () => {
+  const now = Date.now()
+  const cutoff = now - CACHE_TTL
+
+  for (const [key, value] of memoryCache.entries()) {
+    if (value.timestamp < cutoff) {
+      memoryCache.delete(key)
+    }
+  }
+
+  // Si aún excede el límite, eliminar las más antiguas
+  if (memoryCache.size > MAX_CACHE_SIZE) {
+    const sorted = Array.from(memoryCache.entries())
+      .sort((a, b) => a[1].timestamp - b[1].timestamp)
+
+    const toDelete = sorted.slice(0, memoryCache.size - MAX_CACHE_SIZE)
+    toDelete.forEach(([key]) => memoryCache.delete(key))
+  }
+}
 
 export const getContador = async (local_id: string): Promise<number> => {
   const fechaHoy = new Date().toISOString().split("T")[0]
@@ -77,65 +115,54 @@ export const getContador = async (local_id: string): Promise<number> => {
   // Verificar cache primero
   const cached = memoryCache.get(cacheKey)
   if (cached && (now - cached.timestamp) < CACHE_TTL) {
-    // Devolver datos del cache sin logs
     return cached.data
   }
 
-  // Solo log en desarrollo y con throttling
+  // CRÍTICO: Solo logs en desarrollo
   const isDevelopment = process.env.NODE_ENV === 'development'
 
-  if (isDevelopment) {
-    console.log("📊 getContador - Parámetros:", { local_id, fecha: fechaHoy })
-  }
+  try {
+    const { data, error } = await supabase
+      .from("contador_personas")
+      .select("cantidad")
+      .eq("local_id", local_id)
+      .eq("fecha", fechaHoy)
+      .single()
 
-  const { data, error } = await supabase
-    .from("contador_personas")
-    .select("cantidad")
-    .eq("local_id", local_id)
-    .eq("fecha", fechaHoy)
-    .single()
+    let result = 0
 
-  let result = 0
-
-  if (error) {
-    if (isDevelopment) {
-      console.log("ℹ️ getContador - Error (puede ser normal si no existe):", error.message)
-    }
-    result = 0
-  } else if (!data) {
-    if (isDevelopment) {
-      console.log("ℹ️ getContador - No hay datos para hoy, retornando 0")
-    }
-    result = 0
-  } else {
-    if (isDevelopment) {
-      console.log("✅ getContador - Cantidad encontrada:", data.cantidad)
-    }
-    result = data.cantidad
-  }
-
-  // Guardar en cache
-  memoryCache.set(cacheKey, { data: result, timestamp: now })
-
-  // OPTIMIZACIÓN: Limpiar cache viejo cada 50 llamadas (reducido de 100)
-  if (memoryCache.size > 50) {
-    const cutoff = now - (CACHE_TTL * 2)
-    for (const [key, value] of memoryCache.entries()) {
-      if (value.timestamp < cutoff) {
-        memoryCache.delete(key)
+    if (error) {
+      if (isDevelopment) {
+        console.log("ℹ️ getContador - Error (puede ser normal si no existe):", error.message)
       }
+      result = 0
+    } else if (!data) {
+      result = 0
+    } else {
+      result = data.cantidad || 0
     }
-  }
 
-  return result
+    // OPTIMIZACIÓN: Guardar en cache y limpiar automáticamente
+    memoryCache.set(cacheKey, { data: result, timestamp: now })
+
+    // Limpiar cache cada 10 llamadas
+    if (memoryCache.size % 10 === 0) {
+      cleanCache()
+    }
+
+    return result
+  } catch (error) {
+    if (isDevelopment) {
+      console.error("Error en getContador:", error)
+    }
+    return 0
+  }
 }
 
 export const updateContador = async (local_id: string, cantidad: number): Promise<boolean> => {
   const fechaHoy = new Date().toISOString().split("T")[0]
 
   try {
-    console.log("🔄 Actualizando contador en BD:", { local_id, fecha: fechaHoy, cantidad })
-
     const { error } = await supabase
       .from("contador_personas")
       .upsert({
@@ -151,11 +178,12 @@ export const updateContador = async (local_id: string, cantidad: number): Promis
       return false
     }
 
-    console.log("✅ Contador actualizado exitosamente en BD")
+    // OPTIMIZACIÓN: Invalidar cache después de actualizar
+    const cacheKey = `${local_id}-${fechaHoy}`
+    memoryCache.delete(cacheKey)
 
     // Disparar evento solo si estamos en el cliente
     if (typeof window !== 'undefined') {
-      console.log("📡 Disparando evento contadorUpdated")
       window.dispatchEvent(new CustomEvent("contadorUpdated", { detail: { personas: cantidad } }))
     }
 
@@ -187,7 +215,7 @@ export const getDisponibilidad = async (local_id: string, fecha: string, horario
     }
 
     const personasOcupadas = reservasEnHorario.reduce((acc: number, r: { cantidad_personas: number }) => {
-      return acc + r.cantidad_personas
+      return acc + (r.cantidad_personas || 0)
     }, 0)
 
     return Math.max(0, LIMITE_POR_TURNO - personasOcupadas)
@@ -208,28 +236,39 @@ export const getPlazasEstadisticas = async (local_id: string, fecha: string): Pr
   const NUM_TURNOS = 2
   const PLAZAS_TOTALES = LIMITE_POR_TURNO * NUM_TURNOS
 
-  const { data, error } = await supabase
-    .from("reservas")
-    .select("cantidad_personas")
-    .eq("local_id", local_id)
-    .eq("fecha", fecha)
+  try {
+    const { data, error } = await supabase
+      .from("reservas")
+      .select("cantidad_personas")
+      .eq("local_id", local_id)
+      .eq("fecha", fecha)
 
-  if (error || !data) {
+    if (error || !data) {
+      return {
+        plazasTotales: PLAZAS_TOTALES,
+        plazasOcupadas: 0,
+        plazasDisponibles: PLAZAS_TOTALES,
+        personasTotales: 0
+      }
+    }
+
+    const personasTotales = data.reduce((acc: number, r: { cantidad_personas: number }) =>
+      acc + (r.cantidad_personas || 0), 0)
+    const plazasOcupadas = personasTotales
+
+    return {
+      plazasTotales: PLAZAS_TOTALES,
+      plazasOcupadas,
+      plazasDisponibles: Math.max(0, PLAZAS_TOTALES - plazasOcupadas),
+      personasTotales
+    }
+  } catch (error) {
+    console.error("Error en getPlazasEstadisticas:", error)
     return {
       plazasTotales: PLAZAS_TOTALES,
       plazasOcupadas: 0,
       plazasDisponibles: PLAZAS_TOTALES,
       personasTotales: 0
     }
-  }
-
-  const personasTotales = data.reduce((acc: number, r: { cantidad_personas: number }) => acc + r.cantidad_personas, 0)
-  const plazasOcupadas = personasTotales
-
-  return {
-    plazasTotales: PLAZAS_TOTALES,
-    plazasOcupadas,
-    plazasDisponibles: Math.max(0, PLAZAS_TOTALES - plazasOcupadas),
-    personasTotales
   }
 }

@@ -14,8 +14,10 @@ class OptimizedSSEManager {
   private reconnectTimeout: NodeJS.Timeout | null = null
   private isConnecting = false
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 3
+  private maxReconnectAttempts = 3 // CRÍTICO: Reducido de más intentos
   private lastData: any = null
+  private connectionStartTime: number = 0
+  private isManuallyDisconnected = false
 
   static getInstance(): OptimizedSSEManager {
     if (!OptimizedSSEManager.instance) {
@@ -34,19 +36,36 @@ class OptimizedSSEManager {
 
     return () => {
       this.listeners.delete(callback)
-      // Si no hay más listeners, cerrar la conexión
+      // Si no hay más listeners, cerrar la conexión después de un delay
       if (this.listeners.size === 0) {
-        this.disconnect()
+        setTimeout(() => {
+          if (this.listeners.size === 0) {
+            this.disconnect()
+          }
+        }, 5000) // 5 segundos de gracia antes de desconectar
       }
     }
   }
 
   private notifyListeners(data: any) {
     this.lastData = data
-    this.listeners.forEach(callback => callback(data))
+    this.listeners.forEach(callback => {
+      try {
+        callback(data)
+      } catch (error) {
+        console.error('Error en callback SSE:', error)
+      }
+    })
+  }
+
+  isConnected(): boolean {
+    return this.eventSource?.readyState === EventSource.OPEN
   }
 
   connect() {
+    // CRÍTICO: No conectar si fue desconectado manualmente
+    if (this.isManuallyDisconnected) return
+
     if (this.isConnecting || this.eventSource?.readyState === EventSource.OPEN) {
       return
     }
@@ -56,7 +75,14 @@ class OptimizedSSEManager {
       return
     }
 
+    // CRÍTICO: Verificar conectividad antes de intentar
+    if (!navigator.onLine) {
+      this.notifyListeners({ error: "Sin conexión a internet" })
+      return
+    }
+
     this.isConnecting = true
+    this.connectionStartTime = Date.now()
 
     try {
       // Cerrar conexión existente si hay una
@@ -71,6 +97,7 @@ class OptimizedSSEManager {
         console.log("🔗 SSE conectado (optimizado)")
         this.isConnecting = false
         this.reconnectAttempts = 0
+        this.isManuallyDisconnected = false
         this.notifyListeners({ connected: true, error: null })
       }
 
@@ -87,16 +114,33 @@ class OptimizedSSEManager {
         console.error("Error en SSE:", error)
         this.isConnecting = false
 
-        // Solo reconectar si hay listeners activos y no se excedió el límite
-        if (this.listeners.size > 0 && this.reconnectAttempts < this.maxReconnectAttempts) {
+        // CRÍTICO: Solo reconectar si:
+        // 1. Hay listeners activos
+        // 2. No se excedió el límite de intentos
+        // 3. No fue desconectado manualmente
+        // 4. La conexión duró más de 5 segundos (evitar loops)
+        const connectionDuration = Date.now() - this.connectionStartTime
+        const shouldReconnect = this.listeners.size > 0 &&
+                               this.reconnectAttempts < this.maxReconnectAttempts &&
+                               !this.isManuallyDisconnected &&
+                               connectionDuration > 5000
+
+        if (shouldReconnect) {
           this.reconnectAttempts++
-          const delay = Math.min(5000 * Math.pow(2, this.reconnectAttempts), 30000)
+          // OPTIMIZACIÓN: Backoff exponencial con jitter
+          const baseDelay = Math.min(5000 * Math.pow(2, this.reconnectAttempts), 30000)
+          const jitter = Math.random() * 1000
+          const delay = baseDelay + jitter
 
           this.reconnectTimeout = setTimeout(() => {
             this.connect()
           }, delay)
-        } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-          this.notifyListeners({ error: "Error de conexión persistente" })
+        } else {
+          this.notifyListeners({
+            error: this.reconnectAttempts >= this.maxReconnectAttempts ?
+              "Error de conexión persistente" :
+              "Conexión perdida"
+          })
         }
       }
 
@@ -108,6 +152,8 @@ class OptimizedSSEManager {
   }
 
   disconnect() {
+    this.isManuallyDisconnected = true
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout)
       this.reconnectTimeout = null
@@ -119,11 +165,15 @@ class OptimizedSSEManager {
     }
 
     this.isConnecting = false
-    this.reconnectAttempts = 0
+    this.lastData = null
   }
 
-  isConnected(): boolean {
-    return this.eventSource?.readyState === EventSource.OPEN
+  // CRÍTICO: Método para reconectar manualmente
+  reconnect() {
+    this.isManuallyDisconnected = false
+    this.reconnectAttempts = 0
+    this.disconnect()
+    setTimeout(() => this.connect(), 1000)
   }
 }
 
@@ -163,20 +213,23 @@ export default function LiveCounterOptimized() {
         setLastUpdate(new Date(data.timestamp))
         setError(null)
         setLoading(false)
+        setIsConnected(true)
       }
     })
 
     // Conectar SSE
     sseManager.connect()
 
-    // Manejar cambios de visibilidad de manera eficiente
+    // OPTIMIZACIÓN: Manejo más eficiente de visibilidad
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Solo marcar como inactivo, no desconectar
+        // Solo marcar como inactivo visualmente, no desconectar
         setIsConnected(false)
       } else {
-        // Solo marcar como conectado si ya está conectado
-        if (sseManager.isConnected()) {
+        // Verificar estado real y reconectar si es necesario
+        if (!sseManager.isConnected()) {
+          sseManager.reconnect()
+        } else {
           setIsConnected(true)
         }
       }
@@ -185,7 +238,7 @@ export default function LiveCounterOptimized() {
     const handleOnline = () => {
       setError(null)
       if (!sseManager.isConnected()) {
-        sseManager.connect()
+        sseManager.reconnect()
       }
     }
 
@@ -194,7 +247,14 @@ export default function LiveCounterOptimized() {
       setIsConnected(false)
     }
 
-    document.addEventListener("visibilitychange", handleVisibilityChange)
+    // CRÍTICO: Throttle de event listeners
+    let visibilityTimeout: NodeJS.Timeout
+    const throttledVisibilityChange = () => {
+      clearTimeout(visibilityTimeout)
+      visibilityTimeout = setTimeout(handleVisibilityChange, 500)
+    }
+
+    document.addEventListener("visibilitychange", throttledVisibilityChange)
     window.addEventListener("online", handleOnline)
     window.addEventListener("offline", handleOffline)
 
@@ -202,7 +262,8 @@ export default function LiveCounterOptimized() {
       if (unsubscribeRef.current) {
         unsubscribeRef.current()
       }
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      clearTimeout(visibilityTimeout)
+      document.removeEventListener("visibilitychange", throttledVisibilityChange)
       window.removeEventListener("online", handleOnline)
       window.removeEventListener("offline", handleOffline)
     }
@@ -210,7 +271,8 @@ export default function LiveCounterOptimized() {
 
   const handleManualRefresh = () => {
     setError(null)
-    sseManager.connect()
+    setLoading(true)
+    sseManager.reconnect()
   }
 
   if (!isMounted || !isHydrated) return null
@@ -231,30 +293,13 @@ export default function LiveCounterOptimized() {
             {error && !error.includes("Variables de entorno") && (
               <button
                 onClick={handleManualRefresh}
-                className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-white text-sm transition-colors"
+                disabled={loading}
+                className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 rounded-lg text-white text-sm transition-colors"
               >
-                <RefreshCw className="w-4 h-4 inline mr-2" />
-                Reintentar
+                <RefreshCw className={`w-4 h-4 inline mr-2 ${loading ? 'animate-spin' : ''}`} />
+                {loading ? 'Conectando...' : 'Reintentar'}
               </button>
             )}
-          </div>
-        </div>
-      </motion.div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-lg mx-auto mb-16"
-      >
-        <div className="relative z-10 p-8 text-center rounded-3xl glass-effect border-glow">
-          <div className="text-white mb-4">
-            <div className="w-12 h-12 mx-auto mb-2 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-            <p className="text-lg font-medium">Conectando...</p>
           </div>
         </div>
       </motion.div>
@@ -265,8 +310,8 @@ export default function LiveCounterOptimized() {
     <motion.div
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="max-w-md mx-auto mb-16"
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="w-full max-w-lg mx-auto mb-16"
     >
       <motion.div
         className="relative px-16 z-10 text-center rounded-3xl p-4 backdrop-blur-xs bg-white/5 border border-white/10 shadow-2xl"
@@ -302,7 +347,7 @@ export default function LiveCounterOptimized() {
           <span className={`text-sm font-medium font-source-sans ${
             isConnected ? 'text-emerald-300' : 'text-yellow-300'
           }`}>
-            {isConnected ? 'Live' : 'Conectando...'}
+            {loading ? 'Conectando...' : isConnected ? 'Live' : 'Reconectando...'}
           </span>
         </div>
 

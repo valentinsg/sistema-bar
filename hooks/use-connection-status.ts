@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from 'react'
 
 export interface ConnectionStatus {
@@ -28,17 +30,33 @@ export function useConnectionStatus() {
       }))
     }
 
+    let pingController: AbortController | null = null
+
     const pingServer = async () => {
-      if (document.hidden) {
-        console.log("🔄 Ping omitido - pestaña oculta")
+      if (document.hidden || pingController) {
         return
       }
 
+      if (!navigator.onLine) {
+        setStatus(prev => ({
+          ...prev,
+          isConnected: false,
+          error: 'Sin conexión a internet'
+        }))
+        return
+      }
+
+      pingController = new AbortController()
       const start = Date.now()
+
       try {
         const response = await fetch('/api/health', {
           method: 'HEAD',
-          cache: 'no-cache'
+          cache: 'no-cache',
+          signal: pingController.signal,
+          headers: {
+            'Connection': 'keep-alive'
+          }
         })
 
         if (response.ok) {
@@ -51,27 +69,36 @@ export function useConnectionStatus() {
             error: null
           }))
         } else {
-          throw new Error('Server error')
+          throw new Error(`Server responded with ${response.status}`)
         }
-      } catch (error) {
-        setStatus(prev => ({
-          ...prev,
-          isConnected: false,
-          error: 'Error de conexión al servidor'
-        }))
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          setStatus(prev => ({
+            ...prev,
+            isConnected: false,
+            error: 'Error de conexión al servidor'
+          }))
+        }
+      } finally {
+        pingController = null
       }
     }
 
     pingServer()
 
-    const pingInterval = setInterval(pingServer, 60000)
+    const pingInterval = setInterval(pingServer, 120000)
 
     window.addEventListener('online', updateOnlineStatus)
     window.addEventListener('offline', updateOnlineStatus)
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        pingServer()
+        setTimeout(pingServer, 1000)
+      } else {
+        if (pingController) {
+          pingController.abort()
+          pingController = null
+        }
       }
     }
 
@@ -79,6 +106,9 @@ export function useConnectionStatus() {
 
     return () => {
       clearInterval(pingInterval)
+      if (pingController) {
+        pingController.abort()
+      }
       window.removeEventListener('online', updateOnlineStatus)
       window.removeEventListener('offline', updateOnlineStatus)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
