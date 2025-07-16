@@ -19,7 +19,7 @@
   },
   "build": {
     "env": {
-      "VERCEL_ENV": "@vercel_env"
+      "VERCEL_ENV": "production"
     }
   },
   "headers": [
