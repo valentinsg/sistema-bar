@@ -337,7 +337,7 @@ export default function ReservationForm({
 
   return (
     <>
-    <motion.div
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
@@ -347,10 +347,10 @@ export default function ReservationForm({
           <CardHeader className="border-b border-amber-600/30 pb-4 sm:pb-6 bg-gradient-to-r from-amber-900/30 to-orange-900/30">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <div className="flex items-center gap-3 sm:gap-4">
-                                  <div className="p-2 sm:p-3 bg-amber-800/40 rounded-full border-2 border-amber-600/70">
-              <Image
-                src="/logo-eleven.webp"
-                alt="Eleven Club"
+                <div className="p-2 sm:p-3 bg-amber-800/40 rounded-full border-2 border-amber-600/70">
+                  <Image
+                    src="/eleven_club_logo.webp"
+                    alt="Eleven Club"
                     width={32}
                     height={32}
                     className="opacity-90 sm:w-10 sm:h-10"
@@ -379,109 +379,109 @@ export default function ReservationForm({
                 <span className="font-medium text-amber-200">20:15 - 22:30</span> <span className="hidden sm:inline">(2 turnos) • </span><span className="font-medium text-amber-200">30 plazas por turno</span><span className="hidden sm:inline"> • Barra libre</span>
               </p>
             </div>
-        </CardHeader>
+          </CardHeader>
 
           <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-            {/* Nombre */}
+              {/* Nombre */}
               <div className="space-y-2">
                 <Label htmlFor="nombre" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
                   <User className="w-4 h-4 text-amber-400" />
                   Nombre completo <span className="text-amber-400">*</span>
-              </Label>
-              <Input
-                id="nombre"
-                type="text"
-                placeholder="Tu nombre completo"
-                value={formData.nombre}
-                onChange={(e) => handleInputChange("nombre", e.target.value)}
+                </Label>
+                <Input
+                  id="nombre"
+                  type="text"
+                  placeholder="Tu nombre completo"
+                  value={formData.nombre}
+                  onChange={(e) => handleInputChange("nombre", e.target.value)}
                   onBlur={validateForm}
                   className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
-              />
-              {triedSubmit && errors.nombre && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                />
+                {triedSubmit && errors.nombre && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
-                >
+                  >
                     <AlertCircle className="w-4 h-4" />
                     {errors.nombre}
-                </motion.p>
-              )}
+                  </motion.p>
+                )}
               </div>
 
-            {/* Contacto */}
+              {/* Contacto */}
               <div className="space-y-2">
                 <Label htmlFor="contacto" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
                   <Phone className="w-4 h-4 text-amber-400" />
                   Contacto <span className="text-amber-400">*</span>
-              </Label>
-              <Input
-                id="contacto"
-                type="text"
-                placeholder="Teléfono o email"
-                value={formData.contacto}
-                onChange={(e) => handleInputChange("contacto", e.target.value)}
+                </Label>
+                <Input
+                  id="contacto"
+                  type="text"
+                  placeholder="Teléfono o email"
+                  value={formData.contacto}
+                  onChange={(e) => handleInputChange("contacto", e.target.value)}
                   onBlur={validateForm}
                   className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
-              />
-              {triedSubmit && errors.contacto && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                />
+                {triedSubmit && errors.contacto && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
-                >
+                  >
                     <AlertCircle className="w-4 h-4" />
                     {errors.contacto}
-                </motion.p>
-              )}
+                  </motion.p>
+                )}
               </div>
 
-            {/* Fecha */}
+              {/* Fecha */}
               <div className="space-y-2">
                 <Label htmlFor="fecha" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-amber-400" />
                   Fecha <span className="text-amber-400">*</span>
-              </Label>
-              <Input
-                id="fecha"
-                type="date"
-                value={formData.fecha}
-                onChange={(e) => handleInputChange("fecha", e.target.value)}
+                </Label>
+                <Input
+                  id="fecha"
+                  type="date"
+                  value={formData.fecha}
+                  onChange={(e) => handleInputChange("fecha", e.target.value)}
                   onBlur={validateForm}
                   className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
-                min={new Date().toISOString().split("T")[0]}
-              />
-              {triedSubmit && errors.fecha && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  min={new Date().toISOString().split("T")[0]}
+                />
+                {triedSubmit && errors.fecha && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
-                >
+                  >
                     <AlertCircle className="w-4 h-4" />
                     {errors.fecha}
-                </motion.p>
-              )}
+                  </motion.p>
+                )}
               </div>
 
-            {/* Horario */}
-                            <div className="space-y-3">
+              {/* Horario */}
+              <div className="space-y-3">
                 <Label className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
                   <Clock className="w-4 h-4 text-amber-400" />
                   Horario <span className="text-amber-400">*</span>
-              </Label>
-                                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {horarios.map((horario) => {
-                  const disponibles = disponibilidad[horario] || 0
-                  const isNoAvailability = disponibles === 0
+                </Label>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {horarios.map((horario) => {
+                    const disponibles = disponibilidad[horario] || 0
+                    const isNoAvailability = disponibles === 0
                     const isSelected = formData.horario === horario
-                  return (
+                    return (
                       <button
-                      key={horario}
+                        key={horario}
                         type="button"
                         onClick={() => handleInputChange("horario", horario)}
-                      disabled={isNoAvailability}
-                                                  className={`
+                        disabled={isNoAvailability}
+                        className={`
                           relative p-3 sm:p-5 rounded-xl border-2 transition-all duration-300 font-medium
                           ${isSelected
                             ? 'border-amber-600 bg-gradient-to-br from-amber-700/40 to-orange-700/40 text-amber-100 shadow-lg shadow-amber-600/20'
@@ -510,88 +510,88 @@ export default function ReservationForm({
                     )
                   })}
                 </div>
-              {triedSubmit && errors.horario && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                {triedSubmit && errors.horario && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
-                >
+                  >
                     <AlertCircle className="w-4 h-4" />
                     {errors.horario}
-                </motion.p>
-              )}
+                  </motion.p>
+                )}
               </div>
 
-            {/* Cantidad de personas */}
+              {/* Cantidad de personas */}
               <div className="space-y-2">
                 <Label htmlFor="cantidad_personas" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
                   <Users className="w-4 h-4 text-amber-400" />
                   Cantidad de personas <span className="text-amber-400">*</span>
-              </Label>
-              <Input
-                id="cantidad_personas"
-                type="number"
-                min="1"
-                max="20"
-                value={formData.cantidad_personas}
-                onChange={e => handleInputChange("cantidad_personas", e.target.value)}
+                </Label>
+                <Input
+                  id="cantidad_personas"
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={formData.cantidad_personas}
+                  onChange={e => handleInputChange("cantidad_personas", e.target.value)}
                   className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
-              />
-              {triedSubmit && errors.cantidad_personas && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                />
+                {triedSubmit && errors.cantidad_personas && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
-                >
+                  >
                     <AlertCircle className="w-4 h-4" />
                     {errors.cantidad_personas}
-                </motion.p>
-              )}
+                  </motion.p>
+                )}
               </div>
 
-            {/* Notas */}
+              {/* Notas */}
               <div className="space-y-2">
                 <Label htmlFor="notas" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-amber-400" />
                   Notas adicionales (opcional)
-              </Label>
-              <Textarea
-                id="notas"
-                value={formData.notas}
-                onChange={(e) => handleInputChange("notas", e.target.value)}
+                </Label>
+                <Textarea
+                  id="notas"
+                  value={formData.notas}
+                  onChange={(e) => handleInputChange("notas", e.target.value)}
                   className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 resize-none focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
-                placeholder="Solicitudes especiales, alergias, celebraciones, etc."
+                  placeholder="Solicitudes especiales, alergias, celebraciones, etc."
                   rows={3}
-              />
-              <div className="flex justify-between items-center">
-                {triedSubmit && errors.notas && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                />
+                <div className="flex justify-between items-center">
+                  {triedSubmit && errors.notas && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
-                  >
+                    >
                       <AlertCircle className="w-4 h-4" />
                       {errors.notas}
-                  </motion.p>
-                )}
+                    </motion.p>
+                  )}
                   <p className="text-xs text-gray-500 ml-auto">
                     {formData.notas.length}/500
-                </p>
+                  </p>
                 </div>
               </div>
 
               {/* Checkbox novedades */}
               <div className="flex items-center gap-3">
-              <input
-                id="novedades"
-                type="checkbox"
-                checked={quiereNovedades}
-                onChange={e => setQuiereNovedades(e.target.checked)}
+                <input
+                  id="novedades"
+                  type="checkbox"
+                  checked={quiereNovedades}
+                  onChange={e => setQuiereNovedades(e.target.checked)}
                   className="accent-amber-500 w-4 h-4"
-              />
+                />
                 <Label htmlFor="novedades" className="font-source-sans text-amber-200 text-sm cursor-pointer">
-                Quiero recibir novedades sobre Eleven Club
-              </Label>
+                  Quiero recibir novedades sobre Eleven Club
+                </Label>
               </div>
 
               {/* Botón enviar */}
@@ -614,10 +614,10 @@ export default function ReservationForm({
                   </div>
                 )}
               </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </motion.div>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Modal de información de capacidad */}
       {showCapacityInfo && createPortal(
@@ -678,7 +678,7 @@ export default function ReservationForm({
           </motion.div>
         </div>,
         document.body
-    )}
-  </>
-)
+      )}
+    </>
+  )
 }

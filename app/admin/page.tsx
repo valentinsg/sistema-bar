@@ -7,23 +7,20 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { deleteReserva, getContador } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
-import { AnimatePresence, motion } from "framer-motion"
+import { motion } from "framer-motion"
 import { Activity, BarChart3, Calendar, Clock, Copy, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Phone, Search, TableIcon, Trash2, TrendingUp, User, Users } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { Area, AreaChart, Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
 
@@ -121,6 +118,170 @@ const calcularEstadisticasCompletas = async (local_id: string, fecha: string): P
   }
 }
 
+// OPTIMIZACIÓN: Componente memoizado para filas de reservas
+const ReservaRow = memo(({
+  reserva,
+  index,
+  onEdit,
+  onDelete,
+  formatDate,
+  getStatusBadge,
+  truncateEmail,
+  copyToClipboard
+}: {
+  reserva: any
+  index: number
+  onEdit: (reserva: any) => void
+  onDelete: (id: string, nombre: string) => void
+  formatDate: (date: string) => string
+  getStatusBadge: (fecha: string, horario: string) => React.ReactElement
+  truncateEmail: (email: string, maxLength?: number) => string
+  copyToClipboard: (text: string) => void
+}) => {
+  const shouldAnimate = index < 10 && index < 50
+  const TableRowElement = shouldAnimate ? motion.tr : 'tr'
+  const rowProps = shouldAnimate ? {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.2, delay: index * 0.02 }
+  } : {}
+
+  return (
+    <TableRowElement
+      className="border-amber-500/10 hover:bg-amber-500/5 transition-colors"
+      {...rowProps}
+    >
+      <TableCell>{getStatusBadge(reserva.fecha, reserva.horario)}</TableCell>
+      <TableCell className="text-amber-100">
+        <div className="font-medium">
+          {formatDate(reserva.fecha)}
+        </div>
+      </TableCell>
+      <TableCell className="text-amber-100">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-amber-400" />
+          <span className="font-medium">{reserva.horario}</span>
+        </div>
+      </TableCell>
+      <TableCell className="text-white">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+            <User className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-medium">{reserva.nombre}</span>
+        </div>
+      </TableCell>
+      <TableCell className="text-amber-100">
+        <div className="flex items-center gap-2 min-w-0">
+          <Phone className="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-pointer truncate hover:text-amber-200 transition-colors">
+                {truncateEmail(reserva.contacto)}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{reserva.contacto}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => copyToClipboard(reserva.contacto)}
+            className="h-6 w-6 p-0 hover:bg-amber-500/20 flex-shrink-0"
+          >
+            <Copy className="w-3 h-3 text-amber-400 hover:text-amber-200" />
+          </Button>
+        </div>
+      </TableCell>
+      <TableCell className="text-amber-100">
+        <Badge className="bg-blue-600/20 text-blue-300 border-blue-500/30">
+          <Users className="w-3 h-3 mr-1" />
+          {reserva.cantidad_personas}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-amber-100 max-w-48">
+        {reserva.notas ? (
+          <div className="flex items-start gap-2">
+            <MessageSquare className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="text-amber-200 line-clamp-2 break-words">
+                {reserva.notas}
+              </p>
+              {reserva.notas.length > 60 && (
+                <button
+                  className="text-yellow-400 hover:text-yellow-300 text-xs mt-1 transition-colors"
+                  onClick={() => {
+                    toast.info("Nota completa", { description: reserva.notas })
+                  }}
+                >
+                  Ver completo
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <span className="text-amber-500/50 text-sm italic">Sin notas</span>
+        )}
+      </TableCell>
+      <TableCell className="text-amber-300/70 text-sm">
+        {new Date(reserva.created_at).toLocaleDateString("es-AR")}
+      </TableCell>
+      <TableCell className="text-center">
+        <div className="flex gap-1 justify-center">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
+                onClick={() => onEdit(reserva)}
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/20 hover:text-red-300"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-slate-800 border-amber-500/20">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-white font-legquinne">
+                  ¿Eliminar reserva?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-amber-300/70">
+                  ¿Estás seguro de que quieres eliminar la reserva de <strong className="text-amber-200">{reserva.nombre}</strong>?
+                  Esta acción no se puede deshacer.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-slate-700 text-white border-amber-500/30 hover:bg-slate-600">
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(reserva.id, reserva.nombre)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </TableCell>
+    </TableRowElement>
+  )
+})
+
+ReservaRow.displayName = 'ReservaRow'
+
 export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [adminData, setAdminData] = useState<AdminData | null>(null)
@@ -148,21 +309,29 @@ export default function AdminPage() {
   const [sortConfig, setSortConfig] = useState({ key: "fecha", direction: "ascending" })
   const [sortedReservas, setSortedReservas] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
 
   const router = useRouter()
 
-  // Funciones utilitarias
-  const formatDate = (dateString: string) => {
-    // Agregar hora para evitar problemas de zona horaria
+  // OPTIMIZACIÓN: Debounce para búsqueda
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // OPTIMIZACIÓN: Callbacks memoizados para evitar re-renders
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString + 'T12:00:00').toLocaleDateString("es-AR", {
       weekday: "short",
       year: "numeric",
       month: "short",
       day: "numeric",
     })
-  }
+  }, [])
 
-  const getStatus = (fecha: string, horario: string) => {
+  const getStatus = useCallback((fecha: string, horario: string) => {
     const reservaDateTime = new Date(`${fecha}T${horario}`)
     const now = new Date()
 
@@ -181,9 +350,9 @@ export default function AdminPage() {
       return "Pasada"
     }
     return "Hoy"
-  }
+  }, [])
 
-  const getStatusBadge = (fecha: string, horario: string) => {
+  const getStatusBadge = useCallback((fecha: string, horario: string) => {
     const status = getStatus(fecha, horario)
     switch (status) {
       case "Pasada":
@@ -195,9 +364,9 @@ export default function AdminPage() {
       default:
         return <Badge variant="secondary">Pasada</Badge>
     }
-  }
+  }, [getStatus])
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text)
       toast.success('¡Copiado al portapapeles!', {
@@ -208,14 +377,14 @@ export default function AdminPage() {
       console.error('Error al copiar:', err)
       toast.error('Error al copiar')
     }
-  }
+  }, [])
 
-  const truncateEmail = (email: string, maxLength: number = 25) => {
+  const truncateEmail = useCallback((email: string, maxLength: number = 25) => {
     if (email.length <= maxLength) return email
     return email.substring(0, maxLength) + '...'
-  }
+  }, [])
 
-  const downloadCSV = () => {
+  const downloadCSV = useCallback(() => {
     const headers = ["ID", "Nombre", "Contacto", "Fecha", "Horario", "Personas", "Creado"]
     const csvContent = [
       headers.join(","),
@@ -241,14 +410,14 @@ export default function AdminPage() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  }
+  }, [reservas])
 
-  // Handler functions
-  const handleVerSitio = () => {
+  // OPTIMIZACIÓN: Handlers memoizados
+  const handleVerSitio = useCallback(() => {
     window.open(window.location.origin, '_blank', 'noopener,noreferrer')
-  }
+  }, [])
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     if (adminData?.id) {
       await supabase
         .from("usuarios_admin")
@@ -258,9 +427,98 @@ export default function AdminPage() {
 
     localStorage.removeItem("admin_session")
     router.push("/admin/login")
-  }
+  }, [adminData?.id, router])
 
-  const handleUpdateContador = async (increment: boolean) => {
+  // OPTIMIZACIÓN: Analytics memoizados para evitar cálculos repetidos
+  const analyticsData = useMemo(() => {
+    // Calcular una sola vez todos los analytics
+    const reservasConNotas = reservas.filter(r => r.notas && r.notas.trim()).length
+    const totalPersonas = reservas.reduce((acc, r) => acc + r.cantidad_personas, 0)
+    const promedioPersonas = reservas.length > 0 ? (totalPersonas / reservas.length) : 0
+
+    // Horario más popular
+    const horarios = reservas.reduce((acc, r) => {
+      acc[r.horario] = (acc[r.horario] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    const horarioPopular = Object.entries(horarios).sort(([, a], [, b]) => (b as number) - (a as number))[0]
+
+    // Status distribution
+    const statusDistribution = {
+      hoy: reservas.filter(r => getStatus(r.fecha, r.horario) === "Hoy").length,
+      proximas: reservas.filter(r => getStatus(r.fecha, r.horario) === "Próxima").length
+    }
+
+    return {
+      reservasConNotas,
+      totalPersonas,
+      promedioPersonas,
+      horarioPopular: horarioPopular ? {
+        horario: horarioPopular[0] as string,
+        cantidad: horarioPopular[1] as number
+      } : { horario: 'N/A', cantidad: 0 },
+      statusDistribution
+    }
+  }, [reservas, getStatus])
+
+  // OPTIMIZACIÓN: Chart data memoizado con dependencias específicas
+  const chartData = useMemo(() => {
+    const today = new Date()
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(today)
+      date.setDate(date.getDate() - i)
+      const dateStr = date.toISOString().split('T')[0]
+      const reservasDelDia = reservas.filter(r => r.fecha === dateStr)
+      const personasDelDia = reservasDelDia.reduce((acc, r) => acc + r.cantidad_personas, 0)
+
+      return {
+        fecha: date.toLocaleDateString("es-AR", { month: "short", day: "numeric" }),
+        reservas: reservasDelDia.length,
+        personas: personasDelDia
+      }
+    }).reverse()
+  }, [reservas])
+
+  const turnosData = useMemo(() => {
+    if (!plazasStats.primerTurno || !plazasStats.segundoTurno) {
+      return [
+        { name: "20:15", value: 0, total: 30, color: chartColors.primary },
+        { name: "22:30", value: 0, total: 30, color: chartColors.accent }
+      ]
+    }
+
+    return [
+      {
+        name: "20:15",
+        value: plazasStats.primerTurno.ocupadas || 0,
+        total: plazasStats.primerTurno.limite || 30,
+        color: chartColors.primary
+      },
+      {
+        name: "22:30",
+        value: plazasStats.segundoTurno.ocupadas || 0,
+        total: plazasStats.segundoTurno.limite || 30,
+        color: chartColors.accent
+      }
+    ]
+  }, [plazasStats])
+
+  const statusData = useMemo(() => [
+    { name: "Hoy", value: analyticsData.statusDistribution.hoy, color: chartColors.success },
+    { name: "Próximas", value: analyticsData.statusDistribution.proximas, color: chartColors.warning }
+  ], [analyticsData.statusDistribution])
+
+  // OPTIMIZACIÓN: Filtrar reservas solo cuando cambia el término de búsqueda debounced
+  const filteredReservas = useMemo(() => {
+    if (!debouncedSearchTerm) return sortedReservas
+
+    return sortedReservas.filter(reserva =>
+      reserva.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    )
+  }, [sortedReservas, debouncedSearchTerm])
+
+  // OPTIMIZACIÓN: Handlers memoizados para operaciones del contador
+  const handleUpdateContador = useCallback(async (increment: boolean) => {
     if (!adminData?.local_id) return
 
     const nuevoValor = Math.max(0, personasActuales + (increment ? 1 : -1))
@@ -289,9 +547,9 @@ export default function AdminPage() {
       setPersonasActuales(personasActuales)
       toast.error("Error al actualizar el contador")
     }
-  }
+  }, [adminData?.local_id, personasActuales])
 
-  const handleBulkUpdateContador = async (changes: number) => {
+  const handleBulkUpdateContador = useCallback(async (changes: number) => {
     if (!adminData?.local_id) return
 
     const nuevoValor = Math.max(0, personasActuales + changes)
@@ -320,9 +578,9 @@ export default function AdminPage() {
       setPersonasActuales(personasActuales)
       toast.error("Error al actualizar el contador")
     }
-  }
+  }, [adminData?.local_id, personasActuales])
 
-  const handleResetContador = async () => {
+  const handleResetContador = useCallback(async () => {
     if (!adminData?.local_id) return
 
     setPersonasActuales(0)
@@ -348,9 +606,9 @@ export default function AdminPage() {
       console.error("Error al resetear contador:", error)
       toast.error("Error al resetear el contador")
     }
-  }
+  }, [adminData?.local_id])
 
-  const handleDeleteReserva = async (id: string, nombre: string) => {
+  const handleDeleteReserva = useCallback(async (id: string, nombre: string) => {
     const success = await deleteReserva(id)
     if (success) {
       setReservas(prev => prev.filter(r => r.id !== id))
@@ -363,9 +621,9 @@ export default function AdminPage() {
     } else {
       toast.error("Error al eliminar la reserva")
     }
-  }
+  }, [adminData?.local_id])
 
-  const handleEditReserva = async (reservaData: any) => {
+  const handleEditReserva = useCallback(async (reservaData: any) => {
     if (!adminData?.local_id) return
 
     if (reservaData.cantidad_personas > 20) {
@@ -407,71 +665,7 @@ export default function AdminPage() {
       console.error("Error al actualizar reserva:", error)
       toast.error("Error al actualizar la reserva")
     }
-  }
-
-  // Datos para los gráficos
-  const chartData = useMemo(() => {
-    const today = new Date()
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
-      const dateStr = date.toISOString().split('T')[0]
-      const reservasDelDia = reservas.filter(r => r.fecha === dateStr)
-      const personasDelDia = reservasDelDia.reduce((acc, r) => acc + r.cantidad_personas, 0)
-
-      return {
-        fecha: date.toLocaleDateString("es-AR", { month: "short", day: "numeric" }),
-        reservas: reservasDelDia.length,
-        personas: personasDelDia
-      }
-    }).reverse()
-
-    return last7Days
-  }, [reservas])
-
-  const turnosData = useMemo(() => {
-    // Validar que plazasStats tenga las propiedades necesarias
-    if (!plazasStats.primerTurno || !plazasStats.segundoTurno) {
-      return [
-        { name: "20:15", value: 0, total: 30, color: chartColors.primary },
-        { name: "22:30", value: 0, total: 30, color: chartColors.accent }
-      ]
-    }
-
-    return [
-      {
-        name: "20:15",
-        value: plazasStats.primerTurno.ocupadas || 0,
-        total: plazasStats.primerTurno.limite || 30,
-        color: chartColors.primary
-      },
-      {
-        name: "22:30",
-        value: plazasStats.segundoTurno.ocupadas || 0,
-        total: plazasStats.segundoTurno.limite || 30,
-        color: chartColors.accent
-      }
-    ]
-  }, [plazasStats])
-
-  const statusData = useMemo(() => {
-    const hoy = reservas.filter(r => getStatus(r.fecha, r.horario) === "Hoy").length
-    const proximas = reservas.filter(r => getStatus(r.fecha, r.horario) === "Próxima").length
-
-    return [
-      { name: "Hoy", value: hoy, color: chartColors.success },
-      { name: "Próximas", value: proximas, color: chartColors.warning }
-    ]
-  }, [reservas])
-
-  // Filtrar reservas por búsqueda
-  const filteredReservas = useMemo(() => {
-    if (!searchTerm) return sortedReservas
-
-    return sortedReservas.filter(reserva =>
-      reserva.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [sortedReservas, searchTerm])
+  }, [adminData?.local_id, editingReserva])
 
   useEffect(() => {
     const verificarAutenticacion = async () => {
@@ -526,12 +720,13 @@ export default function AdminPage() {
       try {
         const today = new Date().toISOString().split("T")[0]
 
-        // OPTIMIZACIÓN: Usar Promise.all para consultas paralelas con timeout
+        // OPTIMIZACIÓN: Usar Promise.all para consultas paralelas con timeout y mejor cache
         const [reservasResult, contadorData, stats] = await Promise.all([
           supabase
             .from("reservas")
             .select("*")
-            .eq("local_id", adminData.local_id),
+            .eq("local_id", adminData.local_id)
+            .order('created_at', { ascending: false }), // Ordenar en DB en lugar del cliente
           getContador(adminData.local_id),
           calcularEstadisticasCompletas(adminData.local_id, today)
         ])
@@ -552,10 +747,12 @@ export default function AdminPage() {
 
     cargarDatos()
 
-    // OPTIMIZACIÓN: Subscription más controlada con cleanup
+    // OPTIMIZACIÓN: Subscription más controlada con cleanup y throttling
     let reservasSubscription: any = null
     let contadorSubscription: any = null
     let isActive = true
+    let lastUpdate = Date.now()
+    const UPDATE_THROTTLE = 2000 // Máximo una actualización cada 2 segundos
 
     try {
       // CRÍTICO: Solo usar subscriptions si la pestaña está activa
@@ -571,8 +768,10 @@ export default function AdminPage() {
               filter: `local_id=eq.${adminData.local_id}`
             },
             () => {
-              // OPTIMIZACIÓN: Solo recargar si está activo y visible
-              if (isActive && !document.hidden) {
+              // OPTIMIZACIÓN: Throttling para evitar updates excesivos
+              const now = Date.now()
+              if (isActive && !document.hidden && (now - lastUpdate) > UPDATE_THROTTLE) {
+                lastUpdate = now
                 cargarDatos()
               }
             }
@@ -590,8 +789,10 @@ export default function AdminPage() {
               filter: `local_id=eq.${adminData.local_id}`
             },
             (payload) => {
-              // OPTIMIZACIÓN: Solo actualizar si está activo
-              if (isActive && payload.new && 'cantidad' in payload.new) {
+              // OPTIMIZACIÓN: Solo actualizar si está activo y no hay throttle
+              const now = Date.now()
+              if (isActive && payload.new && 'cantidad' in payload.new && (now - lastUpdate) > 1000) {
+                lastUpdate = now
                 setPersonasActuales(payload.new.cantidad as number)
               }
             }
@@ -602,9 +803,26 @@ export default function AdminPage() {
       console.error('Error setting up subscriptions:', error)
     }
 
+    // OPTIMIZACIÓN: Listener para visibilidad para pausar subscriptions
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Pausar actividad cuando la pestaña no está visible
+        isActive = false
+      } else {
+        // Reactivar y hacer un refresh cuando vuelve a estar visible
+        isActive = true
+        if (Date.now() - lastUpdate > 5000) { // Solo si hace más de 5s que no se actualiza
+          cargarDatos()
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     // CRÍTICO: Cleanup inmediato cuando el componente se desmonta
     return () => {
       isActive = false
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       try {
         if (reservasSubscription) {
           reservasSubscription.unsubscribe()
@@ -1017,265 +1235,20 @@ export default function AdminPage() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              <AnimatePresence>
-                                {filteredReservas.map((r, index) => (
-                                  <motion.tr
-                                    key={r.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="border-amber-500/10 hover:bg-amber-500/5 transition-colors"
-                                  >
-                                    <TableCell>{getStatusBadge(r.fecha, r.horario)}</TableCell>
-                                    <TableCell className="text-amber-100">
-                                      <div className="font-medium">
-                                        {formatDate(r.fecha)}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-amber-100">
-                                      <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-amber-400" />
-                                        <span className="font-medium">{r.horario}</span>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-white">
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
-                                          <User className="w-4 h-4 text-white" />
-                                        </div>
-                                        <span className="font-medium">{r.nombre}</span>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-amber-100">
-                                      <div className="flex items-center gap-2 min-w-0">
-                                        <Phone className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <span className="cursor-pointer truncate hover:text-amber-200 transition-colors">
-                                              {truncateEmail(r.contacto)}
-                                            </span>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>{r.contacto}</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          onClick={() => copyToClipboard(r.contacto)}
-                                          className="h-6 w-6 p-0 hover:bg-amber-500/20 flex-shrink-0"
-                                        >
-                                          <Copy className="w-3 h-3 text-amber-400 hover:text-amber-200" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-amber-100">
-                                      <Badge className="bg-blue-600/20 text-blue-300 border-blue-500/30">
-                                        <Users className="w-3 h-3 mr-1" />
-                                        {r.cantidad_personas}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-amber-100 max-w-48">
-                                      {r.notas ? (
-                                        <div className="flex items-start gap-2">
-                                          <MessageSquare className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                                          <div className="text-sm">
-                                            <p className="text-amber-200 line-clamp-2 break-words">
-                                              {r.notas}
-                                            </p>
-                                            {r.notas.length > 60 && (
-                                              <button
-                                                className="text-yellow-400 hover:text-yellow-300 text-xs mt-1 transition-colors"
-                                                onClick={() => {
-                                                  toast.info("Nota completa", { description: r.notas })
-                                                }}
-                                              >
-                                                Ver completo
-                                              </button>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <span className="text-amber-500/50 text-sm italic">Sin notas</span>
-                                      )}
-                                    </TableCell>
-                                    <TableCell className="text-amber-300/70 text-sm">
-                                      {new Date(r.created_at).toLocaleDateString("es-AR")}
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                      <div className="flex gap-1 justify-center">
-                                        <Dialog open={isEditDialogOpen && editingReserva?.id === r.id} onOpenChange={(open) => {
-                                          setIsEditDialogOpen(open)
-                                          if (!open) setEditingReserva(null)
-                                        }}>
-                                          <DialogTrigger asChild>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              className="h-8 w-8 p-0 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
-                                              onClick={() => setEditingReserva(r)}
-                                            >
-                                              <Edit className="w-4 h-4" />
-                                            </Button>
-                                          </DialogTrigger>
-                                          <DialogContent className="bg-slate-800 border-amber-500/20 text-white max-w-2xl">
-                                            <DialogHeader>
-                                              <DialogTitle className="font-legquinne text-amber-100">
-                                                Editar Reserva
-                                              </DialogTitle>
-                                              <DialogDescription className="text-amber-300/70">
-                                                Modifica los datos de la reserva de {editingReserva?.nombre}
-                                              </DialogDescription>
-                                            </DialogHeader>
-                                            <div className="grid gap-4 py-4">
-                                              <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="nombre" className="text-right text-amber-300">
-                                                  Nombre
-                                                </Label>
-                                                <Input
-                                                  id="nombre"
-                                                  value={editingReserva?.nombre || ""}
-                                                  onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, nombre: e.target.value }))}
-                                                  className="col-span-3 bg-slate-700 border-amber-500/30 text-white"
-                                                />
-                                              </div>
-                                              <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="contacto" className="text-right text-amber-300">
-                                                  Contacto
-                                                </Label>
-                                                <Input
-                                                  id="contacto"
-                                                  value={editingReserva?.contacto || ""}
-                                                  onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, contacto: e.target.value }))}
-                                                  className="col-span-3 bg-slate-700 border-amber-500/30 text-white"
-                                                />
-                                              </div>
-                                              <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="fecha" className="text-right text-amber-300">
-                                                  Fecha
-                                                </Label>
-                                                <Input
-                                                  id="fecha"
-                                                  type="date"
-                                                  value={editingReserva?.fecha || ""}
-                                                  onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, fecha: e.target.value }))}
-                                                  className="col-span-3 bg-slate-700 border-amber-500/30 text-white"
-                                                />
-                                              </div>
-                                              <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="horario" className="text-right text-amber-300">
-                                                  Horario
-                                                </Label>
-                                                <Select
-                                                  value={editingReserva?.horario || ""}
-                                                  onValueChange={(value) => setEditingReserva((prev: any) => ({ ...prev, horario: value }))}
-                                                >
-                                                  <SelectTrigger className="col-span-3 bg-slate-700 border-amber-500/30 text-white">
-                                                    <SelectValue placeholder="Selecciona un horario" />
-                                                  </SelectTrigger>
-                                                  <SelectContent className="bg-slate-700 border-amber-500/30">
-                                                    {["20:15", "22:30"].map((horario) => (
-                                                      <SelectItem key={horario} value={horario} className="text-white hover:bg-slate-600">
-                                                        {horario}
-                                                      </SelectItem>
-                                                    ))}
-                                                  </SelectContent>
-                                                </Select>
-                                              </div>
-                                              <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="personas" className="text-right text-amber-300">
-                                                  Personas
-                                                </Label>
-                                                <Input
-                                                  id="personas"
-                                                  type="number"
-                                                  min="1"
-                                                  max="20"
-                                                  value={editingReserva?.cantidad_personas || ""}
-                                                  onChange={(e) => {
-                                                    let value = parseInt(e.target.value)
-                                                    if (value > 20) value = 20
-                                                    if (value < 1) value = 1
-                                                    setEditingReserva((prev: any) => ({ ...prev, cantidad_personas: value }))
-                                                  }}
-                                                  className="col-span-3 bg-slate-700 border-amber-500/30 text-white"
-                                                />
-                                              </div>
-                                              <div className="grid grid-cols-4 items-start gap-4">
-                                                <Label htmlFor="notas" className="text-right pt-2 text-amber-300">
-                                                  Notas
-                                                </Label>
-                                                <Textarea
-                                                  id="notas"
-                                                  value={editingReserva?.notas || ""}
-                                                  onChange={(e) => setEditingReserva((prev: any) => ({ ...prev, notas: e.target.value }))}
-                                                  className="col-span-3 bg-slate-700 border-amber-500/30 text-white resize-none"
-                                                  placeholder="Solicitudes especiales, alergias, celebraciones, etc."
-                                                  rows={3}
-                                                  maxLength={500}
-                                                />
-                                              </div>
-                                            </div>
-                                            <DialogFooter>
-                                              <Button
-                                                onClick={() => {
-                                                  setIsEditDialogOpen(false)
-                                                  setEditingReserva(null)
-                                                }}
-                                                variant="outline"
-                                                className="bg-slate-700 text-white border-amber-500/30 hover:bg-slate-600"
-                                              >
-                                                Cancelar
-                                              </Button>
-                                              <Button
-                                                onClick={() => handleEditReserva(editingReserva)}
-                                                className="bg-amber-600 hover:bg-amber-700"
-                                              >
-                                                Guardar Cambios
-                                              </Button>
-                                            </DialogFooter>
-                                          </DialogContent>
-                                        </Dialog>
-
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/20 hover:text-red-300"
-                                            >
-                                              <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent className="bg-slate-800 border-amber-500/20">
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle className="text-white font-legquinne">
-                                                ¿Eliminar reserva?
-                                              </AlertDialogTitle>
-                                              <AlertDialogDescription className="text-amber-300/70">
-                                                ¿Estás seguro de que quieres eliminar la reserva de <strong className="text-amber-200">{r.nombre}</strong>?
-                                                Esta acción no se puede deshacer.
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel className="bg-slate-700 text-white border-amber-500/30 hover:bg-slate-600">
-                                                Cancelar
-                                              </AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() => handleDeleteReserva(r.id, r.nombre)}
-                                                className="bg-red-600 hover:bg-red-700"
-                                              >
-                                                Eliminar
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      </div>
-                                    </TableCell>
-                                  </motion.tr>
-                                ))}
-                              </AnimatePresence>
+                              {/* OPTIMIZACIÓN: Usando componente memoizado para evitar re-renders */}
+                              {filteredReservas.map((r, index) => (
+                                <ReservaRow
+                                  key={r.id}
+                                  reserva={r}
+                                  index={index}
+                                  onEdit={setEditingReserva}
+                                  onDelete={handleDeleteReserva}
+                                  formatDate={formatDate}
+                                  getStatusBadge={getStatusBadge}
+                                  truncateEmail={truncateEmail}
+                                  copyToClipboard={copyToClipboard}
+                                />
+                              ))}
                             </TableBody>
                           </Table>
                         </div>
@@ -1506,14 +1479,7 @@ export default function AdminPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-legquinne font-bold text-white mb-1">
-                        {(() => {
-                          const horarios = reservas.reduce((acc, r) => {
-                            acc[r.horario] = (acc[r.horario] || 0) + 1
-                            return acc
-                          }, {} as Record<string, number>)
-                          const popular = Object.entries(horarios).sort(([, a], [, b]) => (b as number) - (a as number))[0]
-                          return popular ? popular[0] : 'N/A'
-                        })()}
+                        {analyticsData.horarioPopular.horario}
                       </div>
                       <p className="text-xs text-amber-300/70">
                         turno preferido
@@ -1521,14 +1487,7 @@ export default function AdminPage() {
                       <div className="flex items-center mt-2">
                         <div className="w-3 h-3 mr-1 bg-amber-400 rounded-full" />
                         <span className="text-xs text-amber-400">
-                          {(() => {
-                            const horarios = reservas.reduce((acc, r) => {
-                              acc[r.horario] = (acc[r.horario] || 0) + 1
-                              return acc
-                            }, {} as Record<string, number>)
-                            const popular = Object.entries(horarios).sort(([, a], [, b]) => (b as number) - (a as number))[0]
-                            return popular ? `${popular[1]} reservas` : '0 reservas'
-                          })()}
+                          {analyticsData.horarioPopular.cantidad} reservas
                         </span>
                       </div>
                     </CardContent>
@@ -1568,7 +1527,7 @@ export default function AdminPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-legquinne font-bold text-white mb-1">
-                        {reservas.filter(r => r.notas && r.notas.trim()).length}
+                        {analyticsData.reservasConNotas}
                       </div>
                       <p className="text-xs text-purple-300/70">
                         solicitudes especiales
@@ -1576,8 +1535,8 @@ export default function AdminPage() {
                       <div className="flex items-center mt-2">
                         <div className="w-3 h-3 mr-1 bg-purple-400 rounded-full" />
                         <span className="text-xs text-purple-400">
-                          {reservas.length > 0 ?
-                            Math.round((reservas.filter(r => r.notas && r.notas.trim()).length / reservas.length) * 100)
+                          {analyticsData.reservasConNotas > 0 ?
+                            Math.round((analyticsData.reservasConNotas / reservas.length) * 100)
                             : 0}% del total
                         </span>
                       </div>

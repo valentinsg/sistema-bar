@@ -49,7 +49,7 @@ export default function HomePage() {
             className="flex justify-center"
           >
             <Image
-              src="/logo-eleven.webp"
+              src="/eleven_club_logo.webp"
               alt="Eleven Club"
               width={150}
               height={150}
@@ -272,7 +272,7 @@ export default function HomePage() {
 
           {/* Branding */}
           <div className="flex flex-col items-center md:items-start gap-4">
-            <Image src="/logo-eleven.webp" alt="Eleven Club" width={64} height={64} />
+            <Image src="/eleven_club_logo.webp" alt="Eleven Club" width={64} height={64} />
             <p className="text-lg font-legquinne">Eleven Club</p>
             <p className="text-orange-300/70 text-sm">Eleva tus sentidos.</p>
 
