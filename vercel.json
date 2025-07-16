@@ -1,12 +1,12 @@
 {
   "functions": {
     "app/api/**/route.ts": {
-      "maxDuration": 10,
-      "memory": 512
+      "maxDuration": 5,
+      "memory": 128
     },
     "app/api/contador/sse/route.ts": {
-      "maxDuration": 30,
-      "memory": 1024
+      "maxDuration": 5,
+      "memory": 128
     },
     "app/api/health/route.ts": {
       "maxDuration": 5,
