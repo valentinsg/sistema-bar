@@ -153,7 +153,8 @@ export default function AdminPage() {
 
   // Funciones utilitarias
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-AR", {
+    // Agregar hora para evitar problemas de zona horaria
+    return new Date(dateString + 'T12:00:00').toLocaleDateString("es-AR", {
       weekday: "short",
       year: "numeric",
       month: "short",

@@ -66,6 +66,8 @@ const config: Config = {
   			'legquinne': ['Legquinne', 'serif'],
   			'sans': ['Inter', 'system-ui', 'sans-serif'],
   			'source-sans': ['var(--font-source-sans)', 'system-ui', 'sans-serif'],
+  			'oswald': ['Oswald', 'sans-serif'],
+  			'montserrat': ['Montserrat', 'sans-serif'],
   		},
   		fontSize: {
   			'2xs': ['0.625rem', { lineHeight: '0.75rem' }],
