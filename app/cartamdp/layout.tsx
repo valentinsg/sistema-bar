@@ -19,8 +19,8 @@ export default function CartaLayout({
   children: React.ReactNode
 }) {
   return (
-    <div>
+    <>
       {children}
-    </div>
+    </>
   )
 }
