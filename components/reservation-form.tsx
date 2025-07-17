@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { saveReserva } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
-import { enviarConfirmacionWhatsApp } from "@/lib/whatsapp"
 import { motion } from "framer-motion"
 import { AlertCircle, Calendar, Clock, Info, Loader2, MessageSquare, Minus, Phone, Plus, User, Users } from "lucide-react"
 import Image from "next/image"
@@ -290,15 +289,6 @@ export default function ReservationForm({
         cantidad_personas: formData.cantidad_personas,
         quiere_newsletter: quiereNovedades,
         notas: formData.notas.trim() || null,
-      })
-
-      // Enviar confirmación por WhatsApp
-      enviarConfirmacionWhatsApp({
-        nombre: formData.nombre.trim(),
-        fecha: formData.fecha,
-        horario: formData.horario,
-        cantidad_personas: formData.cantidad_personas,
-        whatsapp: formData.whatsapp.trim()
       })
 
       if (quiereNovedades) {
