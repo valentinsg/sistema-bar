@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { type Reserva } from "@/lib/storage"
 import { motion } from "framer-motion"
-import { Calendar, ChevronLeft, ChevronRight, Clock, Copy, Info, Loader2, Phone, User, Users } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Clock, Copy, Info, Loader2, MessageSquare, Phone, User, Users } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -451,26 +451,53 @@ export function CalendarUI({
                                       <p className="text-orange-200 text-sm">#{index + 1}</p>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <span className="text-gray-300 text-base truncate cursor-pointer">
-                                          {truncateEmail(reserva.contacto, 25)}
-                                        </span>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>{reserva.contacto}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => copyToClipboard(reserva.contacto)}
-                                      className="h-8 w-8 p-0 hover:bg-gray-600/50 flex-shrink-0 ml-2"
-                                    >
-                                      <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
-                                    </Button>
+                                  <div className="space-y-2">
+                                    {/* Email */}
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <MessageSquare className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="text-gray-300 text-sm truncate cursor-pointer">
+                                            {truncateEmail(reserva.email || reserva.contacto, 20)}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>{reserva.email || reserva.contacto}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => copyToClipboard(reserva.email || reserva.contacto)}
+                                        className="h-6 w-6 p-0 hover:bg-gray-600/50 flex-shrink-0"
+                                      >
+                                        <Copy className="w-3 h-3 text-gray-400 hover:text-white" />
+                                      </Button>
+                                    </div>
+                                    {/* WhatsApp */}
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <Phone className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="text-gray-300 text-sm truncate cursor-pointer">
+                                            {reserva.whatsapp || 'No disponible'}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>{reserva.whatsapp || 'No disponible'}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      {reserva.whatsapp && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => copyToClipboard(reserva.whatsapp)}
+                                          className="h-6 w-6 p-0 hover:bg-gray-600/50 flex-shrink-0"
+                                        >
+                                          <Copy className="w-3 h-3 text-gray-400 hover:text-white" />
+                                        </Button>
+                                      )}
+                                    </div>
                                   </div>
                                   <div className="flex items-center gap-3">
                                     <Clock className="w-5 h-5 text-orange-400" />
@@ -499,26 +526,53 @@ export function CalendarUI({
                                     <span className="text-orange-300 text-xs font-medium ml-2 flex-shrink-0">#{index + 1}</span>
                                   </div>
 
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <span className="text-gray-300 text-sm truncate cursor-pointer flex-1">
-                                          {truncateEmail(reserva.contacto, 30)}
-                                        </span>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>{reserva.contacto}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => copyToClipboard(reserva.contacto)}
-                                      className="h-6 w-6 p-0 hover:bg-gray-600/50 flex-shrink-0"
-                                    >
-                                      <Copy className="w-3 h-3 text-gray-400 hover:text-white" />
-                                    </Button>
+                                  <div className="space-y-1 mb-2">
+                                    {/* Email móvil */}
+                                    <div className="flex items-center gap-2">
+                                      <MessageSquare className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className="text-gray-300 text-xs truncate cursor-pointer flex-1">
+                                            {truncateEmail(reserva.email || reserva.contacto, 25)}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>{reserva.email || reserva.contacto}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => copyToClipboard(reserva.email || reserva.contacto)}
+                                        className="h-5 w-5 p-0 hover:bg-gray-600/50 flex-shrink-0"
+                                      >
+                                        <Copy className="w-2 h-2 text-gray-400 hover:text-white" />
+                                      </Button>
+                                    </div>
+                                    {/* WhatsApp móvil */}
+                                    {reserva.whatsapp && (
+                                      <div className="flex items-center gap-2">
+                                        <Phone className="w-3 h-3 text-green-400 flex-shrink-0" />
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span className="text-gray-300 text-xs truncate cursor-pointer flex-1">
+                                              {reserva.whatsapp}
+                                            </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>{reserva.whatsapp}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => copyToClipboard(reserva.whatsapp)}
+                                          className="h-5 w-5 p-0 hover:bg-gray-600/50 flex-shrink-0"
+                                        >
+                                          <Copy className="w-2 h-2 text-gray-400 hover:text-white" />
+                                        </Button>
+                                      </div>
+                                    )}
                                   </div>
 
                                   <div className="flex items-center justify-between">

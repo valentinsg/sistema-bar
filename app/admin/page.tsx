@@ -172,26 +172,60 @@ const ReservaRow = memo(({
         </div>
       </TableCell>
       <TableCell className="text-amber-100">
-        <div className="flex items-center gap-2 min-w-0">
-          <Phone className="w-4 h-4 text-amber-400 flex-shrink-0" />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-pointer truncate hover:text-amber-200 transition-colors">
-                {truncateEmail(reserva.contacto)}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{reserva.contacto}</p>
-            </TooltipContent>
-          </Tooltip>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => copyToClipboard(reserva.contacto)}
-            className="h-6 w-6 p-0 hover:bg-amber-500/20 flex-shrink-0"
-          >
-            <Copy className="w-3 h-3 text-amber-400 hover:text-amber-200" />
-          </Button>
+        <div className="space-y-1 min-w-0">
+          {/* Email */}
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-3 h-3 text-blue-400 flex-shrink-0" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-pointer truncate hover:text-amber-200 transition-colors text-xs">
+                  {truncateEmail(reserva.email || reserva.contacto, 20)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{reserva.email || reserva.contacto}</p>
+              </TooltipContent>
+            </Tooltip>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => copyToClipboard(reserva.email || reserva.contacto)}
+              className="h-5 w-5 p-0 hover:bg-amber-500/20 flex-shrink-0"
+            >
+              <Copy className="w-2 h-2 text-amber-400 hover:text-amber-200" />
+            </Button>
+          </div>
+
+          {/* WhatsApp */}
+          <div className="flex items-center gap-2">
+            <Phone className="w-3 h-3 text-green-400 flex-shrink-0" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-pointer truncate hover:text-amber-200 transition-colors text-xs">
+                  {reserva.whatsapp || truncateEmail(reserva.contacto, 20)}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{reserva.whatsapp || reserva.contacto}</p>
+              </TooltipContent>
+            </Tooltip>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => copyToClipboard(reserva.whatsapp || reserva.contacto)}
+              className="h-5 w-5 p-0 hover:bg-amber-500/20 flex-shrink-0"
+            >
+              <Copy className="w-2 h-2 text-amber-400 hover:text-amber-200" />
+            </Button>
+          </div>
+
+          {/* Indicador de Newsletter */}
+          {reserva.quiere_newsletter && (
+            <div className="flex items-center gap-1 mt-1">
+              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <span className="text-xs text-green-400 font-medium">Newsletter</span>
+            </div>
+          )}
         </div>
       </TableCell>
       <TableCell className="text-amber-100">
@@ -626,8 +660,8 @@ export default function AdminPage() {
   const handleEditReserva = useCallback(async (reservaData: any) => {
     if (!adminData?.local_id) return
 
-    if (reservaData.cantidad_personas > 20) {
-      toast.error("El máximo de personas por reserva es 20")
+    if (reservaData.cantidad_personas > 6) {
+      toast.error("El máximo de personas por reserva es 6. Para más personas, contactar al: 0223-5357224")
       return
     }
 
@@ -636,10 +670,13 @@ export default function AdminPage() {
         .from("reservas")
         .update({
           nombre: reservaData.nombre,
-          contacto: reservaData.contacto,
+          email: reservaData.email,
+          whatsapp: reservaData.whatsapp,
+          contacto: reservaData.email || reservaData.contacto, // Mantener compatibilidad
           fecha: reservaData.fecha,
           horario: reservaData.horario,
           cantidad_personas: reservaData.cantidad_personas,
+          quiere_newsletter: reservaData.quiere_newsletter || false,
           notas: reservaData.notas
         })
         .eq("id", editingReserva.id)

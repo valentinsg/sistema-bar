@@ -6,10 +6,13 @@ export interface Reserva {
   id: string
   local_id: string
   nombre: string
-  contacto: string
+  contacto: string // Campo legacy - mantener por compatibilidad
+  email: string
+  whatsapp: string
   fecha: string
   horario: string
   cantidad_personas: number
+  quiere_newsletter?: boolean
   notas?: string | null
   created_at: string
 }
@@ -21,9 +24,18 @@ export const saveReserva = async (reserva: Omit<Reserva, "id" | "created_at">): 
       setTimeout(() => reject(new Error('Database query timeout')), 8000)
     )
 
+    // Preparar datos de reserva con campos separados
+    const reservaData = {
+      ...reserva,
+      // Mantener contacto por compatibilidad (usar email como principal)
+      contacto: reserva.email || reserva.contacto,
+      // Asegurar que quiere_newsletter tenga un valor por defecto
+      quiere_newsletter: reserva.quiere_newsletter || false
+    }
+
     const queryPromise = supabase
       .from("reservas")
-      .insert([reserva])
+      .insert([reservaData])
       .select()
       .single()
 

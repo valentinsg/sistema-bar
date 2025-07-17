@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { saveReserva } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
+import { enviarConfirmacionWhatsApp } from "@/lib/whatsapp"
 import { motion } from "framer-motion"
-import { AlertCircle, Calendar, Clock, Info, Loader2, MessageSquare, Phone, User, Users } from "lucide-react"
+import { AlertCircle, Calendar, Clock, Info, Loader2, MessageSquare, Minus, Phone, Plus, User, Users } from "lucide-react"
 import Image from "next/image"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { createPortal } from "react-dom"
@@ -72,7 +73,9 @@ export default function ReservationForm({
 }: ReservationFormProps = {}) {
   const [formData, setFormData] = useState({
     nombre: "",
-    contacto: "",
+    email: "",
+    whatsapp: "",
+    contacto: "", // Campo legacy - mantener por compatibilidad
     fecha: externalSelectedDate || new Date().toISOString().split("T")[0],
     horario: externalSelectedTime || "",
     cantidad_personas: 1,
@@ -195,10 +198,24 @@ export default function ReservationForm({
       newErrors.nombre = "El nombre debe tener al menos 2 caracteres"
     }
 
-    if (!formData.contacto.trim()) {
-      newErrors.contacto = "El contacto es requerido"
-    } else if (formData.contacto.trim().length < 8) {
-      newErrors.contacto = "Ingresa un contacto válido (teléfono o email)"
+    // Validación de email
+    if (!formData.email.trim()) {
+      newErrors.email = "El email es requerido"
+    } else {
+      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+      if (!emailRegex.test(formData.email.trim())) {
+        newErrors.email = "Ingresa un email válido"
+      }
+    }
+
+    // Validación de WhatsApp
+    if (!formData.whatsapp.trim()) {
+      newErrors.whatsapp = "El WhatsApp es requerido"
+    } else {
+      const whatsappRegex = /^[0-9\-\+\s\(\)]{8,20}$/
+      if (!whatsappRegex.test(formData.whatsapp.trim())) {
+        newErrors.whatsapp = "Ingresa un número de WhatsApp válido (ej: +54 223 123-4567)"
+      }
     }
 
     if (!formData.fecha) {
@@ -224,8 +241,8 @@ export default function ReservationForm({
 
     if (!formData.cantidad_personas || formData.cantidad_personas < 1) {
       newErrors.cantidad_personas = "La cantidad de personas es requerida"
-    } else if (formData.cantidad_personas > 20) {
-      newErrors.cantidad_personas = "El máximo de personas por reserva es 20"
+    } else if (formData.cantidad_personas > 6) {
+      newErrors.cantidad_personas = "Hasta 6 reservas por personas. Para reservas de más personas comunicarse al: 0223-5357224"
     }
 
     if (formData.fecha && formData.horario && !newErrors.horario && !newErrors.cantidad_personas) {
@@ -265,15 +282,27 @@ export default function ReservationForm({
       await saveReserva({
         local_id: LOCAL_ID,
         nombre: formData.nombre.trim(),
-        contacto: formData.contacto.trim(),
+        email: formData.email.trim(),
+        whatsapp: formData.whatsapp.trim(),
+        contacto: formData.email.trim(), // Campo legacy - usar email como principal
         fecha: formData.fecha,
         horario: formData.horario,
         cantidad_personas: formData.cantidad_personas,
+        quiere_newsletter: quiereNovedades,
         notas: formData.notas.trim() || null,
       })
 
+      // Enviar confirmación por WhatsApp
+      enviarConfirmacionWhatsApp({
+        nombre: formData.nombre.trim(),
+        fecha: formData.fecha,
+        horario: formData.horario,
+        cantidad_personas: formData.cantidad_personas,
+        whatsapp: formData.whatsapp.trim()
+      })
+
       if (quiereNovedades) {
-        console.log('Usuario quiere recibir novedades:', formData.contacto)
+        console.log('Usuario quiere recibir novedades:', formData.email)
       }
 
       disponibilidadCache.clear()
@@ -281,6 +310,8 @@ export default function ReservationForm({
       setShowSuccess(true)
       setFormData({
         nombre: "",
+        email: "",
+        whatsapp: "",
         contacto: "",
         fecha: new Date().toISOString().split("T")[0],
         horario: "",
@@ -302,8 +333,8 @@ export default function ReservationForm({
   const handleInputChange = useCallback((field: string, value: string | number) => {
     if (field === "cantidad_personas") {
       const numValue = typeof value === 'string' ? parseInt(value) : value
-      if (numValue > 20) {
-        setFormData(prev => ({ ...prev, [field]: 20 }))
+      if (numValue > 6) {
+        setFormData(prev => ({ ...prev, [field]: 6 }))
       } else if (numValue < 1 || isNaN(numValue)) {
         setFormData(prev => ({ ...prev, [field]: 1 }))
       } else {
@@ -329,7 +360,8 @@ export default function ReservationForm({
   // Verificar si el formulario está completo
   const isFormComplete = useMemo(() => {
     return formData.nombre.trim() &&
-      formData.contacto.trim() &&
+      formData.email.trim() &&
+      formData.whatsapp.trim() &&
       formData.fecha &&
       formData.horario &&
       formData.cantidad_personas > 0
@@ -410,29 +442,56 @@ export default function ReservationForm({
                 )}
               </div>
 
-              {/* Contacto */}
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="contacto" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-amber-400" />
-                  Contacto <span className="text-amber-400">*</span>
+                <Label htmlFor="email" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-amber-400" />
+                  Email <span className="text-amber-400">*</span>
                 </Label>
                 <Input
-                  id="contacto"
-                  type="text"
-                  placeholder="Teléfono o email"
-                  value={formData.contacto}
-                  onChange={(e) => handleInputChange("contacto", e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   onBlur={validateForm}
                   className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
                 />
-                {triedSubmit && errors.contacto && (
+                {triedSubmit && errors.email && (
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
                   >
                     <AlertCircle className="w-4 h-4" />
-                    {errors.contacto}
+                    {errors.email}
+                  </motion.p>
+                )}
+              </div>
+
+              {/* WhatsApp */}
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-amber-400" />
+                  Teléfono <span className="text-amber-400">*</span>
+                </Label>
+                <Input
+                  id="whatsapp"
+                  type="tel"
+                  placeholder="+54 223 123-4567"
+                  value={formData.whatsapp}
+                  onChange={(e) => handleInputChange("whatsapp", e.target.value)}
+                  onBlur={validateForm}
+                  className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 placeholder-amber-400/70 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
+                />
+                {triedSubmit && errors.whatsapp && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-red-300 text-sm flex items-center gap-2 bg-red-900/20 border border-red-500/30 rounded px-3 py-2"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.whatsapp}
                   </motion.p>
                 )}
               </div>
@@ -523,20 +582,66 @@ export default function ReservationForm({
               </div>
 
               {/* Cantidad de personas */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="cantidad_personas" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
                   <Users className="w-4 h-4 text-amber-400" />
                   Cantidad de personas <span className="text-amber-400">*</span>
                 </Label>
-                <Input
+
+                {/* Selector móvil optimizado */}
+                <div className="flex items-center justify-center gap-3 sm:gap-4 p-3 sm:p-4 bg-amber-950/80 border-2 border-amber-800/60 rounded-lg">
+                  <Button
+                    type="button"
+                    onClick={() => handleInputChange("cantidad_personas", Math.max(1, formData.cantidad_personas - 1))}
+                    disabled={formData.cantidad_personas <= 1}
+                    className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-amber-800/60 hover:bg-amber-700/80 active:bg-amber-600/80 disabled:opacity-30 disabled:cursor-not-allowed border-2 border-amber-600/50 p-0 flex items-center justify-center transition-all duration-200 touch-manipulation"
+                  >
+                    <Minus className="w-6 h-6 sm:w-5 sm:h-5 text-amber-100" />
+                  </Button>
+
+                  <div className="flex-1 text-center min-w-0">
+                    <div className="text-4xl sm:text-3xl font-bold text-amber-100 mb-1 leading-none">
+                      {formData.cantidad_personas}
+                    </div>
+                    <div className="text-amber-300 text-sm sm:text-xs font-medium">
+                      {formData.cantidad_personas === 1 ? 'persona' : 'personas'}
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={() => handleInputChange("cantidad_personas", Math.min(6, formData.cantidad_personas + 1))}
+                    disabled={formData.cantidad_personas >= 6}
+                    className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-amber-800/60 hover:bg-amber-700/80 active:bg-amber-600/80 disabled:opacity-30 disabled:cursor-not-allowed border-2 border-amber-600/50 p-0 flex items-center justify-center transition-all duration-200 touch-manipulation"
+                  >
+                    <Plus className="w-6 h-6 sm:w-5 sm:h-5 text-amber-100" />
+                  </Button>
+                </div>
+
+                {/* Indicador visual del límite máximo */}
+                {formData.cantidad_personas >= 6 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-2 p-3 bg-amber-800/30 border border-amber-600/40 rounded-lg"
+                  >
+                    <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <p className="text-amber-200 text-sm">
+                      Has alcanzado el límite máximo de 6 personas
+                    </p>
+                  </motion.div>
+                )}
+
+                {/* Input hidden para validación del formulario */}
+                <input
                   id="cantidad_personas"
-                  type="number"
-                  min="1"
-                  max="20"
+                  type="hidden"
                   value={formData.cantidad_personas}
-                  onChange={e => handleInputChange("cantidad_personas", e.target.value)}
-                  className="bg-amber-950/80 border-2 border-amber-800/60 text-amber-100 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/30"
                 />
+
+                <p className="text-amber-300 text-xs">
+                  Para reservas de más de 6 personas, contactar al: <strong>0223-5357224</strong>
+                </p>
                 {triedSubmit && errors.cantidad_personas && (
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
@@ -547,6 +652,31 @@ export default function ReservationForm({
                     {errors.cantidad_personas}
                   </motion.p>
                 )}
+              </div>
+
+              {/* Botones de selección rápida */}
+              <div className="space-y-2">
+                <p className="text-amber-300 text-sm font-medium text-center">
+                  O selecciona directamente:
+                </p>
+                <div className="grid grid-cols-6 gap-2">
+                  {[1, 2, 3, 4, 5, 6].map((numero) => (
+                    <Button
+                      key={numero}
+                      type="button"
+                      onClick={() => handleInputChange("cantidad_personas", numero)}
+                      className={`
+                        h-12 rounded-lg border-2 transition-all duration-200 font-bold text-lg
+                        ${formData.cantidad_personas === numero
+                          ? 'border-amber-500 bg-amber-600/80 text-white shadow-lg'
+                          : 'border-amber-800/60 bg-amber-950/60 text-amber-300 hover:border-amber-600/80 hover:bg-amber-800/40'
+                        }
+                      `}
+                    >
+                      {numero}
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               {/* Notas */}
@@ -581,17 +711,19 @@ export default function ReservationForm({
               </div>
 
               {/* Checkbox novedades */}
-              <div className="flex items-center gap-3">
-                <input
-                  id="novedades"
-                  type="checkbox"
-                  checked={quiereNovedades}
-                  onChange={e => setQuiereNovedades(e.target.checked)}
-                  className="accent-amber-500 w-4 h-4"
-                />
-                <Label htmlFor="novedades" className="font-source-sans text-amber-200 text-sm cursor-pointer">
-                  Quiero recibir novedades sobre Eleven Club
-                </Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <input
+                    id="novedades"
+                    type="checkbox"
+                    checked={quiereNovedades}
+                    onChange={e => setQuiereNovedades(e.target.checked)}
+                    className="accent-amber-500 w-4 h-4"
+                  />
+                  <Label htmlFor="novedades" className="font-source-sans text-amber-200 text-sm cursor-pointer">
+                    Quiero recibir novedades sobre Eleven Club
+                  </Label>
+                </div>
               </div>
 
               {/* Botón enviar */}
@@ -614,6 +746,9 @@ export default function ReservationForm({
                   </div>
                 )}
               </Button>
+              <p className="text-amber-300 text-xs pl-7">
+                Recibirás confirmación de tu reserva por WhatsApp
+              </p>
             </form>
           </CardContent>
         </Card>
@@ -667,7 +802,7 @@ export default function ReservationForm({
           >
             <h3 className="text-lg font-semibold text-white mb-2">¡Reserva Confirmada!</h3>
             <p className="text-green-200 text-sm mb-4">
-              Tu reserva ha sido procesada exitosamente. Te contactaremos para confirmar los detalles.
+              Tu reserva ha sido procesada exitosamente. Te enviaremos la confirmación por WhatsApp y email.
             </p>
             <Button
               onClick={() => setShowSuccess(false)}
