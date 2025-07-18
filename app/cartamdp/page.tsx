@@ -181,7 +181,7 @@ export default function CartaPage() {
         <h3 id="botellas" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Servicio de botella (desde las 23 hs)</h3>
         <div className="text-sm text-gray-400 mb-3">Incluye cítricos, botánico y hielo Prisma</div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Gin Bulldog</span><span className="flex-none text-right min-w-[80px]">$100.000</span></div>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Vodka Absolut</span><span className="flex-none text-right min-w-[80px]">$80.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Vodka Absolut</span><span className="flex-none text-right min-w-[80px]">$110.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Chivas XV Gold</span><span className="flex-none text-right min-w-[80px]">$210.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Royal Salute 21</span><span className="flex-none text-right min-w-[80px]">$500.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Negroni Vendaval</span><span className="flex-none text-right min-w-[80px]">$60.000</span></div>
@@ -192,11 +192,11 @@ export default function CartaPage() {
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Dom Pérignon</span><span className="flex-none text-right min-w-[80px]">$888.000</span></div>
 
         <h3 className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Espumantes</h3>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Chandon Extra Brut</span><span className="flex-none text-right min-w-[80px]">$35.000</span></div>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Chandon Rosé</span><span className="flex-none text-right min-w-[80px]">$35.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Chandon Extra Brut</span><span className="flex-none text-right min-w-[80px]">$60.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Chandon Rosé</span><span className="flex-none text-right min-w-[80px]">$60.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Délice Rosé</span><span className="flex-none text-right min-w-[80px]">$35.000</span></div>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Baron B Extra Brut</span><span className="flex-none text-right min-w-[80px]">$60.000</span></div>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Baron B Rosé</span><span className="flex-none text-right min-w-[80px]">$75.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Baron B Extra Brut</span><span className="flex-none text-right min-w-[80px]">$100.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Baron B Rosé</span><span className="flex-none text-right min-w-[80px]">$110.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Cinzano To Spritz</span><span className="flex-none text-right min-w-[80px]">$25.000</span></div>
 
         <h3 id="cervezas" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Cervezas</h3>
@@ -232,7 +232,7 @@ export default function CartaPage() {
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">7up</span><span className="flex-none text-right min-w-[80px]">$3.500</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Agua tónica Schweppes</span><span className="flex-none text-right min-w-[80px]">$3.500</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Agua tónica Britvic</span><span className="flex-none text-right min-w-[80px]">$4.500</span></div>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Red Bull</span><span className="flex-none text-right min-w-[80px]">$4.500</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Red Bull</span><span className="flex-none text-right min-w-[80px]">$9.500</span></div>
 
         <h3 id="delicateses" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Delicias selectas</h3>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Verduras marinadas con pan orgánico</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
