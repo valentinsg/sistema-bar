@@ -54,6 +54,12 @@ const calcularDisponibilidadLocal = (reservas: any[], horarios: string[]) => {
 const isClosedDay = (dateStr: string) => {
   const date = new Date(dateStr + 'T12:00:00')
   const day = date.getDay()
+
+  // Excepción: abierto el domingo 20 de julio de 2025 por el Día del Amigo
+  if (dateStr === '2025-07-20') {
+    return false
+  }
+
   return day === 0 // Cerrado domingos
 }
 

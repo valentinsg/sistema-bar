@@ -151,6 +151,12 @@ export function CalendarUI({
   const isClosedDay = (dateStr: string) => {
     const date = new Date(dateStr + 'T12:00:00'); // Agregar hora para evitar problemas de zona horaria
     const day = date.getDay();
+
+    // Excepción: abierto el domingo 20 de julio de 2025 por el Día del Amigo
+    if (dateStr === '2025-07-20') {
+      return false;
+    }
+
     console.log(`Fecha: ${dateStr}, Día de semana: ${day}, ¿Es domingo? ${day === 0}`);
     return day === 0; // Cerrado domingos (0 = domingo)
   }
