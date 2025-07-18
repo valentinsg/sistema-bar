@@ -264,68 +264,93 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="relative bg-gradient-to-br from-black/95 via-black/30 to-orange-900/50 font-source-sans border-t border-orange-500/20 py-12 px-6 text-white overflow-hidden">
+      <footer className="relative bg-gradient-to-br from-black/95 via-black/30 to-orange-900/50 font-source-sans border-t border-orange-500/20 py-8 px-6 text-white overflow-hidden">
         {/* Efectos de brillo mejorados */}
         <div className="absolute inset-0 rounded-xl shadow-premium"></div>
         <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/30 via-red-600/15 to-orange-600/20 rounded-xl blur-lg opacity-40"></div>
 
-        <div className="relative z-10 max-w-5xl mx-auto flex flex-col gap-10 text-center md:text-left md:flex-row md:justify-between">
-
-          {/* Branding */}
-          <div className="flex flex-col items-center md:items-start gap-4">
-            <Image src="/eleven_club_logo.webp" alt="Eleven Club" width={64} height={64} />
+        <div className="relative z-10 max-w-5xl mx-auto">
+          {/* Branding centrado */}
+          <div className="flex flex-col items-center gap-3 mb-8">
+            <Image src="/eleven_club_logo.webp" alt="Eleven Club" width={56} height={56} />
             <p className="text-lg font-legquinne">Eleven Club</p>
             <p className="text-orange-300/70 text-sm">Eleva tus sentidos.</p>
-
           </div>
 
-          {/* Redes */}
-          <div className="flex flex-col items-end md:items-end">
-            <p className="font-semibold text-lg">Seguinos</p>
-            <div className="flex gap-4 mt-2">
-              <a href="#" aria-label="Facebook" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="..." /></svg>
-              </a>
-              <a href="#" aria-label="Instagram" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="..." /></svg>
-              </a>
-              <a href="#" aria-label="WhatsApp" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="..." /></svg>
+          {/* Seguinos y Partners en la misma línea */}
+          <div className="flex justify-between items-start mb-8 overflow-visible">
+            {/* Redes - izquierda */}
+            <div className="flex flex-col items-start">
+              <p className="font-semibold text-lg mb-2">Seguinos</p>
+              <a href="https://www.instagram.com/elevenclubok" aria-label="Instagram" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
+                <Image
+                  src="/instagram.png"
+                  alt="Instagram"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
+                />
               </a>
             </div>
-          </div>
-        </div>
 
-        {/* Partners (opcional o colapsable) */}
-        <div className="relative z-10 mt-10 md:mr-20 text-center flex flex-col items-end gap-4">
-          <div className="flex gap-4 items-center justify-end">
-            <p className="text-sm text-white/50">Partners</p>
-            <Image
-              src="/campari_logo.png"
-              alt="Campari"
-              width={120}
-              height={120}
-              className="opacity-90 drop-shadow-lg w-16 h-16 md:w-24 md:h-24"
-              loading="lazy"
-              quality={75}
-              sizes="(max-width: 768px) 64px, 96px"
-            />
-            <Image
-              src="/bulldog_logo.png"
-              alt="Bulldog"
-              width={120}
-              height={120}
-              className="opacity-90 drop-shadow-lg w-16 h-16 md:w-24 md:h-24"
-              loading="lazy"
-              quality={75}
-              sizes="(max-width: 768px) 64px, 96px"
-            />
-          </div>
-        </div>
+            {/* Partners - derecha */}
+            <div className="flex flex-col gap-2 overflow-visible">
+              <p className="font-semibold text-lg text-right">Partners</p>
 
-        {/* Footer base */}
-        <div className="relative z-10 mt-12 border-t border-orange-500/20 pt-4 text-center text-sm text-white/50">
-          © 2024 Eleven Club — Todos los derechos reservados
+              {/* Primera fila de partners */}
+              <div className="flex gap-2 items-center justify-end overflow-visible">
+                <Image
+                  src="/campari_logo.png"
+                  alt="Campari"
+                  width={160}
+                  height={160}
+                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
+                  loading="lazy"
+                  quality={75}
+                  sizes="(max-width: 768px) 96px, 128px"
+                />
+                <Image
+                  src="/bulldog_logo.png"
+                  alt="Bulldog"
+                  width={160}
+                  height={160}
+                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
+                  loading="lazy"
+                  quality={75}
+                  sizes="(max-width: 768px) 96px, 128px"
+                />
+              </div>
+
+              {/* Segunda fila de partners */}
+              <div className="flex gap-2 items-center justify-end overflow-visible">
+                <Image
+                  src="/Chivas Logo Negro.png"
+                  alt="Chivas"
+                  width={160}
+                  height={160}
+                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
+                  loading="lazy"
+                  quality={75}
+                  sizes="(max-width: 768px) 96px, 128px"
+                />
+                <Image
+                  src="/budweiser.png"
+                  alt="Budweiser"
+                  width={160}
+                  height={160}
+                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
+                  loading="lazy"
+                  quality={75}
+                  sizes="(max-width: 768px) 96px, 128px"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Footer base */}
+          <div className="relative z-10 border-t border-orange-500/20 pt-3 text-center text-sm text-white/50">
+            © 2024 Eleven Club — Todos los derechos reservados
+          </div>
         </div>
       </footer>
 
