@@ -111,13 +111,29 @@ export default function CartaPage() {
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">DAIQUIRI COCKTAIL</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">MINT JULEP</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
 
+        <h3 id="delicateses" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Delicias selectas</h3>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Verduras marinadas con pan orgánico</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
+        <div className="text-sm text-gray-400 mb-3">Berenjenas asadas, tomates y verduras marinadas alineados con oliva extra virgen, pesto y pan</div>
+
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Jamón serrano <br />con pan orgánico y Stracciatella</span><span className="flex-none text-right min-w-[80px]">$12.000</span></div>
+        <div className="text-sm text-gray-400 mb-3">Tostón con stracciatella, láminas de jamón de 14 meses y brotes de rúcula salvaje</div>
+
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Ración de quesos blandos y duros</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
+        <div className="text-sm text-gray-400 mb-3">Cortes de quesos artesanales acompañados de rodaja de pan</div>
+
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Papas Gauchescas</span><span className="flex-none text-right min-w-[80px]">$8.000</span></div>
+        <div className="text-sm text-gray-400 mb-3">Papas Gauchitas, láminas de jamón serrano y escamas de charqui del Noroeste Argentino y mayonesa ahumada</div>
+
         <h3 id="vermut" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Aperitivos y Vermut</h3>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Mi-To</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Americano</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Campari tonic</span><span className="flex-none text-right min-w-[80px]">$8.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Cynar 70</span><span className="flex-none text-right min-w-[80px]">$8.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Cinzano Rosso</span><span className="flex-none text-right min-w-[80px]">$8.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Vermut Tempestad</span><span className="flex-none text-right min-w-[80px]">$9.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Vermut Tempestad de Bardo lata</span><span className="flex-none text-right min-w-[80px]">$8.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Amaro Averna</span><span className="flex-none text-right min-w-[80px]">$7.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Jägermeister</span><span className="flex-none text-right min-w-[80px]">$7.000</span></div>
 
         <h3 id="spritz" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Spritz Season</h3>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Aperol Spritz</span><span className="flex-none text-right min-w-[80px]">$12.000</span></div>
@@ -185,6 +201,7 @@ export default function CartaPage() {
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Chivas XV Gold</span><span className="flex-none text-right min-w-[80px]">$210.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Royal Salute 21</span><span className="flex-none text-right min-w-[80px]">$500.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Negroni Vendaval</span><span className="flex-none text-right min-w-[80px]">$60.000</span></div>
+        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Jägermeister + 2 Red Bull</span><span className="flex-none text-right min-w-[80px]">$120.000</span></div>
 
         <h3 id="champagne" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Champagne</h3>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Veuve Clicquot Brut</span><span className="flex-none text-right min-w-[80px]">$290.000</span></div>
@@ -197,7 +214,6 @@ export default function CartaPage() {
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Chandon Délice Rosé</span><span className="flex-none text-right min-w-[80px]">$60.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Baron B Extra Brut</span><span className="flex-none text-right min-w-[80px]">$100.000</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Baron B Rosé</span><span className="flex-none text-right min-w-[80px]">$110.000</span></div>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Cinzano To Spritz</span><span className="flex-none text-right min-w-[80px]">$25.000</span></div>
 
         <h3 id="cervezas" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Cervezas</h3>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Budweiser</span><span className="flex-none text-right min-w-[80px]">$5.000</span></div>
@@ -234,18 +250,6 @@ export default function CartaPage() {
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Agua tónica Britvic</span><span className="flex-none text-right min-w-[80px]">$4.500</span></div>
         <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left">Red Bull</span><span className="flex-none text-right min-w-[80px]">$9.500</span></div>
 
-        <h3 id="delicateses" className="font-oswald text-xl mt-10 mb-3 border-b border-gray-600 pb-1">Delicias selectas</h3>
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Verduras marinadas con pan orgánico</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
-        <div className="text-sm text-gray-400 mb-3">Berenjenas asadas, tomates y verduras marinadas alineados con oliva extra virgen, pesto y pan</div>
-
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Jamón serrano <br />con pan orgánico y Stracciatella</span><span className="flex-none text-right min-w-[80px]">$12.000</span></div>
-        <div className="text-sm text-gray-400 mb-3">Tostón con stracciatella, láminas de jamón de 14 meses y brotes de rúcula salvaje</div>
-
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Ración de quesos blandos y duros</span><span className="flex-none text-right min-w-[80px]">$10.000</span></div>
-        <div className="text-sm text-gray-400 mb-3">Cortes de quesos artesanales acompañados de rodaja de pan</div>
-
-        <div className="flex justify-between py-1 border-b border-dotted border-gray-700 flex-wrap"><span className="flex-1 text-left text-sm">Papas Gauchescas</span><span className="flex-none text-right min-w-[80px]">$8.000</span></div>
-        <div className="text-sm text-gray-400 mb-3">Papas Gauchitas, láminas de jamón serrano y escamas de charqui del Noroeste Argentino y mayonesa ahumada</div>
       </div>
     </div>
   )
