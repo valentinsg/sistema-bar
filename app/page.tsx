@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import ReservationCalendarUser from "@/components/ReservationCalendarUser"
-import LiveCounter from "@/components/live-counter"
-import ReservationForm from "@/components/reservation-form"
-import { motion } from "framer-motion"
-import Image from "next/image"
-import { useState } from "react"
+import ReservationCalendarUser from '@/components/ReservationCalendarUser'
+import LiveCounter from '@/components/live-counter'
+import ReservationForm from '@/components/reservation-form'
+import { motion } from 'framer-motion'
+import Image from 'next/image'
+import { useState } from 'react'
 
 export default function HomePage() {
   // Estado compartido para sincronizar formulario y calendario
@@ -16,7 +16,7 @@ export default function HomePage() {
     const day = String(today.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
   })
-  const [selectedTime, setSelectedTime] = useState<string>("")
+  const [selectedTime, setSelectedTime] = useState<string>('')
   return (
     <div className="bg-black">
       {/* Hero Section */}
@@ -40,13 +40,13 @@ export default function HomePage() {
           className="relative z-10 text-center px-4 max-w-5xl mx-auto"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
+          transition={{ duration: 1, ease: 'easeOut' }}
         >
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
             className="flex justify-center"
           >
             <Image
@@ -64,35 +64,43 @@ export default function HomePage() {
             className="relative mb-8 mt-8"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
           >
-            <h1 className="font-legquinne text-5xl md:text-8xl lg:text-9xl font-normal text-white tracking-wide leading-tighter text-crisp gpu-accelerated">
+            <h1 className="font-legquinne p-4 text-5xl md:text-8xl lg:text-9xl font-normal text-white tracking-wide leading-tighter text-crisp gpu-accelerated">
               <span className="relative inline-block">
                 E
                 {/* Aureola alargada horizontalmente con recorrido completo - MEJORADA */}
                 <div className="absolute -top-1 md:-top-2 lg:-top-3 -left-5 md:-left-8 lg:-left-12 w-16 md:w-24 lg:w-32 h-3 md:h-4 lg:h-5 gpu-accelerated">
                   {/* Óvalo principal estático - más largo que alto con mejor calidad */}
-                  <div className="absolute inset-0 border-2 md:border-3 lg:border-4 border-white/80 transform -rotate-12 opacity-90 gpu-accelerated"
+                  <div
+                    className="absolute inset-0 border-2 md:border-3 lg:border-4 border-white/80 transform -rotate-12 opacity-90 gpu-accelerated"
                     style={{
-                      borderRadius: "50%",
-                      background: "transparent",
-                      width: "100%",
-                      height: "100%",
-                      top: "0%",
-                      transform: "rotate(-12deg)",
-                      boxShadow: "0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.3)"
-                    }}></div>
+                      borderRadius: '50%',
+                      background: 'transparent',
+                      width: '100%',
+                      height: '100%',
+                      top: '0%',
+                      transform: 'rotate(-12deg)',
+                      boxShadow:
+                        '0 0 8px rgba(255,255,255,0.4), 0 0 16px rgba(255,255,255,0.2), inset 0 1px 0 rgba(255,255,255,0.3)',
+                    }}
+                  ></div>
 
                   {/* Estrella que bordea exactamente el óvalo - MEJORADA */}
-                  <div className="absolute inset-0 gpu-accelerated" style={{ transform: "rotate(-12deg)" }}>
+                  <div
+                    className="absolute inset-0 gpu-accelerated"
+                    style={{ transform: 'rotate(-12deg)' }}
+                  >
                     <div
                       className="absolute text-white text-xs md:text-sm lg:text-base lg:hidden"
                       style={{
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        filter: "drop-shadow(0 0 6px rgba(255,255,255,0.8)) drop-shadow(0 0 12px rgba(255,255,255,0.4))",
-                        animation: "elliptical-orbit-ultrafluid 8s linear infinite"
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        filter:
+                          'drop-shadow(0 0 6px rgba(255,255,255,0.8)) drop-shadow(0 0 12px rgba(255,255,255,0.4))',
+                        animation:
+                          'elliptical-orbit-ultrafluid 8s linear infinite',
                       }}
                     >
                       ✦
@@ -100,11 +108,13 @@ export default function HomePage() {
                     <div
                       className="absolute text-white text-base hidden lg:block"
                       style={{
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        filter: "drop-shadow(0 0 6px rgba(255,255,255,0.8)) drop-shadow(0 0 12px rgba(255,255,255,0.4))",
-                        animation: "elliptical-orbit-ultrafluid-lg 8s linear infinite"
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        filter:
+                          'drop-shadow(0 0 6px rgba(255,255,255,0.8)) drop-shadow(0 0 12px rgba(255,255,255,0.4))',
+                        animation:
+                          'elliptical-orbit-ultrafluid-lg 8s linear infinite',
                       }}
                     >
                       ✦
@@ -112,15 +122,19 @@ export default function HomePage() {
                   </div>
 
                   {/* Segunda estrella imperceptible pero mejorada */}
-                  <div className="absolute inset-0 gpu-accelerated" style={{ transform: "rotate(-20deg)" }}>
+                  <div
+                    className="absolute inset-0 gpu-accelerated"
+                    style={{ transform: 'rotate(-20deg)' }}
+                  >
                     <div
                       className="absolute text-white/20 text-[6px] md:text-[8px] lg:hidden"
                       style={{
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        filter: "drop-shadow(0 0 2px rgba(255,255,255,0.3))",
-                        animation: "elliptical-orbit-reverse 12s linear infinite"
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
+                        animation:
+                          'elliptical-orbit-reverse 12s linear infinite',
                       }}
                     >
                       ·
@@ -128,11 +142,12 @@ export default function HomePage() {
                     <div
                       className="absolute text-white/20 text-[10px] hidden lg:block"
                       style={{
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        filter: "drop-shadow(0 0 2px rgba(255,255,255,0.3))",
-                        animation: "elliptical-orbit-reverse-lg 12s linear infinite"
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))',
+                        animation:
+                          'elliptical-orbit-reverse-lg 12s linear infinite',
                       }}
                     >
                       ·
@@ -143,20 +158,20 @@ export default function HomePage() {
                   <motion.div
                     className="absolute bg-gradient-to-br from-white/8 via-transparent to-white/4 transform -rotate-20 gpu-accelerated"
                     style={{
-                      borderRadius: "50%",
-                      width: "90%",
-                      height: "80%",
-                      top: "10%",
-                      left: "5%",
-                      filter: "blur(0.5px)"
+                      borderRadius: '50%',
+                      width: '90%',
+                      height: '80%',
+                      top: '10%',
+                      left: '5%',
+                      filter: 'blur(0.5px)',
                     }}
                     animate={{
-                      opacity: [0.05, 0.25, 0.05]
+                      opacity: [0.05, 0.25, 0.05],
                     }}
                     transition={{
                       duration: 5,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: 'easeInOut',
                     }}
                   />
                 </div>
@@ -170,15 +185,17 @@ export default function HomePage() {
             className="relative mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
           >
             <button
               onClick={() => {
-                const reservationSection = document.getElementById('reservation-section')
+                const reservationSection = document.getElementById(
+                  'reservation-section'
+                )
                 if (reservationSection) {
                   reservationSection.scrollIntoView({
                     behavior: 'smooth',
-                    block: 'start'
+                    block: 'start',
                   })
                 }
               }}
@@ -188,7 +205,11 @@ export default function HomePage() {
               <motion.div
                 className="text-white/70 group-hover:text-white/90 transition-colors duration-300"
                 animate={{ y: [0, 4, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
               >
                 ↓
               </motion.div>
@@ -199,7 +220,7 @@ export default function HomePage() {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
+            transition={{ duration: 0.8, delay: 1, ease: 'easeOut' }}
           >
             <LiveCounter />
           </motion.div>
@@ -209,18 +230,24 @@ export default function HomePage() {
       </section>
 
       {/* Reservation Section */}
-      <section id="reservation-section" className="py-20 px-4 bg-gradient-to-b from-black to-gray-900">
+      <section
+        id="reservation-section"
+        className="py-20 px-4 bg-gradient-to-b from-black to-gray-900"
+      >
         <div className="max-w-7xl mx-auto">
           <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            viewport={{ once: true, margin: '-100px' }}
           >
-            <h2 className="font-source-sans text-4xl md:text-5xl font-normal text-white mb-4">Reservá tu Experiencia</h2>
+            <h2 className="font-source-sans text-4xl md:text-5xl font-normal text-white mb-4">
+              Reservá tu Experiencia
+            </h2>
             <p className="text-xl font-source-sans text-gray-300 max-w-2xl mx-auto">
-              No te quedes afuera de la mejor noche de la ciudad. Asegurate tu lugar y viví una experiencia única en Eleven Club.
+              No te quedes afuera de la mejor noche de la ciudad. Asegurate tu
+              lugar y viví una experiencia única en Eleven Club.
             </p>
           </motion.div>
 
@@ -228,14 +255,14 @@ export default function HomePage() {
             className="grid lg:grid-cols-2 gap-12 items-start"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            viewport={{ once: true, margin: '-100px' }}
           >
             <motion.div
               className="space-y-8"
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
               viewport={{ once: true }}
             >
               <ReservationForm
@@ -250,7 +277,7 @@ export default function HomePage() {
               className="space-y-8"
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
               viewport={{ once: true }}
             >
               <ReservationCalendarUser
@@ -263,97 +290,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-
-      <footer className="relative bg-gradient-to-br from-black/95 via-black/30 to-orange-900/50 font-source-sans border-t border-orange-500/20 py-8 px-6 text-white overflow-hidden">
-        {/* Efectos de brillo mejorados */}
-        <div className="absolute inset-0 rounded-xl shadow-premium"></div>
-        <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/30 via-red-600/15 to-orange-600/20 rounded-xl blur-lg opacity-40"></div>
-
-        <div className="relative z-10 max-w-5xl mx-auto">
-          {/* Branding centrado */}
-          <div className="flex flex-col items-center gap-3 mb-8">
-            <Image src="/eleven_club_logo.webp" alt="Eleven Club" width={56} height={56} />
-            <p className="text-lg font-legquinne">Eleven Club</p>
-            <p className="text-orange-300/70 text-sm">Eleva tus sentidos.</p>
-          </div>
-
-          {/* Seguinos y Partners en la misma línea */}
-          <div className="flex justify-between items-start mb-8 overflow-visible">
-            {/* Redes - izquierda */}
-            <div className="flex flex-col items-start">
-              <p className="font-semibold text-lg mb-2">Seguinos</p>
-              <a href="https://www.instagram.com/elevenclubok" aria-label="Instagram" className="p-2 rounded-full border border-white/10 hover:bg-white/10 transition">
-                <Image
-                  src="/instagram.png"
-                  alt="Instagram"
-                  width={20}
-                  height={20}
-                  className="w-5 h-5"
-                />
-              </a>
-            </div>
-
-            {/* Partners - derecha */}
-            <div className="flex flex-col gap-2 overflow-visible">
-              <p className="font-semibold text-lg text-right">Partners</p>
-
-              {/* Primera fila de partners */}
-              <div className="flex gap-2 items-center justify-end overflow-visible">
-                <Image
-                  src="/campari_logo.png"
-                  alt="Campari"
-                  width={160}
-                  height={160}
-                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
-                  loading="lazy"
-                  quality={75}
-                  sizes="(max-width: 768px) 96px, 128px"
-                />
-                <Image
-                  src="/bulldog_logo.png"
-                  alt="Bulldog"
-                  width={160}
-                  height={160}
-                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
-                  loading="lazy"
-                  quality={75}
-                  sizes="(max-width: 768px) 96px, 128px"
-                />
-              </div>
-
-              {/* Segunda fila de partners */}
-              <div className="flex gap-2 items-center justify-end overflow-visible">
-                <Image
-                  src="/Chivas Logo Negro.png"
-                  alt="Chivas"
-                  width={160}
-                  height={160}
-                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
-                  loading="lazy"
-                  quality={75}
-                  sizes="(max-width: 768px) 96px, 128px"
-                />
-                <Image
-                  src="/budweiser.png"
-                  alt="Budweiser"
-                  width={160}
-                  height={160}
-                  className="opacity-90 drop-shadow-lg w-24 h-24 md:w-32 md:h-32 object-contain"
-                  loading="lazy"
-                  quality={75}
-                  sizes="(max-width: 768px) 96px, 128px"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Footer base */}
-          <div className="relative z-10 border-t border-orange-500/20 pt-3 text-center text-sm text-white/50">
-            © 2024 Eleven Club — Todos los derechos reservados
-          </div>
-        </div>
-      </footer>
-
     </div>
   )
 }
