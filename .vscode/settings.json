@@ -3,10 +3,19 @@
   "workbench.iconTheme": "material-icon-theme",
   "editor.fontFamily": "'Fira Code', 'JetBrains Mono', Consolas, 'Courier New', monospace",
   "editor.fontLigatures": true,
+  "editor.inlayHints.enabled": "on",
   "editor.fontSize": 14,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "eslint.codeActionsOnSave.mode": "problems",
   "editor.lineHeight": 22,
+  "editor.linkedEditing": true,
   "editor.tabSize": 2,
   "editor.minimap.enabled": true,
+  "editor.minimap.maxColumn": 120,
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.cursorBlinking": "phase",
   "editor.renderWhitespace": "all",
@@ -14,13 +23,10 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
-  },
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "files.autoSave": "onFocusChange",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 300,
   "terminal.integrated.env.windows": {
     "Path": "${env:Path};C:\\Users\\${env:USERNAME}\\AppData\\Roaming\\npm"
   },
@@ -53,6 +59,7 @@
     ["clsx\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
     ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
   ],
+  "typescript.preferences.importModuleSpecifier": "non-relative",
   "files.associations": {
     "*.css": "tailwindcss"
   },

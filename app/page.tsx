@@ -61,7 +61,7 @@ export default function HomePage() {
 
           {/* Main Title with integrated aureola */}
           <motion.div
-            className="relative mb-8 mt-8"
+            className="relative mb-4 mt-6"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}

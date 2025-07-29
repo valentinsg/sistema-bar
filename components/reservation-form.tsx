@@ -409,7 +409,7 @@ export default function ReservationForm({
             </div>
           </CardHeader>
 
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-4 sm:p-6 " >
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               {/* Nombre */}
               <div className="space-y-2">
@@ -676,8 +676,8 @@ export default function ReservationForm({
               </div>
 
               {/* Notas */}
-              <div className="space-y-2">
-                <Label htmlFor="notas" className="font-source-sans text-amber-100 font-medium flex items-center gap-2">
+              <div className="space-y-4 mt-2">
+                <Label htmlFor="notas" className="font-source-sans text-amber-100 mt-2 font-medium flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-amber-400" />
                   Notas adicionales (opcional)
                 </Label>
