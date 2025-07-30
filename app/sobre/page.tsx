@@ -60,7 +60,7 @@ export default function SobrePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
           >
-            Un rooftop bar de autor en Mar del Plata
+            Un Rooftop Bar, en el corazón de Mar del Plata.
           </motion.p>
         </motion.div>
       </section>
