@@ -1,163 +1,157 @@
-import Image from "next/image"
+import Image from 'next/image'
 
 export default function Footer() {
   return (
-    <footer className="relative bg-gradient-to-br from-gray-900 via-black to-gray-900 font-source-sans py-16 px-6 text-white overflow-hidden">
-      {/* Efectos de fondo atmosféricos */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/5 to-transparent"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-500/10 via-transparent to-transparent"></div>
-
-      {/* Efectos de luz sutil */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-red-500/5 rounded-full blur-3xl"></div>
-
-      {/* Línea decorativa superior */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent"></div>
-
-      <div className="relative z-10 max-w-6xl mx-auto">
-        {/* Branding centrado elegante */}
-        <div className="flex flex-col items-center gap-6 mb-16">
-          <div className="relative">
-            <div className="absolute -inset-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-xl opacity-60"></div>
-            <Image
-              src="/eleven_club_logo.webp"
-              alt="Eleven Club"
-              width={80}
-              height={80}
-              className="relative z-10 drop-shadow-2xl"
-            />
-          </div>
-          <div className="text-center">
-            <h2 className="text-3xl font-legquinne text-white mb-3 tracking-wide">Eleven Club</h2>
-            <p className="text-orange-300/90 text-lg font-light tracking-wider">Eleva tus sentidos</p>
-          </div>
+    <footer className="bg-gradient-to-br font-legquinne from-gray-950 via-orange-1000 to-orange-950 text-white py-12 px-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Logo y branding */}
+        <div className="flex flex-col items-center mb-8">
+          <Image
+            src="/eleven_club_logo.webp"
+            alt="Eleven Club"
+            width={120}
+            height={120}
+            className="mb-4"
+          />
+          <p className="text-orange-400 font-source-sans text-lg font-light">
+            Elevá tus sentidos
+          </p>
         </div>
 
-        {/* Línea decorativa central */}
-        <div className="flex justify-center mb-12">
-          <div className="w-32 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent"></div>
-        </div>
-
-        {/* Información de contacto y navegación */}
-        <div className="grid md:grid-cols-3 gap-16 mb-16">
+        {/* Secciones principales */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Contacto */}
-          <div className="text-center md:text-left">
-            <h3 className="font-semibold text-xl mb-8 text-white relative">
-              <span className="relative z-10 tracking-wide">Contacto</span>
-              <div className="absolute -bottom-2 left-0 w-16 h-px bg-gradient-to-r from-orange-500 to-transparent"></div>
-            </h3>
-            <div className="space-y-6 text-sm text-gray-300">
-              <div className="flex items-center gap-4 group">
-                <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full shadow-lg group-hover:scale-125 transition-transform duration-300"></div>
-                <p className="group-hover:text-white transition-colors duration-300 tracking-wide">Diagonal Pueyrredón 2970, Mar del Plata</p>
+          <div>
+            <h3 className="font-bold font-legquinne text-xl mb-4 text-white">Contacto</h3>
+            <div className="space-y-3 text-base text-gray-300">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="font-source-sans">Diagonal Pueyrredón 2970, Mar del Plata</p>
               </div>
-              <div className="flex items-center gap-4 group">
-                <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full shadow-lg group-hover:scale-125 transition-transform duration-300"></div>
-                <p className="group-hover:text-white transition-colors duration-300 tracking-wide">20:00 - 02:30</p>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="font-source-sans">20:00 - 02:30</p>
               </div>
-              <div className="flex items-center gap-4 group">
-                <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full shadow-lg group-hover:scale-125 transition-transform duration-300"></div>
-                <p className="group-hover:text-white transition-colors duration-300 tracking-wide">0223-5357224</p>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="font-source-sans">0223-5357224</p>
               </div>
             </div>
           </div>
 
           {/* Navegación */}
-          <div className="text-center">
-            <h3 className="font-semibold text-xl mb-8 text-white relative">
-              <span className="relative z-10 tracking-wide">Navegación</span>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-px bg-gradient-to-r from-orange-500 to-transparent"></div>
-            </h3>
-            <div className="space-y-4 text-sm">
-              <a href="/" className="block text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1 tracking-wide">Inicio</a>
-              <a href="/sobre" className="block text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1 tracking-wide">Sobre Nosotros</a>
-              <a href="/cartamdp" className="block text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1 tracking-wide">Carta</a>
+          <div>
+            <h3 className="font-bold font-legquinne text-xl mb-4 text-white">Navegación</h3>
+            <div className="space-y-3 text-base">
+              <a
+                href="/"
+                className="block font-source-sans text-gray-300 hover:text-orange-400 transition-colors"
+              >
+                Inicio
+              </a>
+              <a
+                href="/sobre"
+                className="block font-source-sans text-gray-300 hover:text-orange-400 transition-colors"
+              >
+                Sobre Nosotros
+              </a>
+              <a
+                href="/cartamdp"
+                className="block font-source-sans text-gray-300 hover:text-orange-400 transition-colors"
+              >
+                Carta
+              </a>
+              <a
+                href="/faqs"
+                className="block font-source-sans text-gray-300 hover:text-orange-400 transition-colors"
+              >
+                FAQs
+              </a>
             </div>
           </div>
 
           {/* Redes Sociales */}
-          <div className="text-center md:text-right">
-            <h3 className="font-semibold text-xl mb-8 text-white relative">
-              <span className="relative z-10 tracking-wide">Seguinos</span>
-              <div className="absolute -bottom-2 right-0 w-16 h-px bg-gradient-to-l from-orange-500 to-transparent"></div>
-            </h3>
-            <a
-              href="https://www.instagram.com/elevenclubok"
-              aria-label="Instagram"
-              className="inline-block p-4 rounded-full border border-white/20 hover:border-orange-500/50 hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-red-500/10 transition-all duration-300 group"
-            >
-              <div className="relative">
-                <div className="absolute -inset-2 bg-gradient-to-r from-pink-500 via-orange-500 to-purple-500 rounded-full blur opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+          <div>
+            <h3 className="font-bold text-xl mb-4 text-white">Seguinos</h3>
+            <div className="flex gap-4">
+              <a
+                href="https://www.instagram.com/elevenclubok"
+                aria-label="Instagram"
+                className="p-2 rounded-lg border border-gray-600 hover:border-orange-400 hover:bg-orange-400/10 transition-colors"
+              >
                 <Image
                   src="/instagram.png"
                   alt="Instagram"
-                  width={24}
-                  height={24}
-                  className="relative z-10 w-6 h-6 group-hover:scale-110 transition-transform duration-300"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
                 />
-              </div>
-            </a>
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Partners elegante */}
-        <div className="text-center mb-16">
-          <h3 className="font-semibold text-xl mb-10 text-white relative">
-            <span className="relative z-10 tracking-wide">Partners</span>
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-px bg-gradient-to-r from-orange-500 via-red-500 to-orange-500"></div>
+      {/* Partners */}
+        <div className="mb-12">
+          <h3 className="font-bold text-2xl mb-6 text-left text-white">
+            Partners
           </h3>
-          <div className="flex flex-wrap justify-center gap-12">
-            <div className="group">
+          <div className="flex flex-wrap justify-center gap-6">
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/30 to-red-500/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-red-400/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100"></div>
               <Image
                 src="/campari_logo.png"
                 alt="Campari"
-                width={120}
-                height={120}
-                className="opacity-70 drop-shadow-lg w-24 h-24 md:w-28 md:h-28 object-contain group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
+                width={150}
+                height={150}
+                className="relative z-10 w-24 h-24 md:w-36 md:h-36 object-contain group-hover:opacity-100 group-hover:scale-125 transition-all duration-700 drop-shadow-xl group-hover:drop-shadow-2xl group-hover:brightness-110"
                 loading="lazy"
-                quality={85}
               />
             </div>
-            <div className="group">
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/10 to-blue-400/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100"></div>
               <Image
                 src="/bulldog_logo.png"
                 alt="Bulldog"
-                width={120}
-                height={120}
-                className="opacity-70 drop-shadow-lg w-24 h-24 md:w-28 md:h-28 object-contain group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
+                width={150}
+                height={150}
+                className="relative z-10 w-24 h-24 md:w-36 md:h-36 object-contain group-hover:opacity-100 group-hover:scale-125 transition-all duration-700 drop-shadow-xl group-hover:drop-shadow-2xl group-hover:brightness-110"
                 loading="lazy"
-                quality={85}
               />
             </div>
-            <div className="group">
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-yellow-400/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100"></div>
               <Image
                 src="/Chivas Logo Negro.png"
                 alt="Chivas"
-                width={120}
-                height={120}
-                className="opacity-70 drop-shadow-lg w-24 h-24 md:w-28 md:h-28 object-contain group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
+                width={150}
+                height={150}
+                className="relative z-10  w-24 h-24 md:w-36 md:h-36 object-contain group-hover:opacity-100 group-hover:scale-125 transition-all duration-700 drop-shadow-xl group-hover:drop-shadow-2xl group-hover:brightness-110"
                 loading="lazy"
-                quality={85}
               />
             </div>
-            <div className="group">
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-400/10 to-orange-400/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100"></div>
               <Image
                 src="/budweiser.png"
                 alt="Budweiser"
-                width={120}
-                height={120}
-                className="opacity-70 drop-shadow-lg w-24 h-24 md:w-28 md:h-28 object-contain group-hover:opacity-100 group-hover:scale-110 transition-all duration-500"
+                width={150}
+                height={150}
+                className="relative z-10 w-24 h-24 md:w-36 md:h-36 object-contain group-hover:opacity-100 group-hover:scale-125 transition-all duration-700 drop-shadow-xl group-hover:drop-shadow-2xl group-hover:brightness-110"
                 loading="lazy"
-                quality={85}
+
               />
             </div>
           </div>
         </div>
 
-        {/* Footer base elegante */}
-        <div className="relative border-t border-orange-500/20 pt-8 text-center">
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-orange-500/40 to-transparent"></div>
-          <p className="text-sm text-white/70 font-light tracking-wider">
+        {/* Footer base */}
+        <div className="border-t border-gray-700 pt-6 text-center">
+          <p className="text-sm text-gray-400 font-source-sans">
             © 2024 Eleven Club — Todos los derechos reservados
           </p>
         </div>
