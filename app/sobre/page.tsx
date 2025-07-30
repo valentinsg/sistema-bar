@@ -892,7 +892,7 @@ export default function SobrePage() {
                 </p>
                 <p className="text-gray-300 text-base mt-2 text-left w-full">
                   En el corazón de Mar del Plata, con la mejor vista panorámica
-                  al mar desde el piso 11.
+                  a la ciudad desde el piso 11.
                 </p>
               </div>
             </div>
