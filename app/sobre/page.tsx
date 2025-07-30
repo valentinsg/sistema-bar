@@ -70,11 +70,11 @@ export default function SobrePage() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/FONDOS-01.webp"
-            alt="Eleven Club atmosphere"
+            src="/fondo-eleven-interior.jpg"
+            alt="Eleven Club interior atmosphere"
             fill
             className="object-cover"
-            quality={85}
+            quality={100}
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"></div>
@@ -176,7 +176,7 @@ export default function SobrePage() {
                 transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
                 viewport={{ once: true }}
               >
-                <p className="text-orange-300 font-legquinne ">
+                <p className="text-orange-200 font-legquinne text-sm ">
                   "Eleven Club eleva la experiencia nocturna y baja el filtro"
                   <span className="text-orange-200 text-lg ml-4">✦</span>
                 </p>
@@ -191,7 +191,7 @@ export default function SobrePage() {
               viewport={{ once: true }}
             >
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-orange-500/20 to-purple-500/20 rounded-2xl blur-xl"></div>
+                <div className="absolute -inset-4 bg-gradient-to-r from-orange-500/40 to-purple-500/10 rounded-2xl blur-xl"></div>
                 <Image
                   src="/detalle-texto-eleven.webp"
                   alt="Eleven Club detalle"
@@ -223,7 +223,7 @@ export default function SobrePage() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/FONDOS-02.webp"
+            src="/FONDOS-01.webp"
             alt="Eleven Club rooftop"
             fill
             className="object-cover"
@@ -856,14 +856,14 @@ export default function SobrePage() {
           </motion.div>
 
           <motion.div
-            className="flex flex-col md:flex-row gap-12 "
+            className="flex flex-col md:flex-row gap-12"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
             viewport={{ once: true, margin: '-100px' }}
           >
             {/* Info de ubicación y horarios */}
-            <div className="w-full md:w-1/2 flex flex-col gap-8 ">
+            <div className="w-full md:w-1/2 flex flex-col gap-8">
               <div className="flex flex-col items-center gap-2">
                 <p className="text-lg text-white text-left w-full font-semibold mb-1 tracking-wide">
                   Horarios de Funcionamiento:
@@ -896,20 +896,20 @@ export default function SobrePage() {
                 </p>
               </div>
             </div>
+
+            {/* Mapa */}
+            <div className="w-full md:w-1/2 rounded-2xl overflow-hidden shadow-lg border border-orange-500/30 relative">
+              <iframe
+                title="Mapa Eleven Club"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3282.857964024052!2d-57.54212368477044!3d-38.0123459797167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9584de9e2e2e2e2e%3A0x1234567890abcdef!2sDiagonal%20Pueyrred%C3%B3n%202970%2C%20Mar%20del%20Plata%2C%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1710000000000!5m2!1ses-419!2sar"
+                width="100%"
+                height="350"
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
           </motion.div>
-
-          <div className="mt-10 w-full md:w-1/2 rounded-2xl overflow-hidden shadow-lg border border-orange-500/30 relative">
-            <iframe
-              title="Mapa Eleven Club"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3282.857964024052!2d-57.54212368477044!3d-38.0123459797167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9584de9e2e2e2e2e%3A0x1234567890abcdef!2sDiagonal%20Pueyrred%C3%B3n%202970%2C%20Mar%20del%20Plata%2C%20Buenos%20Aires!5e0!3m2!1ses-419!2sar!4v1710000000000!5m2!1ses-419!2sar"
-              width="100%"
-              height="350"
-              allowFullScreen={true}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-
-          </div>
         </div>
       </section>
 
