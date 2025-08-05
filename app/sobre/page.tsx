@@ -12,7 +12,7 @@ export default function SobrePage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/FONDOS-02.webp"
-            alt="Eleven Club rooftop vista al mar"
+            alt="Eleven Club rooftop bar Mar del Plata - Vista panorámica desde el piso 11 con vista al mar"
             fill
             className="object-cover"
             priority
@@ -37,7 +37,7 @@ export default function SobrePage() {
           >
             <Image
               src="/eleven_club_logo.webp"
-              alt="Eleven Club Logo"
+              alt="Eleven Club - Logo del primer rooftop bar de Mar del Plata"
               width={120}
               height={120}
               className="mx-auto"
@@ -194,7 +194,7 @@ export default function SobrePage() {
                 <div className="absolute -inset-4 bg-gradient-to-r from-orange-500/40 to-purple-500/10 rounded-2xl blur-xl"></div>
                 <Image
                   src="/detalle-texto-eleven.webp"
-                  alt="Eleven Club detalle"
+                  alt="Eleven Club - Detalle arquitectónico del rooftop bar en Mar del Plata"
                   width={400}
                   height={300}
                   className="relative shadow-4xl border-none justify-center items-center w-full"

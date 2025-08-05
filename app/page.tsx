@@ -25,7 +25,7 @@ export default function HomePage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/FONDOS-01.webp"
-            alt="Eleven Club atmosphere"
+            alt="Eleven Club rooftop bar Mar del Plata - Vista panorámica al mar desde el piso 11"
             fill
             className="object-cover smooth-rendering gpu-accelerated"
             priority
@@ -51,7 +51,7 @@ export default function HomePage() {
           >
             <Image
               src="/eleven_club_logo.webp"
-              alt="Eleven Club"
+              alt="Eleven Club - Logo del primer rooftop bar de Mar del Plata"
               width={150}
               height={150}
               className="mx-auto logo-quality gpu-accelerated sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[250px] lg:h-[250px]"

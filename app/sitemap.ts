@@ -14,10 +14,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/sobre`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.8,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/cartamdp`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/faqs`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,

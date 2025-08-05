@@ -29,7 +29,7 @@ const structuredData = {
     "longitude": -57.5502
   },
   "openingHours": "Mo-Su 20:00-02:30",
-  "telephone": "+2236859717",
+  "telephone": "+5492236859717",
   "priceRange": "$$",
   "servesCuisine": ["Cocktails", "Bebidas", "Tragos de Autor"],
   "amenityFeature": [
@@ -53,6 +53,12 @@ const structuredData = {
       "name": "Eventos especiales",
       "value": true
     },
+    {
+      "@type": "LocationFeatureSpecification",
+      "name": "Coctelería",
+      "value": true
+    },
+    
   ],
   "sameAs": [
     "https://www.instagram.com/elevenclubok"
