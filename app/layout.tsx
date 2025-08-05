@@ -29,7 +29,7 @@ const structuredData = {
     "longitude": -57.5502
   },
   "openingHours": "Mo-Su 20:00-02:30",
-  "telephone": "+54-223-5357224",
+  "telephone": "+2236859717",
   "priceRange": "$$",
   "servesCuisine": ["Cocktails", "Bebidas", "Tragos de Autor"],
   "amenityFeature": [

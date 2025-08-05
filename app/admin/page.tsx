@@ -661,7 +661,7 @@ export default function AdminPage() {
     if (!adminData?.local_id) return
 
     if (reservaData.cantidad_personas > 6) {
-      toast.error("El máximo de personas por reserva es 6. Para más personas, contactar al: 0223-5357224")
+      toast.error("El máximo de personas por reserva es 6. Para más personas, contactar al: 2236859717")
       return
     }
 

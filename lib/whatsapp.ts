@@ -25,7 +25,7 @@ export const generarMensajeConfirmacion = (reserva: ReservaWhatsApp): string => 
 ✅ Tu reserva ha sido confirmada exitosamente.
 
 📍 *Eleven Club*
-📞 Consultas: 0223-5357224
+📞 Consultas: 2236859717
 
 ¡Te esperamos! 🍻`
 

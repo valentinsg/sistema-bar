@@ -247,7 +247,7 @@ export default function ReservationForm({
     if (!formData.cantidad_personas || formData.cantidad_personas < 1) {
       newErrors.cantidad_personas = "La cantidad de personas es requerida"
     } else if (formData.cantidad_personas > 6) {
-      newErrors.cantidad_personas = "Hasta 6 reservas por personas. Para reservas de más personas comunicarse al: 0223-5357224"
+      newErrors.cantidad_personas = "Hasta 6 reservas por personas. Para reservas de más personas comunicarse al: 2236859717"
     }
 
     if (formData.fecha && formData.horario && !newErrors.horario && !newErrors.cantidad_personas) {
@@ -636,7 +636,7 @@ export default function ReservationForm({
                 />
 
                 <p className="text-amber-300 text-xs">
-                  Para reservas de más de 6 personas, contactar al: <strong>0223-5357224</strong>
+                  Para reservas de más de 6 personas, contactar al: <strong>2236859717</strong>
                 </p>
                 {triedSubmit && errors.cantidad_personas && (
                   <motion.p
