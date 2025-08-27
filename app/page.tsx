@@ -20,7 +20,7 @@ export default function HomePage() {
   return (
     <div className="bg-black">
       {/* Hero Section */}
-      <section className="relative flex items-start justify-center overflow-hidden pt-16 md:pt-16 lg:pt-20">
+      <section className="relative flex items-center md:items-start justify-center overflow-hidden md:pt-16 lg:pt-20 h-[90vh] md:h-screen">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -181,6 +181,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Subtitle with decorative element */}
+          {/*
           <motion.div
             className="relative mb-8"
             initial={{ opacity: 0, y: 20 }}
@@ -215,7 +216,9 @@ export default function HomePage() {
               </motion.div>
             </button>
           </motion.div>
+          */}
           {/* Action Buttons - Mejorados con efectos premium */}
+          {/*
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             initial={{ opacity: 0, y: 30 }}
@@ -224,12 +227,20 @@ export default function HomePage() {
           >
             <LiveCounter />
           </motion.div>
+          */}
+          <h2 className="text-white text-2xl md:text-4xl lg:text-5xl font-light font-source-sans tracking-wider text-crisp">
+            Proximamente mas información
+          </h2>
         </motion.div>
         {/* Gradient overlay at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-5"></div>
       </section>
 
-      {/* Reservation Section */}
+      {/*
+      Reservation Section
+      */}
+      {/*
+
       <section
         id="reservation-section"
         className="py-20 px-4 bg-gradient-to-b from-black to-gray-900"
@@ -289,7 +300,7 @@ export default function HomePage() {
             </motion.div>
           </motion.div>
         </div>
-      </section>
+        */}
     </div>
   )
 }

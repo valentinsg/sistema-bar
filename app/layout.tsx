@@ -1,80 +1,81 @@
-import Footer from "@/components/Footer"
-import { Toaster } from "@/components/ui/sonner"
-import type { Metadata } from "next"
-import { Inter, Source_Sans_3 } from "next/font/google"
-import Script from "next/script"
-import type React from "react"
-import "./globals.css"
+import Footer from '@/components/Footer'
+import { Toaster } from '@/components/ui/sonner'
+import type { Metadata } from 'next'
+import { Inter, Source_Sans_3 } from 'next/font/google'
+import Script from 'next/script'
+import type React from 'react'
+import './globals.css'
 
 // Datos estructurados para SEO Local
 const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "BarOrPub",
-  "name": "Eleven Club",
-  "description": "El primer rooftop bar de Mar del Plata. Vista panorámica al mar, tragos de autor, DJs en vivo y eventos especiales.",
-  "url": "https://elevenclub.com.ar",
-  "logo": "https://elevenclub.com.ar/eleven_club_logo.webp",
-  "image": "https://elevenclub.com.ar/FONDOS-01.webp",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "Diagonal Pueyrredón 2970",
-    "addressLocality": "Mar del Plata",
-    "addressRegion": "Buenos Aires",
-    "postalCode": "B7600",
-    "addressCountry": "AR"
+  '@context': 'https://schema.org',
+  '@type': 'BarOrPub',
+  name: 'Eleven Club',
+  description:
+    'El primer rooftop bar de Mar del Plata. Vista panorámica al mar, tragos de autor, DJs en vivo y eventos especiales.',
+  url: 'https://elevenclub.com.ar',
+  logo: 'https://elevenclub.com.ar/eleven_club_logo.webp',
+  image: 'https://elevenclub.com.ar/FONDOS-01.webp',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Diagonal Pueyrredón 2970',
+    addressLocality: 'Mar del Plata',
+    addressRegion: 'Buenos Aires',
+    postalCode: 'B7600',
+    addressCountry: 'AR',
   },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": -38.0173,
-    "longitude": -57.5502
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: -38.0173,
+    longitude: -57.5502,
   },
-  "openingHours": "Mo-Su 20:00-02:30",
-  "telephone": "+5492236859717",
-  "priceRange": "$$",
-  "servesCuisine": ["Cocktails", "Bebidas", "Tragos de Autor"],
-  "amenityFeature": [
+  openingHours: 'Mo-Su 20:00-02:30',
+  telephone: '+5492236859717',
+  priceRange: '$$',
+  servesCuisine: ['Cocktails', 'Bebidas', 'Tragos de Autor'],
+  amenityFeature: [
     {
-      "@type": "LocationFeatureSpecification",
-      "name": "Vista desde el rooftop",
-      "value": true
+      '@type': 'LocationFeatureSpecification',
+      name: 'Vista desde el rooftop',
+      value: true,
     },
     {
-      "@type": "LocationFeatureSpecification",
-      "name": "Tragos de Autor",
-      "value": true
+      '@type': 'LocationFeatureSpecification',
+      name: 'Tragos de Autor',
+      value: true,
     },
     {
-      "@type": "LocationFeatureSpecification",
-      "name": "DJ en vivo",
-      "value": true
+      '@type': 'LocationFeatureSpecification',
+      name: 'DJ en vivo',
+      value: true,
     },
     {
-      "@type": "LocationFeatureSpecification",
-      "name": "Eventos especiales",
-      "value": true
+      '@type': 'LocationFeatureSpecification',
+      name: 'Eventos especiales',
+      value: true,
     },
     {
-      "@type": "LocationFeatureSpecification",
-      "name": "Coctelería",
-      "value": true
+      '@type': 'LocationFeatureSpecification',
+      name: 'Coctelería',
+      value: true,
     },
-    
   ],
-  "sameAs": [
-    "https://www.instagram.com/elevenclubok"
-  ]
+  sameAs: ['https://www.instagram.com/elevenclubok'],
 }
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] })
 const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
-  variable: "--font-source-sans"
+  subsets: ['latin'],
+  variable: '--font-source-sans',
 })
 
 export const metadata: Metadata = {
-  title: "Eleven Club - Rooftop Bar & Public House | Mar del Plata | Tragos de Autor",
-  description: "El primer rooftop bar de Mar del Plata. Vista panorámica, tragos de autor, DJs en vivo y eventos especiales. Reservá tu experiencia única en Eleven Club.",
-  keywords: "rooftop bar Mar del Plata, tragos de autor, DJ en vivo, Public House, coctelería, eventos especiales, bar nocturno, vista panorámica",
+  title:
+    'Eleven Club - Rooftop Bar & Public House | Mar del Plata | Tragos de Autor',
+  description:
+    'El primer rooftop bar de Mar del Plata. Vista panorámica, tragos de autor, DJs en vivo y eventos especiales. Reservá tu experiencia única en Eleven Club.',
+  keywords:
+    'rooftop bar Mar del Plata, tragos de autor, DJ en vivo, Public House, coctelería, eventos especiales, bar nocturno, vista panorámica',
   authors: [{ name: 'Valentín Sánchez Guevara' }],
   creator: 'Valentín Sánchez Guevara',
   publisher: 'Eleven Club',
@@ -88,8 +89,9 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "Eleven Club - Rooftop Bar & Public House | Mar del Plata",
-    description: "El primer rooftop bar de Mar del Plata. Vista panorámica al mar, tragos de autor, DJs en vivo y eventos especiales.",
+    title: 'Eleven Club - Rooftop Bar & Public House | Mar del Plata',
+    description:
+      'El primer rooftop bar de Mar del Plata. Vista panorámica al mar, tragos de autor, DJs en vivo y eventos especiales.',
     url: 'https://elevenclub.com.ar',
     siteName: 'Eleven Club',
     images: [
@@ -105,8 +107,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Eleven Club - Rooftop Bar & Public House | Mar del Plata",
-    description: "El primer rooftop bar de Mar del Plata. Vista panorámica al mar, tragos de autor, DJs en vivo y eventos especiales.",
+    title: 'Eleven Club - Rooftop Bar & Public House | Mar del Plata',
+    description:
+      'El primer rooftop bar de Mar del Plata. Vista panorámica al mar, tragos de autor, DJs en vivo y eventos especiales.',
     images: ['/eleven_club_logo.webp'],
   },
   robots: {
@@ -124,7 +127,7 @@ export const metadata: Metadata = {
     icon: '/logo-eleven.webp',
     shortcut: '/logo-eleven.webp',
     apple: '/logo-eleven.webp',
-  }
+  },
 }
 
 export default function RootLayout({
@@ -133,7 +136,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" suppressHydrationWarning className={`${sourceSans.variable}`}>
+    <html
+      lang="es"
+      suppressHydrationWarning
+      className={`${sourceSans.variable}`}
+    >
       <head>
         {/* Datos Estructurados Schema.org */}
         <Script
@@ -145,22 +152,22 @@ export default function RootLayout({
         />
 
         {/* Meta Pixel Code */}
-        <Script
-          id="meta-pixel"
-          strategy="afterInteractive"
+        {/* Meta Pixel Code */}
+        <script
           dangerouslySetInnerHTML={{
             __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '1481766756163592');
-              fbq('track', 'PageView');
-            `,
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}
+          (window, document, 'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '1022608606478699');
+          fbq('track', 'PageView');
+        `,
           }}
         />
         <noscript>
@@ -168,13 +175,15 @@ export default function RootLayout({
             height="1"
             width="1"
             style={{ display: 'none' }}
-            src="https://www.facebook.com/tr?id=1481766756163592&ev=PageView&noscript=1"
-            alt=""
+            src="https://www.facebook.com/tr?id=1022608606478699&ev=PageView&noscript=1"
           />
         </noscript>
         {/* End Meta Pixel Code */}
       </head>
-      <body className={`${inter.className} ${sourceSans.variable}`} suppressHydrationWarning>
+      <body
+        className={`${inter.className} ${sourceSans.variable}`}
+        suppressHydrationWarning
+      >
         {children}
         <Footer />
         <Toaster
