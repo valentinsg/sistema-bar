@@ -1678,7 +1678,7 @@ export default function AdminPage() {
                       <CardHeader>
                         <CardTitle className="text-amber-100 font-legquinne flex items-center gap-2">
                           <TrendingUp className="w-5 h-5 text-emerald-400" />
-                          Análisis Semanal!!!
+                          Análisis Semanal
                         </CardTitle>
                         <CardDescription className="text-amber-300/60">
                           Tendencia de reservas en los últimos 7 días
