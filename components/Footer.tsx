@@ -34,7 +34,7 @@ export default function Footer() {
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                <p className="font-source-sans">0223-5357224</p>
+                <p className="font-source-sans">2236859717</p>
               </div>
             </div>
           </div>

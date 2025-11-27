@@ -20,12 +20,12 @@ export default function HomePage() {
   return (
     <div className="bg-black">
       {/* Hero Section */}
-      <section className="relative flex items-start justify-center overflow-hidden pt-16 md:pt-16 lg:pt-20">
+      <section className="relative flex items-center md:items-start justify-center overflow-hidden md:pt-16 lg:pt-20 h-[90vh] md:h-screen">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/FONDOS-01.webp"
-            alt="Eleven Club atmosphere"
+            alt="Eleven Club rooftop bar Mar del Plata - Vista panorámica al mar desde el piso 11"
             fill
             className="object-cover smooth-rendering gpu-accelerated"
             priority
@@ -51,7 +51,7 @@ export default function HomePage() {
           >
             <Image
               src="/eleven_club_logo.webp"
-              alt="Eleven Club"
+              alt="Eleven Club - Logo del primer rooftop bar de Mar del Plata"
               width={150}
               height={150}
               className="mx-auto logo-quality gpu-accelerated sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[250px] lg:h-[250px]"
@@ -181,6 +181,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Subtitle with decorative element */}
+          {/*
           <motion.div
             className="relative mb-8"
             initial={{ opacity: 0, y: 20 }}
@@ -215,7 +216,9 @@ export default function HomePage() {
               </motion.div>
             </button>
           </motion.div>
+          */}
           {/* Action Buttons - Mejorados con efectos premium */}
+          {/*
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             initial={{ opacity: 0, y: 30 }}
@@ -224,12 +227,20 @@ export default function HomePage() {
           >
             <LiveCounter />
           </motion.div>
+          */}
+          <h2 className="text-white text-2xl md:text-4xl lg:text-5xl font-light font-source-sans tracking-wider text-crisp">
+            Proximamente mas información
+          </h2>
         </motion.div>
         {/* Gradient overlay at bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-5"></div>
       </section>
 
-      {/* Reservation Section */}
+      {/*
+      Reservation Section
+      */}
+      {/*
+
       <section
         id="reservation-section"
         className="py-20 px-4 bg-gradient-to-b from-black to-gray-900"
@@ -289,7 +300,7 @@ export default function HomePage() {
             </motion.div>
           </motion.div>
         </div>
-      </section>
+        */}
     </div>
   )
 }

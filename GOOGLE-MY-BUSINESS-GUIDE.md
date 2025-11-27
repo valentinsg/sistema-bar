@@ -13,7 +13,7 @@
 
 ### **Información de Contacto**
 - **Dirección**: Diagonal Pueyrredón 2970, B7600 Mar del Plata, Provincia de Buenos Aires
-- **Teléfono**: 0223-5357224
+- **Teléfono**: 2236859717
 - **Sitio Web**: https://elevenclub.com.ar
 - **Email**: [EMAIL - OPCIONAL]
 
@@ -44,7 +44,7 @@ Abiertos todo el año de 19:00 a 06:00. Reservá tu experiencia única en Eleven
 "Eleven Club eleva la experiencia nocturna y baja el filtro" — 0223.com.ar
 
 📍 Diagonal Pueyrredón 2970, Mar del Plata
-📞 0223-5357224
+📞 2236859717
 🌐 elevenclub.com.ar
 📸 @elevenclubok
 ```
