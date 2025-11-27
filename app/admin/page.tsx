@@ -1,28 +1,90 @@
-"use client"
+'use client'
 
-import ContadorConfirmacion from "@/components/ContadorConfirmacion"
-import ReservationCalendarAdmin from "@/components/ReservationCalendarAdmin"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Dialog, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { deleteReserva, getContador } from "@/lib/storage"
-import { supabase } from "@/lib/supabase"
-import { motion } from "framer-motion"
-import { Activity, BarChart3, Calendar, Clock, Copy, Download, Edit, ExternalLink, Loader2, LogOut, MessageSquare, Phone, Search, TableIcon, Trash2, TrendingUp, User, Users } from "lucide-react"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { memo, useCallback, useEffect, useMemo, useState } from "react"
-import { Area, AreaChart, Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { toast } from "sonner"
+import ContadorConfirmacion from '@/components/ContadorConfirmacion'
+import ReservationCalendarAdmin from '@/components/ReservationCalendarAdmin'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { deleteReserva, getContador } from '@/lib/storage'
+import { supabase } from '@/lib/supabase'
+import { motion } from 'framer-motion'
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  Clock,
+  Copy,
+  Download,
+  Edit,
+  ExternalLink,
+  Loader2,
+  LogOut,
+  MessageSquare,
+  Phone,
+  Search,
+  TableIcon,
+  Trash2,
+  TrendingUp,
+  User,
+  Users,
+} from 'lucide-react'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { toast } from 'sonner'
 
 interface AdminData {
   id: string
@@ -49,17 +111,20 @@ interface PlazasStats {
 }
 
 const chartColors = {
-  primary: "#F97316", // orange-500
-  secondary: "#FED7AA", // orange-200
-  accent: "#EA580C", // orange-600
-  success: "#10B981", // emerald-500
-  warning: "#F59E0B", // amber-500
-  danger: "#EF4444", // red-500
-  muted: "#64748B", // slate-500
+  primary: '#F97316', // orange-500
+  secondary: '#FED7AA', // orange-200
+  accent: '#EA580C', // orange-600
+  success: '#10B981', // emerald-500
+  warning: '#F59E0B', // amber-500
+  danger: '#EF4444', // red-500
+  muted: '#64748B', // slate-500
 }
 
 // Función auxiliar para calcular estadísticas completas
-const calcularEstadisticasCompletas = async (local_id: string, fecha: string): Promise<PlazasStats> => {
+const calcularEstadisticasCompletas = async (
+  local_id: string,
+  fecha: string
+): Promise<PlazasStats> => {
   try {
     const LIMITE_POR_TURNO = 30
     const NUM_TURNOS = 2
@@ -67,16 +132,26 @@ const calcularEstadisticasCompletas = async (local_id: string, fecha: string): P
 
     // Obtener reservas por horario para calcular turnos
     const { data: reservasDelDia } = await supabase
-      .from("reservas")
-      .select("horario, cantidad_personas")
-      .eq("local_id", local_id)
-      .eq("fecha", fecha)
+      .from('reservas')
+      .select('horario, cantidad_personas')
+      .eq('local_id', local_id)
+      .eq('fecha', fecha)
 
-    const reservasPrimerTurno = (reservasDelDia || []).filter(r => r.horario === "20:15")
-    const reservasSegundoTurno = (reservasDelDia || []).filter(r => r.horario === "22:30")
+    const reservasPrimerTurno = (reservasDelDia || []).filter(
+      (r) => r.horario === '20:15'
+    )
+    const reservasSegundoTurno = (reservasDelDia || []).filter(
+      (r) => r.horario === '22:30'
+    )
 
-    const personasPrimerTurno = reservasPrimerTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
-    const personasSegundoTurno = reservasSegundoTurno.reduce((acc, r) => acc + r.cantidad_personas, 0)
+    const personasPrimerTurno = reservasPrimerTurno.reduce(
+      (acc, r) => acc + r.cantidad_personas,
+      0
+    )
+    const personasSegundoTurno = reservasSegundoTurno.reduce(
+      (acc, r) => acc + r.cantidad_personas,
+      0
+    )
     const personasTotales = personasPrimerTurno + personasSegundoTurno
     const plazasOcupadas = personasTotales
 
@@ -88,16 +163,16 @@ const calcularEstadisticasCompletas = async (local_id: string, fecha: string): P
       primerTurno: {
         limite: 30,
         ocupadas: personasPrimerTurno,
-        disponibles: Math.max(0, 30 - personasPrimerTurno)
+        disponibles: Math.max(0, 30 - personasPrimerTurno),
       },
       segundoTurno: {
         limite: 30,
         ocupadas: personasSegundoTurno,
-        disponibles: Math.max(0, 30 - personasSegundoTurno)
-      }
+        disponibles: Math.max(0, 30 - personasSegundoTurno),
+      },
     }
   } catch (error) {
-    console.error("Error al calcular estadísticas:", error)
+    console.error('Error al calcular estadísticas:', error)
     // Retornar valores por defecto en caso de error
     return {
       plazasTotales: 60,
@@ -107,212 +182,223 @@ const calcularEstadisticasCompletas = async (local_id: string, fecha: string): P
       primerTurno: {
         limite: 30,
         ocupadas: 0,
-        disponibles: 30
+        disponibles: 30,
       },
       segundoTurno: {
         limite: 30,
         ocupadas: 0,
-        disponibles: 30
-      }
+        disponibles: 30,
+      },
     }
   }
 }
 
 // OPTIMIZACIÓN: Componente memoizado para filas de reservas
-const ReservaRow = memo(({
-  reserva,
-  index,
-  onEdit,
-  onDelete,
-  formatDate,
-  getStatusBadge,
-  truncateEmail,
-  copyToClipboard
-}: {
-  reserva: any
-  index: number
-  onEdit: (reserva: any) => void
-  onDelete: (id: string, nombre: string) => void
-  formatDate: (date: string) => string
-  getStatusBadge: (fecha: string, horario: string) => React.ReactElement
-  truncateEmail: (email: string, maxLength?: number) => string
-  copyToClipboard: (text: string) => void
-}) => {
-  const shouldAnimate = index < 10 && index < 50
-  const TableRowElement = shouldAnimate ? motion.tr : 'tr'
-  const rowProps = shouldAnimate ? {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    transition: { duration: 0.2, delay: index * 0.02 }
-  } : {}
+const ReservaRow = memo(
+  ({
+    reserva,
+    index,
+    onEdit,
+    onDelete,
+    formatDate,
+    getStatusBadge,
+    truncateEmail,
+    copyToClipboard,
+  }: {
+    reserva: any
+    index: number
+    onEdit: (reserva: any) => void
+    onDelete: (id: string, nombre: string) => void
+    formatDate: (date: string) => string
+    getStatusBadge: (fecha: string, horario: string) => React.ReactElement
+    truncateEmail: (email: string, maxLength?: number) => string
+    copyToClipboard: (text: string) => void
+  }) => {
+    const shouldAnimate = index < 10 && index < 50
+    const TableRowElement = shouldAnimate ? motion.tr : 'tr'
+    const rowProps = shouldAnimate
+      ? {
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          transition: { duration: 0.2, delay: index * 0.02 },
+        }
+      : {}
 
-  return (
-    <TableRowElement
-      className="border-amber-500/10 hover:bg-amber-500/5 transition-colors"
-      {...rowProps}
-    >
-      <TableCell>{getStatusBadge(reserva.fecha, reserva.horario)}</TableCell>
-      <TableCell className="text-amber-100">
-        <div className="font-medium">
-          {formatDate(reserva.fecha)}
-        </div>
-      </TableCell>
-      <TableCell className="text-amber-100">
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-amber-400" />
-          <span className="font-medium">{reserva.horario}</span>
-        </div>
-      </TableCell>
-      <TableCell className="text-white">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-medium">{reserva.nombre}</span>
-        </div>
-      </TableCell>
-      <TableCell className="text-amber-100">
-        <div className="space-y-1 min-w-0">
-          {/* Email */}
+    return (
+      <TableRowElement
+        className="border-amber-500/10 hover:bg-amber-500/5 transition-colors"
+        {...rowProps}
+      >
+        <TableCell>{getStatusBadge(reserva.fecha, reserva.horario)}</TableCell>
+        <TableCell className="text-amber-100">
+          <div className="font-medium">{formatDate(reserva.fecha)}</div>
+        </TableCell>
+        <TableCell className="text-amber-100">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-3 h-3 text-blue-400 flex-shrink-0" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-pointer truncate hover:text-amber-200 transition-colors text-xs">
-                  {truncateEmail(reserva.email || reserva.contacto, 20)}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{reserva.email || reserva.contacto}</p>
-              </TooltipContent>
-            </Tooltip>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => copyToClipboard(reserva.email || reserva.contacto)}
-              className="h-5 w-5 p-0 hover:bg-amber-500/20 flex-shrink-0"
-            >
-              <Copy className="w-2 h-2 text-amber-400 hover:text-amber-200" />
-            </Button>
+            <Clock className="w-4 h-4 text-amber-400" />
+            <span className="font-medium">{reserva.horario}</span>
           </div>
-
-          {/* WhatsApp */}
+        </TableCell>
+        <TableCell className="text-white">
           <div className="flex items-center gap-2">
-            <Phone className="w-3 h-3 text-green-400 flex-shrink-0" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-pointer truncate hover:text-amber-200 transition-colors text-xs">
-                  {reserva.whatsapp || truncateEmail(reserva.contacto, 20)}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{reserva.whatsapp || reserva.contacto}</p>
-              </TooltipContent>
-            </Tooltip>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => copyToClipboard(reserva.whatsapp || reserva.contacto)}
-              className="h-5 w-5 p-0 hover:bg-amber-500/20 flex-shrink-0"
-            >
-              <Copy className="w-2 h-2 text-amber-400 hover:text-amber-200" />
-            </Button>
-          </div>
-
-          {/* Indicador de Newsletter */}
-          {reserva.quiere_newsletter && (
-            <div className="flex items-center gap-1 mt-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-xs text-green-400 font-medium">Newsletter</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
             </div>
+            <span className="font-medium">{reserva.nombre}</span>
+          </div>
+        </TableCell>
+        <TableCell className="text-amber-100">
+          <div className="space-y-1 min-w-0">
+            {/* Email */}
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-3 h-3 text-blue-400 flex-shrink-0" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer truncate hover:text-amber-200 transition-colors text-xs">
+                    {truncateEmail(reserva.email || reserva.contacto, 20)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{reserva.email || reserva.contacto}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  copyToClipboard(reserva.email || reserva.contacto)
+                }
+                className="h-5 w-5 p-0 hover:bg-amber-500/20 flex-shrink-0"
+              >
+                <Copy className="w-2 h-2 text-amber-400 hover:text-amber-200" />
+              </Button>
+            </div>
+
+            {/* WhatsApp */}
+            <div className="flex items-center gap-2">
+              <Phone className="w-3 h-3 text-green-400 flex-shrink-0" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-pointer truncate hover:text-amber-200 transition-colors text-xs">
+                    {reserva.whatsapp || truncateEmail(reserva.contacto, 20)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{reserva.whatsapp || reserva.contacto}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  copyToClipboard(reserva.whatsapp || reserva.contacto)
+                }
+                className="h-5 w-5 p-0 hover:bg-amber-500/20 flex-shrink-0"
+              >
+                <Copy className="w-2 h-2 text-amber-400 hover:text-amber-200" />
+              </Button>
+            </div>
+
+            {/* Indicador de Newsletter */}
+            {reserva.quiere_newsletter && (
+              <div className="flex items-center gap-1 mt-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-xs text-green-400 font-medium">
+                  Newsletter
+                </span>
+              </div>
+            )}
+          </div>
+        </TableCell>
+        <TableCell className="text-amber-100">
+          <Badge className="bg-blue-600/20 text-blue-300 border-blue-500/30">
+            <Users className="w-3 h-3 mr-1" />
+            {reserva.cantidad_personas}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-amber-100 max-w-48">
+          {reserva.notas ? (
+            <div className="flex items-start gap-2">
+              <MessageSquare className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="text-amber-200 line-clamp-2 break-words">
+                  {reserva.notas}
+                </p>
+                {reserva.notas.length > 60 && (
+                  <button
+                    className="text-yellow-400 hover:text-yellow-300 text-xs mt-1 transition-colors"
+                    onClick={() => {
+                      toast.info('Nota completa', {
+                        description: reserva.notas,
+                      })
+                    }}
+                  >
+                    Ver completo
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <span className="text-amber-500/50 text-sm italic">Sin notas</span>
           )}
-        </div>
-      </TableCell>
-      <TableCell className="text-amber-100">
-        <Badge className="bg-blue-600/20 text-blue-300 border-blue-500/30">
-          <Users className="w-3 h-3 mr-1" />
-          {reserva.cantidad_personas}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-amber-100 max-w-48">
-        {reserva.notas ? (
-          <div className="flex items-start gap-2">
-            <MessageSquare className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-            <div className="text-sm">
-              <p className="text-amber-200 line-clamp-2 break-words">
-                {reserva.notas}
-              </p>
-              {reserva.notas.length > 60 && (
-                <button
-                  className="text-yellow-400 hover:text-yellow-300 text-xs mt-1 transition-colors"
-                  onClick={() => {
-                    toast.info("Nota completa", { description: reserva.notas })
-                  }}
+        </TableCell>
+        <TableCell className="text-amber-300/70 text-sm">
+          {new Date(reserva.created_at).toLocaleDateString('es-AR')}
+        </TableCell>
+        <TableCell className="text-center">
+          <div className="flex gap-1 justify-center">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
+                  onClick={() => onEdit(reserva)}
                 >
-                  Ver completo
-                </button>
-              )}
-            </div>
+                  <Edit className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+            </Dialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/20 hover:text-red-300"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-slate-800 border-amber-500/20">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-white font-legquinne">
+                    ¿Eliminar reserva?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-amber-300/70">
+                    ¿Estás seguro de que quieres eliminar la reserva de{' '}
+                    <strong className="text-amber-200">{reserva.nombre}</strong>
+                    ? Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-slate-700 text-white border-amber-500/30 hover:bg-slate-600">
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDelete(reserva.id, reserva.nombre)}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
-        ) : (
-          <span className="text-amber-500/50 text-sm italic">Sin notas</span>
-        )}
-      </TableCell>
-      <TableCell className="text-amber-300/70 text-sm">
-        {new Date(reserva.created_at).toLocaleDateString("es-AR")}
-      </TableCell>
-      <TableCell className="text-center">
-        <div className="flex gap-1 justify-center">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300"
-                onClick={() => onEdit(reserva)}
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
-            </DialogTrigger>
-          </Dialog>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/20 hover:text-red-300"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="bg-slate-800 border-amber-500/20">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-white font-legquinne">
-                  ¿Eliminar reserva?
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-amber-300/70">
-                  ¿Estás seguro de que quieres eliminar la reserva de <strong className="text-amber-200">{reserva.nombre}</strong>?
-                  Esta acción no se puede deshacer.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="bg-slate-700 text-white border-amber-500/30 hover:bg-slate-600">
-                  Cancelar
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => onDelete(reserva.id, reserva.nombre)}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </TableCell>
-    </TableRowElement>
-  )
-})
+        </TableCell>
+      </TableRowElement>
+    )
+  }
+)
 
 ReservaRow.displayName = 'ReservaRow'
 
@@ -329,21 +415,24 @@ export default function AdminPage() {
     primerTurno: {
       limite: 30,
       ocupadas: 0,
-      disponibles: 30
+      disponibles: 30,
     },
     segundoTurno: {
       limite: 30,
       ocupadas: 0,
-      disponibles: 30
-    }
+      disponibles: 30,
+    },
   })
   const [loadingStats, setLoadingStats] = useState(false)
   const [editingReserva, setEditingReserva] = useState<any>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [sortConfig, setSortConfig] = useState({ key: "fecha", direction: "ascending" })
+  const [sortConfig, setSortConfig] = useState({
+    key: 'fecha',
+    direction: 'ascending',
+  })
   const [sortedReservas, setSortedReservas] = useState<any[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
 
   const router = useRouter()
 
@@ -357,11 +446,11 @@ export default function AdminPage() {
 
   // OPTIMIZACIÓN: Callbacks memoizados para evitar re-renders
   const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString + 'T12:00:00').toLocaleDateString("es-AR", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    return new Date(dateString + 'T12:00:00').toLocaleDateString('es-AR', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     })
   }, [])
 
@@ -375,30 +464,45 @@ export default function AdminPage() {
     today.setHours(0, 0, 0, 0)
 
     if (reservaDate < today) {
-      return "Pasada"
+      return 'Pasada'
     }
     if (reservaDate > today) {
-      return "Próxima"
+      return 'Próxima'
     }
     if (reservaDateTime < now) {
-      return "Pasada"
+      return 'Pasada'
     }
-    return "Hoy"
+    return 'Hoy'
   }, [])
 
-  const getStatusBadge = useCallback((fecha: string, horario: string) => {
-    const status = getStatus(fecha, horario)
-    switch (status) {
-      case "Pasada":
-        return <Badge variant="secondary" className="bg-slate-600 text-slate-200">Pasada</Badge>
-      case "Hoy":
-        return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">Hoy</Badge>
-      case "Próxima":
-        return <Badge className="bg-amber-600 hover:bg-amber-700 text-white">Próxima</Badge>
-      default:
-        return <Badge variant="secondary">Pasada</Badge>
-    }
-  }, [getStatus])
+  const getStatusBadge = useCallback(
+    (fecha: string, horario: string) => {
+      const status = getStatus(fecha, horario)
+      switch (status) {
+        case 'Pasada':
+          return (
+            <Badge variant="secondary" className="bg-slate-600 text-slate-200">
+              Pasada
+            </Badge>
+          )
+        case 'Hoy':
+          return (
+            <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              Hoy
+            </Badge>
+          )
+        case 'Próxima':
+          return (
+            <Badge className="bg-amber-600 hover:bg-amber-700 text-white">
+              Próxima
+            </Badge>
+          )
+        default:
+          return <Badge variant="secondary">Pasada</Badge>
+      }
+    },
+    [getStatus]
+  )
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
@@ -419,9 +523,17 @@ export default function AdminPage() {
   }, [])
 
   const downloadCSV = useCallback(() => {
-    const headers = ["ID", "Nombre", "Contacto", "Fecha", "Horario", "Personas", "Creado"]
+    const headers = [
+      'ID',
+      'Nombre',
+      'Contacto',
+      'Fecha',
+      'Horario',
+      'Personas',
+      'Creado',
+    ]
     const csvContent = [
-      headers.join(","),
+      headers.join(','),
       ...reservas.map((r) =>
         [
           r.id,
@@ -430,17 +542,20 @@ export default function AdminPage() {
           r.fecha,
           r.horario,
           r.cantidad_personas,
-          new Date(r.created_at).toLocaleString("es-AR"),
-        ].join(","),
+          new Date(r.created_at).toLocaleString('es-AR'),
+        ].join(',')
       ),
-    ].join("\n")
+    ].join('\n')
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
-    link.setAttribute("href", url)
-    link.setAttribute("download", `reservas_${new Date().toISOString().split("T")[0]}.csv`)
-    link.style.visibility = "hidden"
+    link.setAttribute('href', url)
+    link.setAttribute(
+      'download',
+      `reservas_${new Date().toISOString().split('T')[0]}.csv`
+    )
+    link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -454,44 +569,57 @@ export default function AdminPage() {
   const handleLogout = useCallback(async () => {
     if (adminData?.id) {
       await supabase
-        .from("usuarios_admin")
+        .from('usuarios_admin')
         .update({ token_acceso: null })
-        .eq("id", adminData.id)
+        .eq('id', adminData.id)
     }
 
-    localStorage.removeItem("admin_session")
-    router.push("/admin/login")
+    localStorage.removeItem('admin_session')
+    router.push('/admin/login')
   }, [adminData?.id, router])
 
   // OPTIMIZACIÓN: Analytics memoizados para evitar cálculos repetidos
   const analyticsData = useMemo(() => {
     // Calcular una sola vez todos los analytics
-    const reservasConNotas = reservas.filter(r => r.notas && r.notas.trim()).length
-    const totalPersonas = reservas.reduce((acc, r) => acc + r.cantidad_personas, 0)
-    const promedioPersonas = reservas.length > 0 ? (totalPersonas / reservas.length) : 0
+    const reservasConNotas = reservas.filter(
+      (r) => r.notas && r.notas.trim()
+    ).length
+    const totalPersonas = reservas.reduce(
+      (acc, r) => acc + r.cantidad_personas,
+      0
+    )
+    const promedioPersonas =
+      reservas.length > 0 ? totalPersonas / reservas.length : 0
 
     // Horario más popular
     const horarios = reservas.reduce((acc, r) => {
       acc[r.horario] = (acc[r.horario] || 0) + 1
       return acc
     }, {} as Record<string, number>)
-    const horarioPopular = Object.entries(horarios).sort(([, a], [, b]) => (b as number) - (a as number))[0]
+    const horarioPopular = Object.entries(horarios).sort(
+      ([, a], [, b]) => (b as number) - (a as number)
+    )[0]
 
     // Status distribution
     const statusDistribution = {
-      hoy: reservas.filter(r => getStatus(r.fecha, r.horario) === "Hoy").length,
-      proximas: reservas.filter(r => getStatus(r.fecha, r.horario) === "Próxima").length
+      hoy: reservas.filter((r) => getStatus(r.fecha, r.horario) === 'Hoy')
+        .length,
+      proximas: reservas.filter(
+        (r) => getStatus(r.fecha, r.horario) === 'Próxima'
+      ).length,
     }
 
     return {
       reservasConNotas,
       totalPersonas,
       promedioPersonas,
-      horarioPopular: horarioPopular ? {
-        horario: horarioPopular[0] as string,
-        cantidad: horarioPopular[1] as number
-      } : { horario: 'N/A', cantidad: 0 },
-      statusDistribution
+      horarioPopular: horarioPopular
+        ? {
+            horario: horarioPopular[0] as string,
+            cantidad: horarioPopular[1] as number,
+          }
+        : { horario: 'N/A', cantidad: 0 },
+      statusDistribution,
     }
   }, [reservas, getStatus])
 
@@ -502,13 +630,19 @@ export default function AdminPage() {
       const date = new Date(today)
       date.setDate(date.getDate() - i)
       const dateStr = date.toISOString().split('T')[0]
-      const reservasDelDia = reservas.filter(r => r.fecha === dateStr)
-      const personasDelDia = reservasDelDia.reduce((acc, r) => acc + r.cantidad_personas, 0)
+      const reservasDelDia = reservas.filter((r) => r.fecha === dateStr)
+      const personasDelDia = reservasDelDia.reduce(
+        (acc, r) => acc + r.cantidad_personas,
+        0
+      )
 
       return {
-        fecha: date.toLocaleDateString("es-AR", { month: "short", day: "numeric" }),
+        fecha: date.toLocaleDateString('es-AR', {
+          month: 'short',
+          day: 'numeric',
+        }),
         reservas: reservasDelDia.length,
-        personas: personasDelDia
+        personas: personasDelDia,
       }
     }).reverse()
   }, [reservas])
@@ -516,103 +650,122 @@ export default function AdminPage() {
   const turnosData = useMemo(() => {
     if (!plazasStats.primerTurno || !plazasStats.segundoTurno) {
       return [
-        { name: "20:15", value: 0, total: 30, color: chartColors.primary },
-        { name: "22:30", value: 0, total: 30, color: chartColors.accent }
+        { name: '20:15', value: 0, total: 30, color: chartColors.primary },
+        { name: '22:30', value: 0, total: 30, color: chartColors.accent },
       ]
     }
 
     return [
       {
-        name: "20:15",
+        name: '20:15',
         value: plazasStats.primerTurno.ocupadas || 0,
         total: plazasStats.primerTurno.limite || 30,
-        color: chartColors.primary
+        color: chartColors.primary,
       },
       {
-        name: "22:30",
+        name: '22:30',
         value: plazasStats.segundoTurno.ocupadas || 0,
         total: plazasStats.segundoTurno.limite || 30,
-        color: chartColors.accent
-      }
+        color: chartColors.accent,
+      },
     ]
   }, [plazasStats])
 
-  const statusData = useMemo(() => [
-    { name: "Hoy", value: analyticsData.statusDistribution.hoy, color: chartColors.success },
-    { name: "Próximas", value: analyticsData.statusDistribution.proximas, color: chartColors.warning }
-  ], [analyticsData.statusDistribution])
+  const statusData = useMemo(
+    () => [
+      {
+        name: 'Hoy',
+        value: analyticsData.statusDistribution.hoy,
+        color: chartColors.success,
+      },
+      {
+        name: 'Próximas',
+        value: analyticsData.statusDistribution.proximas,
+        color: chartColors.warning,
+      },
+    ],
+    [analyticsData.statusDistribution]
+  )
 
   // OPTIMIZACIÓN: Filtrar reservas solo cuando cambia el término de búsqueda debounced
   const filteredReservas = useMemo(() => {
     if (!debouncedSearchTerm) return sortedReservas
 
-    return sortedReservas.filter(reserva =>
+    return sortedReservas.filter((reserva) =>
       reserva.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     )
   }, [sortedReservas, debouncedSearchTerm])
 
   // OPTIMIZACIÓN: Handlers memoizados para operaciones del contador
-  const handleUpdateContador = useCallback(async (increment: boolean) => {
-    if (!adminData?.local_id) return
+  const handleUpdateContador = useCallback(
+    async (increment: boolean) => {
+      if (!adminData?.local_id) return
 
-    const nuevoValor = Math.max(0, personasActuales + (increment ? 1 : -1))
-    setPersonasActuales(nuevoValor)
+      const nuevoValor = Math.max(0, personasActuales + (increment ? 1 : -1))
+      setPersonasActuales(nuevoValor)
 
-    try {
-      const today = new Date().toISOString().split("T")[0]
-      const { error } = await supabase
-        .from("contador_personas")
-        .upsert({
-          local_id: adminData.local_id,
-          fecha: today,
-          cantidad: nuevoValor
-        }, {
-          onConflict: 'local_id,fecha'
-        })
+      try {
+        const today = new Date().toISOString().split('T')[0]
+        const { error } = await supabase.from('contador_personas').upsert(
+          {
+            local_id: adminData.local_id,
+            fecha: today,
+            cantidad: nuevoValor,
+          },
+          {
+            onConflict: 'local_id,fecha',
+          }
+        )
 
-      if (error) {
-        console.error("Error al actualizar contador:", error)
+        if (error) {
+          console.error('Error al actualizar contador:', error)
+          setPersonasActuales(personasActuales)
+          toast.error('Error al actualizar el contador')
+          return
+        }
+      } catch (error) {
+        console.error('Error al actualizar contador:', error)
         setPersonasActuales(personasActuales)
-        toast.error("Error al actualizar el contador")
-        return
+        toast.error('Error al actualizar el contador')
       }
-    } catch (error) {
-      console.error("Error al actualizar contador:", error)
-      setPersonasActuales(personasActuales)
-      toast.error("Error al actualizar el contador")
-    }
-  }, [adminData?.local_id, personasActuales])
+    },
+    [adminData?.local_id, personasActuales]
+  )
 
-  const handleBulkUpdateContador = useCallback(async (changes: number) => {
-    if (!adminData?.local_id) return
+  const handleBulkUpdateContador = useCallback(
+    async (changes: number) => {
+      if (!adminData?.local_id) return
 
-    const nuevoValor = Math.max(0, personasActuales + changes)
-    setPersonasActuales(nuevoValor)
+      const nuevoValor = Math.max(0, personasActuales + changes)
+      setPersonasActuales(nuevoValor)
 
-    try {
-      const today = new Date().toISOString().split("T")[0]
-      const { error } = await supabase
-        .from("contador_personas")
-        .upsert({
-          local_id: adminData.local_id,
-          fecha: today,
-          cantidad: nuevoValor
-        }, {
-          onConflict: 'local_id,fecha'
-        })
+      try {
+        const today = new Date().toISOString().split('T')[0]
+        const { error } = await supabase.from('contador_personas').upsert(
+          {
+            local_id: adminData.local_id,
+            fecha: today,
+            cantidad: nuevoValor,
+          },
+          {
+            onConflict: 'local_id,fecha',
+          }
+        )
 
-      if (error) {
-        console.error("Error al actualizar contador:", error)
+        if (error) {
+          console.error('Error al actualizar contador:', error)
+          setPersonasActuales(personasActuales)
+          toast.error('Error al actualizar el contador')
+          return
+        }
+      } catch (error) {
+        console.error('Error al actualizar contador:', error)
         setPersonasActuales(personasActuales)
-        toast.error("Error al actualizar el contador")
-        return
+        toast.error('Error al actualizar el contador')
       }
-    } catch (error) {
-      console.error("Error al actualizar contador:", error)
-      setPersonasActuales(personasActuales)
-      toast.error("Error al actualizar el contador")
-    }
-  }, [adminData?.local_id, personasActuales])
+    },
+    [adminData?.local_id, personasActuales]
+  )
 
   const handleResetContador = useCallback(async () => {
     if (!adminData?.local_id) return
@@ -620,96 +773,108 @@ export default function AdminPage() {
     setPersonasActuales(0)
 
     try {
-      const today = new Date().toISOString().split("T")[0]
-      const { error } = await supabase
-        .from("contador_personas")
-        .upsert({
+      const today = new Date().toISOString().split('T')[0]
+      const { error } = await supabase.from('contador_personas').upsert(
+        {
           local_id: adminData.local_id,
           fecha: today,
-          cantidad: 0
-        }, {
-          onConflict: 'local_id,fecha'
-        })
+          cantidad: 0,
+        },
+        {
+          onConflict: 'local_id,fecha',
+        }
+      )
 
       if (error) {
-        console.error("Error al resetear contador:", error)
-        toast.error("Error al resetear el contador")
+        console.error('Error al resetear contador:', error)
+        toast.error('Error al resetear el contador')
         return
       }
     } catch (error) {
-      console.error("Error al resetear contador:", error)
-      toast.error("Error al resetear el contador")
+      console.error('Error al resetear contador:', error)
+      toast.error('Error al resetear el contador')
     }
   }, [adminData?.local_id])
 
-  const handleDeleteReserva = useCallback(async (id: string, nombre: string) => {
-    const success = await deleteReserva(id)
-    if (success) {
-      setReservas(prev => prev.filter(r => r.id !== id))
-      if (adminData?.local_id) {
-        const today = new Date().toISOString().split("T")[0]
-        const stats = await calcularEstadisticasCompletas(adminData.local_id, today)
-        setPlazasStats(stats)
+  const handleDeleteReserva = useCallback(
+    async (id: string, nombre: string) => {
+      const success = await deleteReserva(id)
+      if (success) {
+        setReservas((prev) => prev.filter((r) => r.id !== id))
+        if (adminData?.local_id) {
+          const today = new Date().toISOString().split('T')[0]
+          const stats = await calcularEstadisticasCompletas(
+            adminData.local_id,
+            today
+          )
+          setPlazasStats(stats)
+        }
+        toast.success(`Reserva de ${nombre} eliminada`)
+      } else {
+        toast.error('Error al eliminar la reserva')
       }
-      toast.success(`Reserva de ${nombre} eliminada`)
-    } else {
-      toast.error("Error al eliminar la reserva")
-    }
-  }, [adminData?.local_id])
+    },
+    [adminData?.local_id]
+  )
 
-  const handleEditReserva = useCallback(async (reservaData: any) => {
-    if (!adminData?.local_id) return
+  const handleEditReserva = useCallback(
+    async (reservaData: any) => {
+      if (!adminData?.local_id) return
 
-    if (reservaData.cantidad_personas > 6) {
-      toast.error("El máximo de personas por reserva es 6. Para más personas, contactar al: 0223-5357224")
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from("reservas")
-        .update({
-          nombre: reservaData.nombre,
-          email: reservaData.email,
-          whatsapp: reservaData.whatsapp,
-          contacto: reservaData.email || reservaData.contacto, // Mantener compatibilidad
-          fecha: reservaData.fecha,
-          horario: reservaData.horario,
-          cantidad_personas: reservaData.cantidad_personas,
-          quiere_newsletter: reservaData.quiere_newsletter || false,
-          notas: reservaData.notas
-        })
-        .eq("id", editingReserva.id)
-        .eq("local_id", adminData.local_id)
-
-      if (error) {
-        console.error("Error al actualizar reserva:", error)
-        toast.error("Error al actualizar la reserva")
+      if (reservaData.cantidad_personas > 6) {
+        toast.error(
+          'El máximo de personas por reserva es 6. Para más personas, contactar al: 0223-5357224'
+        )
         return
       }
 
-      const { data: reservasData } = await supabase
-        .from("reservas")
-        .select("*")
-        .eq("local_id", adminData.local_id)
+      try {
+        const { error } = await supabase
+          .from('reservas')
+          .update({
+            nombre: reservaData.nombre,
+            email: reservaData.email,
+            whatsapp: reservaData.whatsapp,
+            contacto: reservaData.email || reservaData.contacto, // Mantener compatibilidad
+            fecha: reservaData.fecha,
+            horario: reservaData.horario,
+            cantidad_personas: reservaData.cantidad_personas,
+            quiere_newsletter: reservaData.quiere_newsletter || false,
+            notas: reservaData.notas,
+          })
+          .eq('id', editingReserva.id)
+          .eq('local_id', adminData.local_id)
 
-      setReservas(reservasData || [])
-      setIsEditDialogOpen(false)
-      setEditingReserva(null)
+        if (error) {
+          console.error('Error al actualizar reserva:', error)
+          toast.error('Error al actualizar la reserva')
+          return
+        }
 
-      toast.success("Reserva actualizada correctamente")
-    } catch (error) {
-      console.error("Error al actualizar reserva:", error)
-      toast.error("Error al actualizar la reserva")
-    }
-  }, [adminData?.local_id, editingReserva])
+        const { data: reservasData } = await supabase
+          .from('reservas')
+          .select('*')
+          .eq('local_id', adminData.local_id)
+
+        setReservas(reservasData || [])
+        setIsEditDialogOpen(false)
+        setEditingReserva(null)
+
+        toast.success('Reserva actualizada correctamente')
+      } catch (error) {
+        console.error('Error al actualizar reserva:', error)
+        toast.error('Error al actualizar la reserva')
+      }
+    },
+    [adminData?.local_id, editingReserva]
+  )
 
   useEffect(() => {
     const verificarAutenticacion = async () => {
-      const sessionDataString = localStorage.getItem("admin_session")
+      const sessionDataString = localStorage.getItem('admin_session')
 
       if (!sessionDataString) {
-        router.replace("/admin/login")
+        router.replace('/admin/login')
         return
       }
 
@@ -718,31 +883,31 @@ export default function AdminPage() {
         const now = Date.now()
 
         if (now > sessionData.expires) {
-          console.log("Sesión expirada")
-          localStorage.removeItem("admin_session")
-          router.replace("/admin/login")
+          console.log('Sesión expirada')
+          localStorage.removeItem('admin_session')
+          router.replace('/admin/login')
           return
         }
 
         const { data: adminDbData, error } = await supabase
-          .from("usuarios_admin")
-          .select("id, nombre, user, local_id, token_acceso")
-          .eq("id", sessionData.user.id)
-          .eq("token_acceso", sessionData.token)
+          .from('usuarios_admin')
+          .select('id, nombre, user, local_id, token_acceso')
+          .eq('id', sessionData.user.id)
+          .eq('token_acceso', sessionData.token)
           .single()
 
         if (error || !adminDbData) {
-          console.error("Token inválido o expirado:", error)
-          localStorage.removeItem("admin_session")
-          router.replace("/admin/login")
+          console.error('Token inválido o expirado:', error)
+          localStorage.removeItem('admin_session')
+          router.replace('/admin/login')
           return
         }
 
         setAdminData(sessionData.user)
       } catch (error) {
-        console.error("Error al verificar autenticación:", error)
-        localStorage.removeItem("admin_session")
-        router.replace("/admin/login")
+        console.error('Error al verificar autenticación:', error)
+        localStorage.removeItem('admin_session')
+        router.replace('/admin/login')
       }
     }
 
@@ -755,17 +920,17 @@ export default function AdminPage() {
     const cargarDatos = async () => {
       setLoadingStats(true)
       try {
-        const today = new Date().toISOString().split("T")[0]
+        const today = new Date().toISOString().split('T')[0]
 
         // OPTIMIZACIÓN: Usar Promise.all para consultas paralelas con timeout y mejor cache
         const [reservasResult, contadorData, stats] = await Promise.all([
           supabase
-            .from("reservas")
-            .select("*")
-            .eq("local_id", adminData.local_id)
+            .from('reservas')
+            .select('*')
+            .eq('local_id', adminData.local_id)
             .order('created_at', { ascending: false }), // Ordenar en DB en lugar del cliente
           getContador(adminData.local_id),
-          calcularEstadisticasCompletas(adminData.local_id, today)
+          calcularEstadisticasCompletas(adminData.local_id, today),
         ])
 
         setReservas(reservasResult.data || [])
@@ -802,12 +967,16 @@ export default function AdminPage() {
               event: '*',
               schema: 'public',
               table: 'reservas',
-              filter: `local_id=eq.${adminData.local_id}`
+              filter: `local_id=eq.${adminData.local_id}`,
             },
             () => {
               // OPTIMIZACIÓN: Throttling para evitar updates excesivos
               const now = Date.now()
-              if (isActive && !document.hidden && (now - lastUpdate) > UPDATE_THROTTLE) {
+              if (
+                isActive &&
+                !document.hidden &&
+                now - lastUpdate > UPDATE_THROTTLE
+              ) {
                 lastUpdate = now
                 cargarDatos()
               }
@@ -823,12 +992,17 @@ export default function AdminPage() {
               event: '*',
               schema: 'public',
               table: 'contador_personas',
-              filter: `local_id=eq.${adminData.local_id}`
+              filter: `local_id=eq.${adminData.local_id}`,
             },
             (payload) => {
               // OPTIMIZACIÓN: Solo actualizar si está activo y no hay throttle
               const now = Date.now()
-              if (isActive && payload.new && 'cantidad' in payload.new && (now - lastUpdate) > 1000) {
+              if (
+                isActive &&
+                payload.new &&
+                'cantidad' in payload.new &&
+                now - lastUpdate > 1000
+              ) {
                 lastUpdate = now
                 setPersonasActuales(payload.new.cantidad as number)
               }
@@ -848,7 +1022,8 @@ export default function AdminPage() {
       } else {
         // Reactivar y hacer un refresh cuando vuelve a estar visible
         isActive = true
-        if (Date.now() - lastUpdate > 5000) { // Solo si hace más de 5s que no se actualiza
+        if (Date.now() - lastUpdate > 5000) {
+          // Solo si hace más de 5s que no se actualiza
           cargarDatos()
         }
       }
@@ -882,12 +1057,12 @@ export default function AdminPage() {
       const aDate = new Date(`${a.fecha}T${a.horario}`).getTime()
       const bDate = new Date(`${b.fecha}T${b.horario}`).getTime()
 
-      const statusPriority = { "Hoy": 0, "Próxima": 1, "Pasada": 2 }
+      const statusPriority = { Hoy: 0, Próxima: 1, Pasada: 2 }
 
       if (statusPriority[aStatus] < statusPriority[bStatus]) return -1
       if (statusPriority[aStatus] > statusPriority[bStatus]) return 1
 
-      if (aStatus === "Pasada") {
+      if (aStatus === 'Pasada') {
         return bDate - aDate
       }
       return aDate - bDate
@@ -913,7 +1088,9 @@ export default function AdminPage() {
           />
           <div className="flex items-center gap-3 text-amber-100">
             <Loader2 className="w-6 h-6 animate-spin" />
-            <span className="font-legquinne text-xl">Cargando dashboard...</span>
+            <span className="font-legquinne text-xl">
+              Cargando dashboard...
+            </span>
           </div>
         </motion.div>
       </div>
@@ -958,7 +1135,10 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                <Separator orientation="vertical" className="h-12 bg-amber-500/20" />
+                <Separator
+                  orientation="vertical"
+                  className="h-12 bg-amber-500/20"
+                />
 
                 <div className="flex items-center space-x-2 bg-slate-800/50 rounded-full px-4 py-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
@@ -1047,14 +1227,22 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-legquinne font-bold text-white">
-                  {Math.round((plazasStats.plazasOcupadas / plazasStats.plazasTotales) * 100)}%
+                  {Math.round(
+                    (plazasStats.plazasOcupadas / plazasStats.plazasTotales) *
+                      100
+                  )}
+                  %
                 </div>
                 <Progress
-                  value={(plazasStats.plazasOcupadas / plazasStats.plazasTotales) * 100}
+                  value={
+                    (plazasStats.plazasOcupadas / plazasStats.plazasTotales) *
+                    100
+                  }
                   className="h-2 bg-slate-700"
                 />
                 <div className="text-xs text-emerald-200 mt-1">
-                  {plazasStats.plazasOcupadas}/{plazasStats.plazasTotales} plazas
+                  {plazasStats.plazasOcupadas}/{plazasStats.plazasTotales}{' '}
+                  plazas
                 </div>
               </CardContent>
             </Card>
@@ -1078,17 +1266,34 @@ export default function AdminPage() {
               <CardContent>
                 <ChartContainer
                   config={{
-                    reservas: { label: "Reservas", color: chartColors.primary },
-                    personas: { label: "Personas", color: chartColors.secondary }
+                    reservas: { label: 'Reservas', color: chartColors.primary },
+                    personas: {
+                      label: 'Personas',
+                      color: chartColors.secondary,
+                    },
                   }}
                   className="h-[300px]"
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                       <defs>
-                        <linearGradient id="reservas" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.3} />
-                          <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0} />
+                        <linearGradient
+                          id="reservas"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor={chartColors.primary}
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor={chartColors.primary}
+                            stopOpacity={0}
+                          />
                         </linearGradient>
                       </defs>
                       <XAxis
@@ -1128,7 +1333,7 @@ export default function AdminPage() {
               <CardContent>
                 <ChartContainer
                   config={{
-                    value: { label: "Ocupadas", color: chartColors.primary }
+                    value: { label: 'Ocupadas', color: chartColors.primary },
                   }}
                   className="h-[250px]"
                 >
@@ -1239,16 +1444,26 @@ export default function AdminPage() {
                             <>
                               <Search className="w-20 h-20 mx-auto opacity-30" />
                               <div>
-                                <p className="text-xl font-legquinne">No se encontraron reservas</p>
-                                <p className="text-sm">No hay reservas que coincidan con "{searchTerm}"</p>
+                                <p className="text-xl font-legquinne">
+                                  No se encontraron reservas
+                                </p>
+                                <p className="text-sm">
+                                  No hay reservas que coincidan con "
+                                  {searchTerm}"
+                                </p>
                               </div>
                             </>
                           ) : (
                             <>
                               <Calendar className="w-20 h-20 mx-auto opacity-30" />
                               <div>
-                                <p className="text-xl font-legquinne">No hay reservas registradas</p>
-                                <p className="text-sm">Las nuevas reservas aparecerán aquí automáticamente</p>
+                                <p className="text-xl font-legquinne">
+                                  No hay reservas registradas
+                                </p>
+                                <p className="text-sm">
+                                  Las nuevas reservas aparecerán aquí
+                                  automáticamente
+                                </p>
                               </div>
                             </>
                           )}
@@ -1260,15 +1475,33 @@ export default function AdminPage() {
                           <Table>
                             <TableHeader>
                               <TableRow className="border-amber-500/20 hover:bg-amber-500/5">
-                                <TableHead className="text-amber-300 font-legquinne">Estado</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne">Fecha</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne">Horario</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne">Cliente</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne">Contacto</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne">Personas</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne">Notas</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne">Registrado</TableHead>
-                                <TableHead className="text-amber-300 font-legquinne text-center">Acciones</TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Estado
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Fecha
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Horario
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Cliente
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Contacto
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Personas
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Notas
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne">
+                                  Registrado
+                                </TableHead>
+                                <TableHead className="text-amber-300 font-legquinne text-center">
+                                  Acciones
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1303,7 +1536,9 @@ export default function AdminPage() {
                 ) : (
                   <Card className="bg-slate-800/70 border-amber-500/30 backdrop-blur-xl shadow-xl">
                     <CardContent className="flex items-center justify-center py-8">
-                      <div className="text-amber-300/70">Cargando calendario...</div>
+                      <div className="text-amber-300/70">
+                        Cargando calendario...
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -1331,20 +1566,59 @@ export default function AdminPage() {
                       <CardContent>
                         <ChartContainer
                           config={{
-                            value: { label: "Reservas", color: chartColors.primary }
+                            value: {
+                              label: 'Reservas',
+                              color: chartColors.primary,
+                            },
                           }}
                           className="h-[280px]"
                         >
                           <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={statusData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <BarChart
+                              data={statusData}
+                              margin={{
+                                top: 20,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
+                            >
                               <defs>
-                                <linearGradient id="statusGradient1" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor={chartColors.success} stopOpacity={0.8} />
-                                  <stop offset="95%" stopColor={chartColors.success} stopOpacity={0.2} />
+                                <linearGradient
+                                  id="statusGradient1"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor={chartColors.success}
+                                    stopOpacity={0.8}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor={chartColors.success}
+                                    stopOpacity={0.2}
+                                  />
                                 </linearGradient>
-                                <linearGradient id="statusGradient2" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor={chartColors.warning} stopOpacity={0.8} />
-                                  <stop offset="95%" stopColor={chartColors.warning} stopOpacity={0.2} />
+                                <linearGradient
+                                  id="statusGradient2"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor={chartColors.warning}
+                                    stopOpacity={0.8}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor={chartColors.warning}
+                                    stopOpacity={0.2}
+                                  />
                                 </linearGradient>
                               </defs>
                               <XAxis
@@ -1380,9 +1654,13 @@ export default function AdminPage() {
                                   className="w-3 h-3 rounded-full"
                                   style={{ backgroundColor: status.color }}
                                 />
-                                <span className="text-xs text-amber-200">{status.name}</span>
+                                <span className="text-xs text-amber-200">
+                                  {status.name}
+                                </span>
                               </div>
-                              <div className="text-lg font-legquinne text-white">{status.value}</div>
+                              <div className="text-lg font-legquinne text-white">
+                                {status.value}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1409,16 +1687,41 @@ export default function AdminPage() {
                       <CardContent>
                         <ChartContainer
                           config={{
-                            personas: { label: "Personas", color: chartColors.accent }
+                            personas: {
+                              label: 'Personas',
+                              color: chartColors.accent,
+                            },
                           }}
                           className="h-[280px]"
                         >
                           <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <AreaChart
+                              data={chartData}
+                              margin={{
+                                top: 20,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
+                            >
                               <defs>
-                                <linearGradient id="personasGradient" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor={chartColors.accent} stopOpacity={0.4} />
-                                  <stop offset="95%" stopColor={chartColors.accent} stopOpacity={0.1} />
+                                <linearGradient
+                                  id="personasGradient"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor={chartColors.accent}
+                                    stopOpacity={0.4}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor={chartColors.accent}
+                                    stopOpacity={0.1}
+                                  />
                                 </linearGradient>
                               </defs>
                               <XAxis
@@ -1440,7 +1743,11 @@ export default function AdminPage() {
                                 fillOpacity={1}
                                 fill="url(#personasGradient)"
                                 strokeWidth={3}
-                                dot={{ fill: chartColors.accent, strokeWidth: 2, r: 4 }}
+                                dot={{
+                                  fill: chartColors.accent,
+                                  strokeWidth: 2,
+                                  r: 4,
+                                }}
                               />
                             </AreaChart>
                           </ResponsiveContainer>
@@ -1449,21 +1756,37 @@ export default function AdminPage() {
                         {/* Weekly Stats */}
                         <div className="flex justify-between items-center mt-4 pt-4 border-t border-amber-500/20">
                           <div className="text-center">
-                            <div className="text-xs text-amber-300/70">Total Semana</div>
+                            <div className="text-xs text-amber-300/70">
+                              Total Semana
+                            </div>
                             <div className="text-lg font-legquinne text-emerald-400">
-                              {chartData.reduce((acc, day) => acc + day.personas, 0)}
+                              {chartData.reduce(
+                                (acc, day) => acc + day.personas,
+                                0
+                              )}
                             </div>
                           </div>
                           <div className="text-center">
-                            <div className="text-xs text-amber-300/70">Promedio Diario</div>
+                            <div className="text-xs text-amber-300/70">
+                              Promedio Diario
+                            </div>
                             <div className="text-lg font-legquinne text-blue-400">
-                              {(chartData.reduce((acc, day) => acc + day.personas, 0) / 7).toFixed(1)}
+                              {(
+                                chartData.reduce(
+                                  (acc, day) => acc + day.personas,
+                                  0
+                                ) / 7
+                              ).toFixed(1)}
                             </div>
                           </div>
                           <div className="text-center">
-                            <div className="text-xs text-amber-300/70">Mejor Día</div>
+                            <div className="text-xs text-amber-300/70">
+                              Mejor Día
+                            </div>
                             <div className="text-lg font-legquinne text-amber-400">
-                              {Math.max(...chartData.map(day => day.personas))}
+                              {Math.max(
+                                ...chartData.map((day) => day.personas)
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1490,17 +1813,23 @@ export default function AdminPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-legquinne font-bold text-white mb-1">
-                        {reservas.length > 0 ?
-                          (reservas.reduce((acc, r) => acc + r.cantidad_personas, 0) / reservas.length).toFixed(1) :
-                          '0.0'
-                        }
+                        {reservas.length > 0
+                          ? (
+                              reservas.reduce(
+                                (acc, r) => acc + r.cantidad_personas,
+                                0
+                              ) / reservas.length
+                            ).toFixed(1)
+                          : '0.0'}
                       </div>
                       <p className="text-xs text-emerald-300/70">
                         personas por reserva
                       </p>
                       <div className="flex items-center mt-2">
                         <TrendingUp className="w-3 h-3 mr-1 text-emerald-400" />
-                        <span className="text-xs text-emerald-400">Óptimo: 2-4 personas</span>
+                        <span className="text-xs text-emerald-400">
+                          Óptimo: 2-4 personas
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -1541,13 +1870,22 @@ export default function AdminPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-legquinne font-bold text-white mb-1">
-                        {Math.round((plazasStats.plazasOcupadas / plazasStats.plazasTotales) * 100)}%
+                        {Math.round(
+                          (plazasStats.plazasOcupadas /
+                            plazasStats.plazasTotales) *
+                            100
+                        )}
+                        %
                       </div>
                       <p className="text-xs text-blue-300/70">
                         capacidad utilizada
                       </p>
                       <Progress
-                        value={(plazasStats.plazasOcupadas / plazasStats.plazasTotales) * 100}
+                        value={
+                          (plazasStats.plazasOcupadas /
+                            plazasStats.plazasTotales) *
+                          100
+                        }
                         className="h-1.5 mt-2 bg-slate-700"
                       />
                     </CardContent>
@@ -1572,16 +1910,19 @@ export default function AdminPage() {
                       <div className="flex items-center mt-2">
                         <div className="w-3 h-3 mr-1 bg-purple-400 rounded-full" />
                         <span className="text-xs text-purple-400">
-                          {analyticsData.reservasConNotas > 0 ?
-                            Math.round((analyticsData.reservasConNotas / reservas.length) * 100)
-                            : 0}% del total
+                          {analyticsData.reservasConNotas > 0
+                            ? Math.round(
+                                (analyticsData.reservasConNotas /
+                                  reservas.length) *
+                                  100
+                              )
+                            : 0}
+                          % del total
                         </span>
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
-
-
               </TabsContent>
             </Tabs>
           </motion.div>
